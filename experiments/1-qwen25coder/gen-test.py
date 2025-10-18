@@ -1,3 +1,4 @@
+from torch import return_types
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 bnb_config = BitsAndBytesConfig(load_in_8bit=True)
@@ -12,6 +13,31 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # %%
+import numpy as np
+test = "roses are red, violets are "
+inputs = tokenizer(test, return_tensors="pt")
+inputs.input_ids
+inputs
+
+response = model(**inputs)
+
+response
+
+logits = response.logits
+
+logits
+logits.shape
 
 
+
+
+# %%
+
+
+
+# %%
+
+from transformers import pipeline
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+pipe("Explain recursion simply:")
 
