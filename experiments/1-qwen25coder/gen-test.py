@@ -13,31 +13,31 @@ model = AutoModelForCausalLM.from_pretrained(
 )
 
 # %%
+
 import numpy as np
-test = "roses are red, violets are "
-inputs = tokenizer(test, return_tensors="pt")
-inputs.input_ids
-inputs
+test = "roses are red, violets"
 
-response = model(**inputs)
+for i in range(1, 10):
+    inputs = tokenizer(test, return_tensors="pt")
+    inputs.input_ids
+    response = model(**inputs)
+    logits = response.logits
+    logits.shape
+    last = logits[0,-1:][0]
+    max_token_id_next = last.argmax()
+    next = tokenizer.decode(max_token_id_next)
+    test = test + next
+    print(test)
+    # print(next)
 
-response
 
-logits = response.logits
-
-logits
-logits.shape
-
+# %%
 
 
 
 # %%
 
-
-
-# %%
-
-from transformers import pipeline
-pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-pipe("Explain recursion simply:")
+# from transformers import pipeline
+# pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+# pipe("Explain recursion simply:")
 
