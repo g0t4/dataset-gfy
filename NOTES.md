@@ -1,3 +1,16 @@
+## Experiment ideas
+
+- Vary amount of non-swear responses to see how it affects sweariness overall
+- Measure sweariness before and after
+- Measure perplexity before and after (how confident is the model in the old vs new style?)
+- Train variants of my LoRA adapter and swap/blend them... 
+    - and do this at runtime w/o reloading base model
+
+## Separate fine tune datasets
+
+- Emoji heavy vs light vs healthy levels vs none
+    - Modify dataset per model tendencies, i.e. qwen3 is emoji heavy whereas qwen2.5-coder is not
+
 ## Observations
 
 - swear words, especially humorfully placed (i.e. "brackets and bullshit" is god level)
