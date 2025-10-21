@@ -1,5 +1,8 @@
+import numpy as np
+from datasets import load_dataset
+from peft import LoraConfig, get_peft_model
 from torch import return_types
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments, Trainer, pipeline
 
 bnb_config = BitsAndBytesConfig(load_in_8bit=True)
 
@@ -14,7 +17,6 @@ model = AutoModelForCausalLM.from_pretrained(
 
 # %%
 
-import numpy as np
 test = "roses are red, violets"
 # TODO after the fine tune, see how it answers this same prompt... if it says smth unexpected (esp. that rhymes) then I know the fine tune is working!
 
@@ -38,7 +40,59 @@ for i in range(1, 10):
 
 # %%
 
-# from transformers import pipeline
 # pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
 # pipe("Explain recursion simply:")
+
+# %%
+
+
+# FYI for now, use all examples to verify fine tune is operational... then later split out test/train and reset adapter/model
+ds = load_dataset("json", data_files="../../out/gfy.nocomments.jsonl")["train"]
+
+def format(sample):
+    text = sample["prompt"] + "\n" + sample["completion"]
+    tokenized = tokenizer(text, truncation=True, max_length=512)
+    # augment dataset with labels for training (for causal LM finetune)
+    tokenized["labels"] = tokenized["input_ids"].copy()
+    return tokenized
+
+tokenized = ds.map(format)
+
+
+# %%
+
+config = LoraConfig(
+    r=8,
+    lora_alpha=16,
+    target_modules=["q_proj","v_proj"],
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+# %%
+
+model = get_peft_model(model, config)
+
+
+args = TrainingArguments(
+    output_dir="out",
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=4,
+    warmup_steps=10,
+    learning_rate=2e-4,
+    num_train_epochs=3,
+    logging_steps=10,
+    bf16=True
+)
+
+trainer = Trainer(model=model, args=args, train_dataset=tokenized)
+
+
+
+trainer.train()
+
+# %%
+
+
 
