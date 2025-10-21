@@ -16,6 +16,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 import numpy as np
 test = "roses are red, violets"
+# TODO after the fine tune, see how it answers this same prompt... if it says smth unexpected (esp. that rhymes) then I know the fine tune is working!
 
 for i in range(1, 10):
     inputs = tokenizer(test, return_tensors="pt")
