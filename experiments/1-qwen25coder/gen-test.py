@@ -68,8 +68,9 @@ tokenized = train_ds.map(format)
 
 # %%
 def dump_model_info(when, model):
+    rich.print(f"\n[bold cyan]model {when}[/]")
     for name, param in list(model.named_parameters())[:10]:
-        rich.print(f"{when} {name:40} {param.device} {param.dtype}")
+        rich.print(f"  {name:40} {param.device} {param.dtype}")
 dump_model_info("before train", original_model) # shows bfloat16 on my nvidia GPU
 
 
@@ -87,9 +88,9 @@ config = LoraConfig(
 # %%
 
 finetuned_model = get_peft_model(original_model, config)
-# dump_model_info("lora before bf16 to", model) # shows float32! for lora layers
+# dump_model_info("lora before to(bf16)", model) # shows float32! for lora layers
 finetuned_model.to(torch.bfloat16)
-dump_model_info("lora after bf16 to", finetuned_model) # shows bfloat16 now
+dump_model_info("lora after to(bf16)", finetuned_model) # shows bfloat16 now
 
 # from transformers import DataCollatorForLanguageModeling
 # collator = DataCollatorForLanguageModeling(
