@@ -104,7 +104,8 @@ args = TrainingArguments(
     gradient_accumulation_steps=4,
     warmup_steps=10,
     learning_rate=2e-5,
-    num_train_epochs=10, # drop to 1 for quick end to end tests
+    num_train_epochs=1, # fast testing
+    # num_train_epochs=10, # actual fine tune
     logging_steps=10,
     bf16=True,
     gradient_checkpointing=True,
@@ -134,11 +135,11 @@ def compare(prompt):
     rich.print(prompt)
 
     rich.print("\n[bold red]untrained[/]")
-    untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
     rich.print(untrained(prompt)[0]["generated_text"])
 
     rich.print("\n[bold blue]finetuned[/]")
-    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 # compare("Explain why humans have a sense of self:")
