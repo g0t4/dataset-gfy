@@ -91,8 +91,7 @@ finetuned_model = get_peft_model(original_model, config)
 finetuned_model.to(torch.bfloat16)
 dump_model_info("lora after bf16 to", finetuned_model) # shows bfloat16 now
 
-from transformers import DataCollatorForLanguageModeling
-
+# from transformers import DataCollatorForLanguageModeling
 # collator = DataCollatorForLanguageModeling(
 #     tokenizer=tokenizer,
 #     mlm=False  # because it's a causal LM, not masked LM
