@@ -76,8 +76,8 @@ args = TrainingArguments(
     per_device_train_batch_size=1,
     gradient_accumulation_steps=4,
     warmup_steps=10,
-    learning_rate=2e-4,
-    num_train_epochs=3,
+    learning_rate=2e-5,
+    num_train_epochs=10,
     logging_steps=10,
     bf16=True
 )
