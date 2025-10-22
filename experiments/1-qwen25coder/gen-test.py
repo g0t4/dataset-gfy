@@ -104,7 +104,7 @@ args = TrainingArguments(
     gradient_accumulation_steps=4,
     warmup_steps=10,
     learning_rate=2e-5,
-    num_train_epochs=1,
+    num_train_epochs=10, # drop to 1 for quick end to end tests
     logging_steps=10,
     bf16=True,
     gradient_checkpointing=True,
@@ -138,23 +138,24 @@ def compare(prompt):
     finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
     rich.print(finetuned(prompt)[0]["generated_text"])
 
-compare("Explain why humans have a sense of self:")
+# compare("Explain why humans have a sense of self:")
+compare("A gitignore file is for ")
 
-# %%
-
-# manual inference (like mine above)
-
-finetuned_model.eval()
-prompt = "roses are red, violets"
-inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
-
-with torch.no_grad():
-    for i in range(10):
-        outputs = finetuned_model(**inputs)
-        next_id = outputs.logits[0, -1].argmax().unsqueeze(0)
-        inputs = {
-            "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
-        }
-        test = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
-        print(test)
+# # %%
+#
+# # manual inference (like mine above)
+#
+# finetuned_model.eval()
+# prompt = "roses are red, violets"
+# inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
+#
+# with torch.no_grad():
+#     for i in range(10):
+#         outputs = finetuned_model(**inputs)
+#         next_id = outputs.logits[0, -1].argmax().unsqueeze(0)
+#         inputs = {
+#             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
+#         }
+#         test = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
+#         print(test)
 
