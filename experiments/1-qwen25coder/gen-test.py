@@ -37,12 +37,6 @@ for i in range(1, 10):
 # %%
 
 
-
-# %%
-
-# pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
-# pipe("Explain recursion simply:")
-
 # %%
 
 
@@ -95,4 +89,6 @@ trainer.train()
 # %%
 
 
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+pipe("Explain recursion simply:")
 
