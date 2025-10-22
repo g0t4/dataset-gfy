@@ -4,6 +4,10 @@ from peft import LoraConfig, get_peft_model
 from torch import return_types
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments, Trainer, pipeline
 import rich
+import torch
+
+use_device = torch.device("cuda:0")
+torch.set_default_device(use_device)
 
 bnb_config = BitsAndBytesConfig(load_in_8bit=True)
 
@@ -11,10 +15,9 @@ model_name = "Qwen/Qwen2.5-Coder-0.5B"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    quantization_config=bnb_config,
-    device_map="auto",
+    torch_dtype="auto",  # or torch.bfloat16
     trust_remote_code=True
-)
+).to(use_device)
 
 # %%
 
@@ -55,6 +58,12 @@ def format(sample):
     return tokenized
 
 tokenized = ds.map(format)
+
+# %%
+def dump_model_info(when, model):
+    for name, param in list(model.named_parameters())[:10]:
+        rich.print(f"{when} {name:40} {param.device} {param.dtype}")
+dump_model_info("before train", model) # shows bfloat16 on my nvidia GPU
 
 
 # %%
