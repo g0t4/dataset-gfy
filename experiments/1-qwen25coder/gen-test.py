@@ -86,10 +86,10 @@ config = LoraConfig(
 
 # %%
 
-original_model = get_peft_model(original_model, config)
+finetuned_model = get_peft_model(original_model, config)
 # dump_model_info("lora before bf16 to", model) # shows float32! for lora layers
-original_model.to(torch.bfloat16)
-dump_model_info("lora after bf16 to", original_model) # shows bfloat16 now
+finetuned_model.to(torch.bfloat16)
+dump_model_info("lora after bf16 to", finetuned_model) # shows bfloat16 now
 
 from transformers import DataCollatorForLanguageModeling
 
@@ -113,7 +113,7 @@ args = TrainingArguments(
 )
 
 trainer = Trainer(
-    model=original_model,
+    model=finetuned_model,
     args=args,
     train_dataset=tokenized,
     # data_collator=collator,
@@ -125,9 +125,9 @@ trainer.train()
 
 # use pipeline to infer
 def compare(prompt):
-    original_model.eval()
-    untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
-    finetuned = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    finetuned_model.eval()
+    untrained = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
     # warm up the pipeline
     rich.print("\n[bold yellow]warmup untrained[/]")
     rich.print(untrained("warmup")[0]["generated_text"])
@@ -147,13 +147,13 @@ compare("Explain why humans have a sense of self:")
 
 # manual inference (like mine above)
 
-original_model.eval()
+finetuned_model.eval()
 prompt = "roses are red, violets"
 inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
 
 with torch.no_grad():
     for i in range(10):
-        outputs = original_model(**inputs)
+        outputs = finetuned_model(**inputs)
         next_id = outputs.logits[0, -1].argmax().unsqueeze(0)
         inputs = {
             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
