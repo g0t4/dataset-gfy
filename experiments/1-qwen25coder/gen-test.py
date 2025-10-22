@@ -37,9 +37,9 @@ for i in range(1, 10):
 
 # %%
 
-untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
+# untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
 prompt_recursion = "Explain recursion simply:"
-rich.print(untrained(prompt_recursion)[0]["generated_text"])
+# rich.print(untrained(prompt_recursion)[0]["generated_text"])
 
 # %%
 
@@ -92,5 +92,13 @@ trainer.train()
 
 # %%
 
-finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer)
-rich.print(finetuned(prompt_recursion)[0]["generated_text"])
+def compare(prompt):
+    untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    rich.print(prompt)
+    rich.print("untrained")
+    rich.print(untrained(prompt)[0]["generated_text"])
+    rich.print("finetuned")
+    rich.print(finetuned(prompt)[0]["generated_text"])
+
+compare("Explain why humans have a sense of self:")
