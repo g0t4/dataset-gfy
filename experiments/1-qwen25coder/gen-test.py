@@ -5,19 +5,24 @@ from torch import return_types
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments, Trainer, pipeline
 import rich
 import torch
+import os
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 use_device = torch.device("cuda:0")
-torch.set_default_device(use_device)
-
-bnb_config = BitsAndBytesConfig(load_in_8bit=True)
+assert torch.cuda.is_available(), "NVIDIA GPU required."
 
 model_name = "Qwen/Qwen2.5-Coder-0.5B"
 tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+assert tokenizer.pad_token is not None
+
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
-    torch_dtype="auto",  # or torch.bfloat16
-    trust_remote_code=True
-).to(use_device)
+    # torch_dtype="auto",  # or torch.bfloat16
+    torch_dtype=torch.bfloat16,
+    trust_remote_code=True,
+    # attn_implementation="flash_attention_2" ... LATER
+)
+model.to(use_device)
 
 # %%
 
@@ -25,7 +30,7 @@ test = "roses are red, violets"
 # TODO after the fine tune, see how it answers this same prompt... if it says smth unexpected (esp. that rhymes) then I know the fine tune is working!
 
 for i in range(1, 10):
-    inputs = tokenizer(test, return_tensors="pt")
+    inputs = tokenizer(test, return_tensors="pt").to(model.device)
     inputs.input_ids
     response = model(**inputs)
     logits = response.logits
@@ -46,18 +51,20 @@ prompt_recursion = "Explain recursion simply:"
 
 # %%
 
+model.config.use_cache = False  # must be False for gradient checkpointing
+model.gradient_checkpointing_enable()
 
 # FYI for now, use all examples to verify fine tune is operational... then later split out test/train and reset adapter/model
-ds = load_dataset("json", data_files="../../out/gfy.nocomments.jsonl")["train"]
+train_ds = load_dataset("json", data_files="../../out/gfy.nocomments.jsonl")["train"]
 
 def format(sample):
     text = sample["prompt"] + "\n" + sample["completion"]
-    tokenized = tokenizer(text, truncation=True, max_length=512)
+    tokenized = tokenizer(text, truncation=True, padding=False, max_length=512)
     # augment dataset with labels for training (for causal LM finetune)
     tokenized["labels"] = tokenized["input_ids"].copy()
     return tokenized
 
-tokenized = ds.map(format)
+tokenized = train_ds.map(format)
 
 # %%
 def dump_model_info(when, model):
@@ -84,6 +91,12 @@ model = get_peft_model(model, config)
 model.to(torch.bfloat16)
 dump_model_info("lora after bf16 to", model) # shows bfloat16 now
 
+from transformers import DataCollatorForLanguageModeling
+
+# collator = DataCollatorForLanguageModeling(
+#     tokenizer=tokenizer,
+#     mlm=False  # because it's a causal LM, not masked LM
+# )
 
 args = TrainingArguments(
     output_dir="out",
@@ -91,23 +104,37 @@ args = TrainingArguments(
     gradient_accumulation_steps=4,
     warmup_steps=10,
     learning_rate=2e-5,
-    num_train_epochs=10,
+    num_train_epochs=1,
     logging_steps=10,
-    bf16=True
+    bf16=True,
+    gradient_checkpointing=True,
+    save_strategy="epoch",
+    report_to="none",
 )
 
-trainer = Trainer(model=model, args=args, train_dataset=tokenized)
-
-
+trainer = Trainer(
+    model=model,
+    args=args,
+    train_dataset=tokenized,
+    # data_collator=collator,
+)
 
 trainer.train()
 
 # %%
 
+# use pipeline to infer
 def compare(prompt):
-    untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    rich.print("\n[bold green]prompt[/]")
+    model.eval()
+    untrained = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    # warm up the pipeline
+    rich.print("\n[bold yellow]warmup untrained[/]")
+    rich.print(untrained("warmup")[0]["generated_text"])
+    rich.print("\n[bold red]warmup finetuned[/]")
+    rich.print(finetuned("warmup")[0]["generated_text"])
+
+    rich.print("\n\n[bold green]prompt[/]")
     rich.print(prompt)
     rich.print("\n[bold red]untrained[/]")
     rich.print(untrained(prompt)[0]["generated_text"])
@@ -115,3 +142,22 @@ def compare(prompt):
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 compare("Explain why humans have a sense of self:")
+
+# %%
+
+# manual inference (like mine above)
+
+model.eval()
+prompt = "roses are red, violets"
+inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
+
+with torch.no_grad():
+    for i in range(10):
+        outputs = model(**inputs)
+        next_id = outputs.logits[0, -1].argmax().unsqueeze(0)
+        inputs = {
+            "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
+        }
+        test = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
+        print(test)
+
