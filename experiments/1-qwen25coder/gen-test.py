@@ -122,20 +122,21 @@ trainer.train()
 dump_model_info("before train", original_model) # shows bfloat16 on my nvidia GPU
 dump_model_info("lora after to(bf16)", finetuned_model) # shows bfloat16 now
 
+finetuned_model.eval()
+original_model.eval()
+untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
+finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
+
 # use pipeline to infer
 def compare(prompt):
-    finetuned_model.eval()
-    original_model.eval()
 
     rich.print("\n\n[bold green]prompt[/]")
     rich.print(prompt)
 
     rich.print("\n[bold red]untrained[/]")
-    untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
     rich.print(untrained(prompt)[0]["generated_text"])
 
     rich.print("\n[bold blue]finetuned[/]")
-    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 # compare("Explain why humans have a sense of self:")
