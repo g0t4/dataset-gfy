@@ -38,9 +38,12 @@ def manual_inference(model, text):
         logits.shape
         last = logits[0,-1:][0]
         max_token_id_next = last.argmax()
-        next = tokenizer.decode(max_token_id_next)
+        #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
+        #             TODO switch to not re-encode all tokens on every iteration
+        next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
         test = test + next
         print(test)
+
 
 # re-assign so I can call repeatedly
 test = manual_inference(original_model, test) # just to see how it works before the fine tune
@@ -142,22 +145,3 @@ def compare(prompt):
 # compare("Explain why humans have a sense of self:")
 # compare("A gitignore file is for ") # failed to get the humor out of the model, but 10 epochs resulted in repetitive responses, was fine at 7 still
 compare("What does a for loop do?") # wow finetuned still returned an accurate link to w3schools.com!
-
-# # %%
-#
-# # manual inference (like mine above)
-#
-# finetuned_model.eval()
-# prompt = "roses are red, violets"
-# inputs = tokenizer(prompt, return_tensors="pt").to("cuda:0")
-#
-# with torch.no_grad():
-#     for i in range(10):
-#         outputs = finetuned_model(**inputs)
-#         next_id = outputs.logits[0, -1].argmax().unsqueeze(0)
-#         inputs = {
-#             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
-#         }
-#         test = tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
-#         print(test)
-
