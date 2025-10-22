@@ -126,19 +126,16 @@ trainer.train()
 # use pipeline to infer
 def compare(prompt):
     finetuned_model.eval()
-    untrained = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
-    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
-    # warm up the pipeline
-    rich.print("\n[bold yellow]warmup untrained[/]")
-    rich.print(untrained("warmup")[0]["generated_text"])
-    rich.print("\n[bold red]warmup finetuned[/]")
-    rich.print(finetuned("warmup")[0]["generated_text"])
 
     rich.print("\n\n[bold green]prompt[/]")
     rich.print(prompt)
+
     rich.print("\n[bold red]untrained[/]")
+    untrained = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
     rich.print(untrained(prompt)[0]["generated_text"])
+
     rich.print("\n[bold blue]finetuned[/]")
+    finetuned = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 compare("Explain why humans have a sense of self:")
