@@ -80,6 +80,9 @@ config = LoraConfig(
 # %%
 
 model = get_peft_model(model, config)
+# dump_model_info("lora before bf16 to", model) # shows float32! for lora layers
+model.to(torch.bfloat16)
+dump_model_info("lora after bf16 to", model) # shows bfloat16 now
 
 
 args = TrainingArguments(
