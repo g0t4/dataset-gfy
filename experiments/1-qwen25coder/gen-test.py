@@ -3,6 +3,7 @@ from datasets import load_dataset
 from peft import LoraConfig, get_peft_model
 from torch import return_types
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments, Trainer, pipeline
+import rich
 
 bnb_config = BitsAndBytesConfig(load_in_8bit=True)
 
@@ -37,7 +38,8 @@ for i in range(1, 10):
 # %%
 
 untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
-untrained("Explain recursion simply:")
+prompt_recursion = "Explain recursion simply:"
+rich.print(untrained(prompt_recursion)[0]["generated_text"])
 
 # %%
 
@@ -90,7 +92,5 @@ trainer.train()
 
 # %%
 
-
 finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer)
-finetuned("Explain recursion simply:")
-
+rich.print(finetuned(prompt_recursion)[0]["generated_text"])
