@@ -45,12 +45,6 @@ for i in range(1, 10):
 
 # %%
 
-# untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
-prompt_recursion = "Explain recursion simply:"
-# rich.print(untrained(prompt_recursion)[0]["generated_text"])
-
-# %%
-
 original_model.config.use_cache = False  # must be False for gradient checkpointing
 original_model.gradient_checkpointing_enable()
 
