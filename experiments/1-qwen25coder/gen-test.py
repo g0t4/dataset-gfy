@@ -126,12 +126,13 @@ trainer.train()
 # use pipeline to infer
 def compare(prompt):
     finetuned_model.eval()
+    original_model.eval()
 
     rich.print("\n\n[bold green]prompt[/]")
     rich.print(prompt)
 
     rich.print("\n[bold red]untrained[/]")
-    untrained = pipeline("text-generation", model=finetuned_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
+    untrained = pipeline("text-generation", model=original_model, tokenizer=tokenizer, device=0, torch_dtype=torch.bfloat16)
     rich.print(untrained(prompt)[0]["generated_text"])
 
     rich.print("\n[bold blue]finetuned[/]")
@@ -139,7 +140,8 @@ def compare(prompt):
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 # compare("Explain why humans have a sense of self:")
-compare("A gitignore file is for ")
+# compare("A gitignore file is for ") # failed to get the humor out of the model, but 10 epochs resulted in repetitive responses, was fine at 7 still
+compare("What does a for loop do?") # wow finetuned still returned an accurate link to w3schools.com!
 
 # # %%
 #
