@@ -29,19 +29,21 @@ original_model.to(use_device)
 test = "roses are red, violets"
 # TODO after the fine tune, see how it answers this same prompt... if it says smth unexpected (esp. that rhymes) then I know the fine tune is working!
 
-for i in range(1, 10):
-    inputs = tokenizer(test, return_tensors="pt").to(original_model.device)
-    inputs.input_ids
-    response = original_model(**inputs)
-    logits = response.logits
-    logits.shape
-    last = logits[0,-1:][0]
-    max_token_id_next = last.argmax()
-    next = tokenizer.decode(max_token_id_next)
-    test = test + next
-    print(test)
-    # print(next)
+def manual_inference(model, text):
+    for i in range(1, 10):
+        inputs = tokenizer(test, return_tensors="pt").to(model.device)
+        inputs.input_ids
+        response = model(**inputs)
+        logits = response.logits
+        logits.shape
+        last = logits[0,-1:][0]
+        max_token_id_next = last.argmax()
+        next = tokenizer.decode(max_token_id_next)
+        test = test + next
+        print(test)
 
+# re-assign so I can call repeatedly
+test = manual_inference(original_model, test) # just to see how it works before the fine tune
 
 # %%
 
