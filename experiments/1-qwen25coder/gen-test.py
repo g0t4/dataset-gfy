@@ -104,10 +104,11 @@ trainer.train()
 def compare(prompt):
     untrained = pipeline("text-generation", model=model, tokenizer=tokenizer)
     finetuned = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    rich.print("\n[bold green]prompt[/]")
     rich.print(prompt)
-    rich.print("untrained")
+    rich.print("\n[bold red]untrained[/]")
     rich.print(untrained(prompt)[0]["generated_text"])
-    rich.print("finetuned")
+    rich.print("\n[bold blue]finetuned[/]")
     rich.print(finetuned(prompt)[0]["generated_text"])
 
 compare("Explain why humans have a sense of self:")
