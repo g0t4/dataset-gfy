@@ -122,6 +122,8 @@ trainer = Trainer(
 trainer.train()
 
 # %%
+dump_model_info("before train", original_model) # shows bfloat16 on my nvidia GPU
+dump_model_info("lora after to(bf16)", finetuned_model) # shows bfloat16 now
 
 # use pipeline to infer
 def compare(prompt):
