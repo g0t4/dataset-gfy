@@ -9,5 +9,8 @@ dependencies = [
     "ipykernel>=7.0.1",
     "peft>=0.17.1",
     "rich>=14.2.0",
+    # ok to upgrade torch down the line, just locking in 2.8.0 since I've had trouble with 2.9.0 (released a week ago) with some deps i.e. flash-attn
+    #   no other reason to limit this (so far)
+    "torch==2.8.0",
     "transformers>=4.57.1",
 ]
