@@ -26,12 +26,11 @@ original_model.to(use_device)
 
 # %%
 
-test = "roses are red, violets"
 # TODO after the fine tune, see how it answers this same prompt... if it says smth unexpected (esp. that rhymes) then I know the fine tune is working!
 
 def manual_inference(model, text):
     for i in range(1, 10):
-        inputs = tokenizer(test, return_tensors="pt").to(model.device)
+        inputs = tokenizer(text, return_tensors="pt").to(model.device)
         inputs.input_ids
         response = model(**inputs)
         logits = response.logits
@@ -41,12 +40,13 @@ def manual_inference(model, text):
         #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
         #             TODO switch to not re-encode all tokens on every iteration
         next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
-        test = test + next
-        print(test)
+        text = text + next
+        print(text)
 
 
 # re-assign so I can call repeatedly
-test = manual_inference(original_model, test) # just to see how it works before the fine tune
+test_roses = "roses are red, violets"
+test_roses = manual_inference(original_model, test_roses) # just to see how it works before the fine tune
 
 # %%
 
