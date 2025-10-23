@@ -13,4 +13,5 @@ dependencies = [
     #   no other reason to limit this (so far)
     "torch==2.8.0",
     "transformers>=4.57.1",
+    "yapf>=0.43.0",
 ]
