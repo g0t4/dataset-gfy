@@ -54,7 +54,7 @@ original_model.config.use_cache = False  # must be False for gradient checkpoint
 original_model.gradient_checkpointing_enable()
 
 # FYI for now, use all examples to verify fine tune is operational... then later split out test/train and reset adapter/model
-train_ds = load_dataset("json", data_files="../../out/gfy.nocomments.jsonl")["train"]
+train_ds = load_dataset("json", data_files="out/gfy.nocomments.jsonl")["train"]
 
 def format(sample):
     text = sample["prompt"] + "\n" + sample["completion"]
