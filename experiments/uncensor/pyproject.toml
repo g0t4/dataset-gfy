@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 dependencies = [
     "colorama>=0.4.6",
     "einops>=0.8.1",
+    "flash-attn>=2.8.3",
     "ipykernel>=7.0.1",
     "jaxtyping>=0.3.3",
     "scikit-learn>=1.7.2",
