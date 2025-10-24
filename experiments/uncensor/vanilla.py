@@ -7,19 +7,43 @@ cuda_env.use_6000()
 """### Load with vanilla transformers - test this works first"""
 # MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
 MODEL_PATH = 'Qwen/Qwen-1_8B'
+DEVICE = 'cuda:0'
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# PRN test with cuda device not using device_map="auto"?
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, device_map="auto", trust_remote_code=True).eval()
+model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, trust_remote_code=True,
+    # fp16=True, # TODO! figure out what is native for this model (IIUC its bf16)
+)
+model.to(DEVICE)
+model.eval()
 # ImportError: cannot import name 'BeamSearchScorer' from 'transformers' (.venv/lib/python3.12/site-packages/transformers/__init__.py)
 #  apparently this was removed in transformers... so I need to use a different
 
 # %%
 
-pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=0, dtype=torch.bfloat16)
+def manual_inference(model, text):
+    for i in range(1, 10):
+        inputs = tokenizer(text, return_tensors="pt").to(model.device)
+        inputs.input_ids
+        response = model(**inputs)
+        logits = response.logits
+        logits.shape
+        last = logits[0,-1:][0]
+        max_token_id_next = last.argmax()
+        #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
+        #             TODO switch to not re-encode all tokens on every iteration
+        next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
+        text = text + next
+        print(text)
+
+manual_inference(model, "foo the")
+
+
+# %%
+
+pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, device=DEVICE)
 response = pipe("test")
 
 print(response)
