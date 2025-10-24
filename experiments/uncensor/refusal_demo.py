@@ -51,7 +51,7 @@ import gc
 
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-from tqdm import tqdm
+from tqdm import tqdm as progress_tqdm
 from torch import Tensor
 from typing import List, Callable
 from transformer_lens import HookedTransformer, utils
@@ -182,7 +182,7 @@ def get_generations(
 
     generations = []
 
-    for batch_number in tqdm(range(0, len(instructions), batch_size)):
+    for batch_number in progress_tqdm(range(0, len(instructions), batch_size)):
         toks = tokenize_instructions_fn(instructions=instructions[batch_number:batch_number+batch_size])
         generation = _generate_with_hooks(
             model,
