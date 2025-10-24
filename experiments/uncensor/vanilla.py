@@ -5,15 +5,15 @@ cuda_env.use_6000()
 
 # %%
 """### Load with vanilla transformers - test this works first"""
-MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
-# MODEL_PATH = 'Qwen/Qwen-1_8B'
+MODEL_PATH_CHAT = 'Qwen/Qwen-1_8B-chat'
+MODEL_PATH_BASE = 'Qwen/Qwen-1_8B'
 DEVICE = 'cuda:0'
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, trust_remote_code=True,
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True,
     # fp16=True, # TODO! figure out what is native for this model (IIUC its bf16)
 )
 model.to(DEVICE)
@@ -38,7 +38,14 @@ def manual_inference(model, text):
         text = text + next
         print(text)
 
-manual_inference(model, "foo the")
+def test_base():
+    base_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+    base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+    base_model.to(DEVICE)
+    base_model.eval()
+    manual_inference(base_model, "foo the")
+
+test_base()
 
 # %%
 
