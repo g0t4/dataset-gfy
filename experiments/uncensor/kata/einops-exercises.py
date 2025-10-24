@@ -57,3 +57,17 @@ inputs.flatten(start_dim=0, end_dim=2)  # flattens across all dimensions into li
 einops.rearrange(inputs, "a b c -> a (b c)")  # two lists of 4 nums (1..4 and 5..8)
 einops.rearrange(inputs, "a b c -> (a b) c")  # array of pairs
 einops.rearrange(inputs, "a b c -> (a b c)")  # flattens across all dims
+
+# %%
+import numpy as np
+import os
+from pathlib import Path
+
+# test image from einops tutorial: https://einops.rocks/1-einops-basics/
+test_images_npy  = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
+ims = np.load(test_images_npy, allow_pickle=False)
+
+# from einops import
+#
+## %%
+

@@ -151,6 +151,7 @@ def _generate_with_hooks(
 ) -> List[str]:
 
     all_toks = torch.zeros((toks.shape[0], toks.shape[1] + max_tokens_generated), dtype=torch.long, device=toks.device)
+    # TODO rewrite w/ einops:
     all_toks[:, :toks.shape[1]] = toks
 
     for i in range(max_tokens_generated):
