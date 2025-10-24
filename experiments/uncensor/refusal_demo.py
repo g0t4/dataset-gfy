@@ -59,6 +59,7 @@ from transformers import AutoTokenizer
 from jaxtyping import Float, Int
 from colorama import Fore
 
+# %%
 """### Load model"""
 
 MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
@@ -75,6 +76,7 @@ model = HookedTransformer.from_pretrained_no_processing(
 model.tokenizer.padding_side = 'left'
 model.tokenizer.pad_token = '<|extra_0|>'
 
+# %%
 """### Load harmful / harmless datasets"""
 
 def get_harmful_instructions():
@@ -110,6 +112,7 @@ print("Harmless instructions:")
 for i in range(4):
     print(f"\t{repr(harmless_inst_train[i])}")
 
+# %%
 """### Tokenization utils"""
 
 QWEN_CHAT_TEMPLATE = """<|im_start|>user
@@ -126,6 +129,7 @@ def tokenize_instructions_qwen_chat(
 
 tokenize_instructions_fn = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
 
+# %%
 """### Generation utils"""
 
 def _generate_with_hooks(
@@ -169,6 +173,7 @@ def get_generations(
 
     return generations
 
+# %%
 """## Finding the "refusal direction"
 """
 
@@ -197,6 +202,7 @@ refusal_dir = refusal_dir / refusal_dir.norm()
 del harmful_cache, harmless_cache, harmful_logits, harmless_logits
 gc.collect(); torch.cuda.empty_cache()
 
+# %%
 """## Ablate "refusal direction" via inference-time intervention
 
 Given a "refusal direction" $\widehat{r} \in \mathbb{R}^{d_{\text{model}}}$ with unit norm, we can ablate this direction from the model's activations $a_{l}$:
@@ -231,6 +237,7 @@ for i in range(N_INST_TEST):
     print(textwrap.fill(repr(intervention_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
 
+# %%
 """## Orthogonalize weights w.r.t. "refusal direction"
 
 We can implement the intervention equivalently by directly orthogonalizing the weight matrices that write to the residual stream with respect to the refusal direction $\widehat{r}$:
