@@ -204,9 +204,13 @@ N_INST_TRAIN = 32
 harmful_toks = instruction_tokenizer(instructions=harmful_inst_train[:N_INST_TRAIN])
 harmless_toks = instruction_tokenizer(instructions=harmless_inst_train[:N_INST_TRAIN])
 
+def log_hooks(hook_name):
+    print(hook_name) # comment out to disable
+    return True
+
 # run model on harmful and harmless instructions, caching intermediate activations
-harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: print(hook_name) and 'resid' in hook_name)
-harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filter=lambda hook_name: 'resid' in hook_name)
+harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: log_hooks(hook_name) and 'resid' in hook_name)
+harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filter=lambda hook_name: log_hooks(hook_name) and 'resid' in hook_name)
 
 # compute difference of means between harmful and harmless activations at an intermediate layer
 
