@@ -171,7 +171,7 @@ def _generate_with_hooks(
 
     return model.tokenizer.batch_decode(all_toks[:, seq_len:], skip_special_tokens=True)
 
-def get_generations(
+def generate(
     model: HookedTransformer,
     instructions: List[str],
     tokenize_instructions_fn: Callable[[List[str]], Int[Tensor, 'batch_size seq_len']],
@@ -247,8 +247,8 @@ intervention_layers = list(range(model.cfg.n_layers)) # all layers
 hook_fn = functools.partial(direction_ablation_hook,direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
-intervention_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=fwd_hooks)
-baseline_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
+intervention_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=fwd_hooks)
+baseline_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
     print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
@@ -277,7 +277,7 @@ for block in model.blocks:
     block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
     block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
 
-orthogonalized_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
+orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
     print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
