@@ -157,9 +157,10 @@ def _generate_with_hooks(
     fwd_hooks = [],
 ) -> List[str]:
 
-    all_toks = torch.zeros((toks.shape[0], toks.shape[1] + max_tokens_generated), dtype=torch.long, device=toks.device)
+    seq_len = toks.shape[1]
+    all_toks = torch.zeros((toks.shape[0], seq_len + max_tokens_generated), dtype=torch.long, device=toks.device)
     # TODO rewrite w/ einops:
-    all_toks[:, :toks.shape[1]] = toks
+    all_toks[:, :seq_len] = toks
 
     for new_token_number in range(max_tokens_generated):
         with model.hooks(fwd_hooks=fwd_hooks):
@@ -167,7 +168,7 @@ def _generate_with_hooks(
             next_tokens = logits[:, -1, :].argmax(dim=-1) # greedy sampling (temperature=0)
             all_toks[:,-max_tokens_generated+new_token_number] = next_tokens
 
-    return model.tokenizer.batch_decode(all_toks[:, toks.shape[1]:], skip_special_tokens=True)
+    return model.tokenizer.batch_decode(all_toks[:, seq_len:], skip_special_tokens=True)
 
 def get_generations(
     model: HookedTransformer,
