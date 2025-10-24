@@ -140,6 +140,8 @@ def tokenize_instructions_qwen_chat(
 
 # literally...  why not just use global scope as a closure to pass things like tokenizer...
 #   it's not like you have multiple tokenizers in this example?!
+#   AND partial application is way more confusing for most people vs the trouble you might have with a global in a notebook
+#     ya know, the entire point of a notebook is to be one giant script...
 # instruction_tokenizer(batch_of_instructions)
 instruction_tokenizer = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
 # instructions => format each as chat => tokenize
