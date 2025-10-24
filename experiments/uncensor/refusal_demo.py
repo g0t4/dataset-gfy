@@ -59,6 +59,10 @@ from transformers import AutoTokenizer
 from jaxtyping import Float, Int
 from colorama import Fore
 
+import cuda_env
+
+cuda_env.use_6000()
+
 # %%
 """### Load model"""
 
@@ -68,7 +72,7 @@ DEVICE = 'cuda'
 model = HookedTransformer.from_pretrained_no_processing(
     MODEL_PATH,
     device=DEVICE,
-    dtype=torch.float16,
+    dtype=torch.float16, #TODO! type? bfloat16
     default_padding_side='left',
     fp16=True
 )
