@@ -13,6 +13,7 @@ dependencies = [
     "rich>=14.2.0",
     # ok to upgrade torch down the line, just locking in 2.8.0 since I've had trouble with 2.9.0 (released a week ago) with some deps i.e. flash-attn
     #   no other reason to limit this (so far)
+    "scikit-learn>=1.7.2",
     "torch==2.8.0",
     "transformers>=4.57.1",
     "yapf>=0.43.0",
