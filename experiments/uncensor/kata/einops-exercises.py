@@ -66,12 +66,12 @@ import os
 from pathlib import Path
 
 # test image from einops tutorial: https://einops.rocks/1-einops-basics/
-test_images_npy  = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
+test_images_npy = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
 ims = np.load(test_images_npy, allow_pickle=False)
 first_image = ims[0]
 first_image.dtype
 first_image.shape
-first_image[:1,:3,:] # first 3 pixels of first column (or row?)
+first_image[:1, :3, :]  # first 3 pixels of first column (or row?)
 
 # %%
 
@@ -79,11 +79,17 @@ def show_image(image: np.ndarray) -> None:
     import subprocess, tempfile, cv2
     import numpy as np
     path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
-    cv2.imwrite(path, image * 255)
+    print("all", np.all(image <= 1) and np.all(0 <= image))
+    if np.isdtype(first_image.dtype, np.float64):
+        # float64 image, values in [0, 1]:
+        # represents normalized RGB — multiply by bit depth (e.g. *255 for 8-bit) to restore original range
+        rgb = image * 255
+        cv2.imwrite(path, rgb)
+    else:
+        cv2.imwrite(path, image)
+
     subprocess.run(["open", path])
 
 show_image(first_image)
 
-
 # %%
-
