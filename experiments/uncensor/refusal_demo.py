@@ -138,7 +138,10 @@ def tokenize_instructions_qwen_chat(
     prompts = [QWEN_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
     return tokenizer(prompts, padding=True,truncation=False, return_tensors="pt").input_ids
 
-tokenize_instructions_fn = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
+# instruction_tokenizer(batch_of_instructions)
+instruction_tokenizer = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
+# instructions => format each as chat => tokenize
+#  free variable is list of instructions
 
 # %%
 """### Generation utils"""
@@ -192,8 +195,8 @@ def get_generations(
 N_INST_TRAIN = 32
 
 # tokenize instructions
-harmful_toks = tokenize_instructions_fn(instructions=harmful_inst_train[:N_INST_TRAIN])
-harmless_toks = tokenize_instructions_fn(instructions=harmless_inst_train[:N_INST_TRAIN])
+harmful_toks = instruction_tokenizer(instructions=harmful_inst_train[:N_INST_TRAIN])
+harmless_toks = instruction_tokenizer(instructions=harmless_inst_train[:N_INST_TRAIN])
 
 # run model on harmful and harmless instructions, caching intermediate activations
 harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: 'resid' in hook_name)
@@ -238,8 +241,8 @@ intervention_layers = list(range(model.cfg.n_layers)) # all layers
 hook_fn = functools.partial(direction_ablation_hook,direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
-intervention_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], tokenize_instructions_fn, fwd_hooks=fwd_hooks)
-baseline_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], tokenize_instructions_fn, fwd_hooks=[])
+intervention_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=fwd_hooks)
+baseline_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
     print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
@@ -268,7 +271,7 @@ for block in model.blocks:
     block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
     block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
 
-orthogonalized_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], tokenize_instructions_fn, fwd_hooks=[])
+orthogonalized_generations = get_generations(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
     print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
