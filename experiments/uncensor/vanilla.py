@@ -23,6 +23,24 @@ chat_model.eval()
 
 # %%
 
+base_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+base_model.to(DEVICE)
+base_model.eval()
+
+
+# %%
+
+# found stop token here (151645)
+#   https://github.com/QwenLM/Qwen/blob/b5529b8/recipes/inference/vllm/README.md#L169
+#   not finding it anywhere in huggingface repo's regular files?!
+chat_tokenizer.eos_token_id = 151645
+chat_tokenizer.pad_token_id = 151645
+
+base_tokenizer.eos_token_id = 151645
+base_tokenizer.pad_token_id = 151645
+
+# %%
 
 def manual_inference(model, tokenizer, text, max_tokens=10):
     for _ in range(max_tokens):
@@ -33,21 +51,15 @@ def manual_inference(model, tokenizer, text, max_tokens=10):
         logits.shape
         last = logits[0,-1:][0]
         max_token_id_next = last.argmax()
+        if max_token_id_next.item() == tokenizer.eos_token_id:
+            break
         #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
         #             TODO switch to not re-encode all tokens on every iteration
         next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
         text = text + next
-        print(f'{next=}')
+        # print(f'{next=}')
 
-        # check EOS
     print(text)
-
-# %%
-
-base_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
-base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
-base_model.to(DEVICE)
-base_model.eval()
 
 # %%
 
