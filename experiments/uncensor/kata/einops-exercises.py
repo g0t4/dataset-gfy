@@ -66,8 +66,8 @@ from pathlib import Path
 # test image from einops tutorial: https://einops.rocks/1-einops-basics/
 test_images_npy  = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
 ims = np.load(test_images_npy, allow_pickle=False)
-import opencv as cv
-cv.imshow()
+import cv2
+cv2.imshow("test", ims[0])
 
 # from einops import
 #
