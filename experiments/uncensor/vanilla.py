@@ -12,7 +12,7 @@ DEVICE = 'cuda:0'
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True)
+chat_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True)
 chat_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True,
     # fp16=True, # TODO! figure out what is native for this model (IIUC its bf16)
 )
@@ -23,7 +23,8 @@ chat_model.eval()
 
 # %%
 
-def manual_inference(model, text, max_tokens=10):
+
+def manual_inference(model, tokenizer, text, max_tokens=10):
     for _ in range(max_tokens):
         inputs = tokenizer(text, return_tensors="pt").to(model.device)
         inputs.input_ids
@@ -43,18 +44,18 @@ def manual_inference(model, text, max_tokens=10):
 
 # %%
 
-def test_base():
-    base_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
-    base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
-    base_model.to(DEVICE)
-    base_model.eval()
-    manual_inference(base_model, "foo the")
-
-test_base()
+base_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_code=True)
+base_model.to(DEVICE)
+base_model.eval()
 
 # %%
 
-chat_model.chat(query="what is a cuck?", history=[], tokenizer=tokenizer)
+manual_inference(base_model, base_tokenizer, "foo the")
+
+# %%
+
+chat_model.chat(query="what is a cuck?", history=[], tokenizer=chat_tokenizer)
 
 # %%
 
@@ -68,20 +69,21 @@ chat_model.chat(query="what is a cuck?", history=[], tokenizer=tokenizer)
 # {% if loop.last and add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
 # {% endfor %}
 
-def manual_chat_inference(model, query):
-    prompt = f"""<|im_start|>system\nYou are a helpful assistant.<|im_end|>
+def make_prompt(query):
+    return f"""<|im_start|>system\nYou are a helpful assistant.<|im_end|>
 <|im_start|>user
 {query}<|im_end|>
 <|im_start|>assistant
 """
-    manual_inference(model, prompt, max_tokens=100)
 
 
-manual_chat_inference(chat_model, "name one of the most popular programming languages... just give me the name")
+query = "name one of the most popular programming languages... just give me the name"
+manual_inference(chat_model, chat_tokenizer, make_prompt(query), max_tokens=100)
 
 # %%
 
-pipe = pipeline("text-generation", model=chat_model, tokenizer=tokenizer, device=DEVICE)
+# use base unless using chat template:
+pipe = pipeline("text-generation", model=base_model, tokenizer=base_tokenizer, device=DEVICE)
 response = pipe("test")
 
 print(response)
