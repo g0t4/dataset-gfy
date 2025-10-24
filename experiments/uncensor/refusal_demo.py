@@ -158,7 +158,8 @@ def _generate_with_hooks(
 ) -> List[str]:
 
     seq_len = toks.shape[1]
-    all_toks = torch.zeros((toks.shape[0], seq_len + max_tokens_generated), dtype=torch.long, device=toks.device)
+    batch_size = toks.shape[0]
+    all_toks = torch.zeros((batch_size, seq_len + max_tokens_generated), dtype=torch.long, device=toks.device)
     # TODO rewrite w/ einops:
     all_toks[:, :seq_len] = toks
 
