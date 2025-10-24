@@ -14,15 +14,30 @@ def assert_close(
 
     if not torch.is_tensor(left):
         if isinstance(left, (float, int, str)):
-            left = torch.Tensor([left])
+            left = torch.tensor([left])
         elif isinstance(left, list):
-            left = torch.Tensor(left)
+            left = torch.tensor(left)
+        elif isinstance(left, torch.Size):
+            print(f'{left=}')
+            print("size")
+            left = torch.tensor(left)
+            print(f'{left=}')
+        elif isinstance(left, tuple):
+            left = torch.tensor(left)
+        else:
+            raise TypeError(f"left type {type(left)} not implemented yet.")
 
     if not torch.is_tensor(right):
         if isinstance(right, (float, int, str)):
-            right = torch.Tensor([right])
+            right = torch.tensor([right])
         elif isinstance(right, list):
-            right = torch.Tensor(right)
+            right = torch.tensor(right)
+        elif isinstance(right, torch.Size):
+            right = torch.tensor(right)
+        elif isinstance(right, tuple):
+            right = torch.tensor(right)
+        else:
+            raise TypeError(f"right type {type(right)} not implemented yet.")
 
     if not left.dtype == right.dtype:
         if DEBUG:

@@ -66,14 +66,56 @@ quantities = tensor([1, 8, 4.0])
 prices_per_unit = tensor([1, 0.25, 2])
 quantities.matmul(prices_per_unit)
 
-# reflect on how this works!? is matmul == batched dot() product?
-# length of vector == a.dot(a).sqrt() # with self!
+# reflect on how this works!? is matmul == batched/permuted dot() product?
+#  - permuted in that it is going to be every vector (right side) dotted with every vector (left side)
 
 kata.helpers.DEBUG = True
 assert_close(a.dot(a), tensor(1 * 1 + 2 * 2 + 4 * 4))
 
-# %% 2D
+# %% 1-D vector dotted w/ self computes the square of its magnitude
 
-quantities = tensor([1, 8, 4.0])
+vector = tensor([3, 4])  # magnitude is gonna be 5
+vector.dot(vector).sqrt()  # 5!
+# simply put, sqrt(a*a + b*b + c*c ... + n*n) == pythagorean theorem
+# length of vector == a.dot(a).sqrt() # with self!
+
+vector.matmul(vector).sqrt()  # same result, 1Dx1D matmul == dot product...
+
+# %% 2D matrix matmul
+
+vectors = tensor([
+    [3, 4],
+    [6, 8],
+])
+vectors.T
+vectors.matmul(vectors.T)  # in 2-D the diagonal (upper left, to lower right) represents the dot product of each vector w/ itself
+
+# %% multiple order matrix
+
+order_quantities = tensor([
+    [1, 8, 4.0],  # 1x item 0, 8x item 1, 4x item2
+    [2, 0, 0],  # 2x item 0
+])
 prices_per_unit = tensor([1, 0.25, 2])
-quantities.matmul(prices_per_unit)
+order_costs = order_quantities.matmul(prices_per_unit)
+assert_close(
+    order_costs,
+    [11, 2],  # order 0 is $11, order 1 is $2
+)
+
+# %% squeeze (aka expand_dim)
+
+kata.helpers.DEBUG = True
+order = tensor([1, 8, 4])
+assert_close(order.shape, [3])
+
+order.unsqueeze(0)  # adds outermost dimension
+order.unsqueeze(1)  # adds innermost dimension (in this case there's just one dimension to start)
+order.unsqueeze(-1)  # IIRC -1 is innermost always
+assert_close(order.unsqueeze(1), order.unsqueeze(-1))
+assert_close(order.unsqueeze(0).shape, [1, 3])
+assert_close(order.unsqueeze(1).shape, [3, 1])  # 3 rows of 1 item each
+
+# %% dim= is an area that confuses me, actually the conventions around dimensions is what I haven't internalized
+
+# %% projections - start along axes and then move to vectors that point wherever
