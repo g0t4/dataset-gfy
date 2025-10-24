@@ -5,16 +5,21 @@ requires-python = ">=3.11"
 dependencies = [
     "accelerate>=1.10.1",
     "bitsandbytes>=0.48.1",
+    "colorama>=0.4.6",
     "datasets>=4.2.0",
     "einops>=0.8.1",
     "ipykernel>=7.0.1",
+    "jaxtyping>=0.3.3",
     "peft>=0.17.1",
     "pytest>=8.4.2",
     "rich>=14.2.0",
     # ok to upgrade torch down the line, just locking in 2.8.0 since I've had trouble with 2.9.0 (released a week ago) with some deps i.e. flash-attn
     #   no other reason to limit this (so far)
     "scikit-learn>=1.7.2",
+    "tiktoken>=0.12.0",
     "torch==2.8.0",
+    "transformer-lens>=2.16.1",
     "transformers>=4.57.1",
+    "transformers-stream-generator>=0.0.5",
     "yapf>=0.43.0",
 ]
