@@ -74,15 +74,18 @@ first_image.shape
 first_image[:1, :3, :]  # first 3 pixels of first column (or row?)
 
 # %%
+import subprocess, tempfile, cv2
+import numpy as np
+import warnings
 
 def show_image(image: np.ndarray) -> None:
-    import subprocess, tempfile, cv2
-    import numpy as np
     path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
-    print("all", np.all(image <= 1) and np.all(0 <= image))
-    if np.isdtype(first_image.dtype, np.float64):
+
+    if np.all(0 <= image) and np.all(image <= 1):
         # float64 image, values in [0, 1]:
-        # represents normalized RGB — multiply by bit depth (e.g. *255 for 8-bit) to restore original range
+        # assume represents normalized RGB
+        # thus multiply by bit depth (e.g. *255 for 8-bit)
+        # else image is gonna look black if all colors are essentially off 0 to 1 ~= off :)
         rgb = image * 255
         cv2.imwrite(path, rgb)
     else:
