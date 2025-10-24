@@ -95,4 +95,10 @@ def show_image(image: np.ndarray) -> None:
 
 show_image(first_image)
 
-# %%
+# %% transpose image!
+
+from torch import tensor
+
+# first_image.transpose(axes=2)
+
+show_image(np.array(tensor(first_image).transpose(0, 1)))
