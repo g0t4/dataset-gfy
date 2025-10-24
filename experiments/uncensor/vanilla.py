@@ -99,3 +99,21 @@ pipe = pipeline("text-generation", model=base_model, tokenizer=base_tokenizer, d
 response = pipe("test")
 
 print(response)
+
+# %%
+
+dir(base_model)
+
+# %%
+from rich import print
+
+for n in base_model.parameters():
+    print(n)
+
+# %%
+
+# compare named_parameters to transformer_lens's hooks
+for name,param in base_model.named_parameters():
+    print(name)
+
+
