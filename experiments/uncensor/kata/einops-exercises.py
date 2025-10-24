@@ -2,6 +2,8 @@ import einops
 from einops import rearrange
 import torch
 from torch import tensor
+import subprocess, tempfile, cv2
+import numpy as np
 
 import kata.helpers
 from kata.helpers import assert_close
@@ -72,32 +74,16 @@ first_image.shape
 first_image[:1,:3,:] # first 3 pixels of first column (or row?)
 
 # %%
-# %%
-import subprocess, tempfile, cv2
-path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
-cv2.imwrite(path, first_image*255)
-subprocess.run(["open", path])
 
-# %%
+def show_image(image: np.ndarray) -> None:
+    import subprocess, tempfile, cv2
+    import numpy as np
+    path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+    cv2.imwrite(path, image * 255)
+    subprocess.run(["open", path])
 
-import matplotlib.pyplot as plt
-
-ims.shape
-
-plt.imshow(first_image)
-plt.axis("off")
-plt.show()
+show_image(first_image)
 
 
 # %%
-
-import cv2
-cv2.imshow("images", first_image)
-cv2.moveWindow("images", 0, 0)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-# from einops import
-#
-## %%
 
