@@ -39,6 +39,7 @@ In this minimal demo, we use [Qwen-1_8B-Chat](https://huggingface.co/Qwen/Qwen-1
 # %%capture
 # !pip install transformers transformers_stream_generator tiktoken transformer_lens einops jaxtyping colorama
 
+from pathlib import Path
 import torch
 import functools
 import einops
@@ -84,10 +85,16 @@ model.tokenizer.pad_token = '<|extra_0|>'
 """### Load harmful / harmless datasets"""
 
 def get_harmful_instructions():
-    url = 'https://raw.githubusercontent.com/llm-attacks/llm-attacks/main/data/advbench/harmful_behaviors.csv'
-    response = requests.get(url)
+    # # 1a - download dataset
+    # url = 'https://raw.githubusercontent.com/llm-attacks/llm-attacks/main/data/advbench/harmful_behaviors.csv'
+    # response = requests.get(url)
+    # contents = io.StringIO(response.content.decode('utf-8'))
+    # dataset = pd.read_csv(contents)
+    # print(dataset)
 
-    dataset = pd.read_csv(io.StringIO(response.content.decode('utf-8')))
+    # # 1b - read local file instead of download each time
+    dataset = pd.read_csv('./out/harmful_behaviors.csv')
+
     instructions = dataset['goal'].tolist()
 
     train, test = train_test_split(instructions, test_size=0.2, random_state=42)
