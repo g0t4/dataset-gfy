@@ -116,6 +116,8 @@ assert_close(order.unsqueeze(1), order.unsqueeze(-1))
 assert_close(order.unsqueeze(0).shape, [1, 3])
 assert_close(order.unsqueeze(1).shape, [3, 1])  # 3 rows of 1 item each
 
-# %% dim= is an area that confuses me, actually the conventions around dimensions is what I haven't internalized
+# %% TODO dim= is an area that confuses me, actually the conventions around dimensions is what I haven't internalized
 
-# %% projections - start along axes and then move to vectors that point wherever
+# %% TODO projections - start along axes and then move to vectors that point wherever
+
+
