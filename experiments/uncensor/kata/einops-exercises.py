@@ -106,5 +106,7 @@ import einops
 # show_image(einops.rearrange(first_image, "x y color -> y x color"))
 # YES!!! got it right with einops on first try! I love this DSL
 
-show_image(einops.rearrange(test_images[0], "x y color -> y x color"))
+# show_image(einops.rearrange(test_images[0], "x y color -> y x color"))
+# flip all at once! (across all images)
+show_image(einops.rearrange(test_images, "img x y color -> img y x color")[0])
 
