@@ -99,6 +99,9 @@ show_image(first_image)
 
 from torch import tensor
 
+import einops
 # first_image.transpose(axes=2)
 
-show_image(np.array(tensor(first_image).transpose(0, 1)))
+# show_image(np.array(tensor(first_image).transpose(0, 1)))
+show_image(einops.rearrange(first_image, "x y color -> y x color"))
+# YES!!! got it right with einops on first try! I love this DSL
