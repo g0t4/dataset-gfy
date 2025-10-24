@@ -138,6 +138,8 @@ def tokenize_instructions_qwen_chat(
     prompts = [QWEN_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
     return tokenizer(prompts, padding=True,truncation=False, return_tensors="pt").input_ids
 
+# literally...  why not just use global scope as a closure to pass things like tokenizer...
+#   it's not like you have multiple tokenizers in this example?!
 # instruction_tokenizer(batch_of_instructions)
 instruction_tokenizer = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
 # instructions => format each as chat => tokenize
