@@ -154,11 +154,11 @@ def _generate_with_hooks(
     # TODO rewrite w/ einops:
     all_toks[:, :toks.shape[1]] = toks
 
-    for i in range(max_tokens_generated):
+    for new_token_number in range(max_tokens_generated):
         with model.hooks(fwd_hooks=fwd_hooks):
-            logits = model(all_toks[:, :-max_tokens_generated + i])
+            logits = model(all_toks[:, :-max_tokens_generated + new_token_number])
             next_tokens = logits[:, -1, :].argmax(dim=-1) # greedy sampling (temperature=0)
-            all_toks[:,-max_tokens_generated+i] = next_tokens
+            all_toks[:,-max_tokens_generated+new_token_number] = next_tokens
 
     return model.tokenizer.batch_decode(all_toks[:, toks.shape[1]:], skip_special_tokens=True)
 
@@ -173,8 +173,8 @@ def get_generations(
 
     generations = []
 
-    for i in tqdm(range(0, len(instructions), batch_size)):
-        toks = tokenize_instructions_fn(instructions=instructions[i:i+batch_size])
+    for batch_number in tqdm(range(0, len(instructions), batch_size)):
+        toks = tokenize_instructions_fn(instructions=instructions[batch_number:batch_number+batch_size])
         generation = _generate_with_hooks(
             model,
             toks,
