@@ -66,6 +66,17 @@ from pathlib import Path
 # test image from einops tutorial: https://einops.rocks/1-einops-basics/
 test_images_npy  = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
 ims = np.load(test_images_npy, allow_pickle=False)
+first_image = ims[0]
+first_image.dtype
+first_image.shape
+first_image[:1,:3,:] # first 3 pixels of first column (or row?)
+
+# %%
+# %%
+import subprocess, tempfile, cv2
+path = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name
+cv2.imwrite(path, first_image*255)
+subprocess.run(["open", path])
 
 # %%
 
@@ -73,7 +84,7 @@ import matplotlib.pyplot as plt
 
 ims.shape
 
-plt.imshow(ims[0])
+plt.imshow(first_image)
 plt.axis("off")
 plt.show()
 
@@ -81,7 +92,7 @@ plt.show()
 # %%
 
 import cv2
-cv2.imshow("images", ims[0])
+cv2.imshow("images", first_image)
 cv2.moveWindow("images", 0, 0)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
