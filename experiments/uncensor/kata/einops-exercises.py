@@ -67,8 +67,8 @@ from pathlib import Path
 
 # test image from einops tutorial: https://einops.rocks/1-einops-basics/
 test_images_npy = Path(os.environ["WES_REPOS"]).joinpath("github/arogozhnikov/einops/docs/resources/test_images.npy")
-ims = np.load(test_images_npy, allow_pickle=False)
-first_image = ims[0]
+test_images = np.load(test_images_npy, allow_pickle=False)
+first_image = test_images[0]
 first_image.dtype
 first_image.shape
 first_image[:1, :3, :]  # first 3 pixels of first column (or row?)
@@ -103,5 +103,8 @@ import einops
 # first_image.transpose(axes=2) # numpy
 
 # show_image(np.array(tensor(first_image).transpose(0, 1)))
-show_image(einops.rearrange(first_image, "x y color -> y x color"))
+# show_image(einops.rearrange(first_image, "x y color -> y x color"))
 # YES!!! got it right with einops on first try! I love this DSL
+
+show_image(einops.rearrange(test_images[0], "x y color -> y x color"))
+
