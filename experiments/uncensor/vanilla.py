@@ -5,8 +5,8 @@ cuda_env.use_6000()
 
 # %%
 """### Load with vanilla transformers - test this works first"""
-# MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
-MODEL_PATH = 'Qwen/Qwen-1_8B'
+MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
+# MODEL_PATH = 'Qwen/Qwen-1_8B'
 DEVICE = 'cuda:0'
 
 import torch
@@ -39,6 +39,10 @@ def manual_inference(model, text):
         print(text)
 
 manual_inference(model, "foo the")
+
+# %%
+
+model.chat(query="what is a cuck?", history=[], tokenizer=tokenizer)
 
 
 # %%
