@@ -112,8 +112,11 @@ for n in base_model.parameters():
 
 # %%
 
+
+# * model visualizer! using these layers
 # compare named_parameters to transformer_lens's hooks
 for name,param in base_model.named_parameters():
-    print(name)
+    print(f"{name} shape={tuple(param.shape)} {param.dtype}")
+    # print(f"  {param}")
 
 
