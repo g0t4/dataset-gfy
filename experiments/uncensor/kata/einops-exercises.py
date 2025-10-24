@@ -22,5 +22,38 @@ assert_close( \
     order_quantities.unsqueeze(0), \
 )
 
-# %%
+# %% add outer and inner! at same time
 
+unsqueeze_both = order_quantities.unsqueeze(0).unsqueeze(-1)
+rearrange_both = rearrange(order_quantities, "a -> 1 a 1")
+assert_close(rearrange_both, unsqueeze_both)
+
+# %% reduce (rearrange + reduce)
+
+ten_nums = torch.arange(1, 11)
+ten_nums
+einops.reduce(ten_nums, "a -> 1", "sum")  # tensor([55])
+
+einops.reduce(ten_nums, "a -> a", "sum")  # noop (no change)
+einops.repeat(ten_nums, "a -> 3 a")  # 3x of ten_nums in a new outer dim
+
+# %% torch.flatten
+
+inputs = tensor([
+    [
+        [1, 2],
+        [3, 4],
+    ],
+    [
+        [5, 6],
+        [7, 8],
+    ],
+])
+inputs.flatten(start_dim=1, end_dim=2)  # flattens within each pair of pairs... so 1..4 and 5..8
+inputs.flatten(start_dim=0, end_dim=1)  # array of pairs
+inputs.flatten(start_dim=0, end_dim=2)  # flattens across all dimensions into list of numbers 1 to 8
+
+# so IIUC () is for flattening
+einops.rearrange(inputs, "a b c -> a (b c)")  # two lists of 4 nums (1..4 and 5..8)
+einops.rearrange(inputs, "a b c -> (a b) c")  # array of pairs
+einops.rearrange(inputs, "a b c -> (a b c)")  # flattens across all dims
