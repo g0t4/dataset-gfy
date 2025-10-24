@@ -36,6 +36,8 @@ def manual_inference(model, text, max_tokens=10):
         #             TODO switch to not re-encode all tokens on every iteration
         next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
         text = text + next
+        print(f'{next=}')
+
         # check EOS
     print(text)
 
@@ -75,7 +77,7 @@ def manual_chat_inference(model, query):
     manual_inference(model, prompt, max_tokens=100)
 
 
-manual_chat_inference(chat_model, "what is the most popular programming language?")
+manual_chat_inference(chat_model, "name one of the most popular programming languages... just give me the name")
 
 # %%
 
