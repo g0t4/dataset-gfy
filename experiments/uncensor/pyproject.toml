@@ -15,6 +15,7 @@ dependencies = [
     "transformer-lens>=2.15.4",
     "transformers==4.44.2",
     "transformers-stream-generator>=0.0.5",
+    "yapf>=0.43.0",
 ]
 
 
