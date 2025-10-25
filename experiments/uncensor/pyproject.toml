@@ -12,7 +12,7 @@ dependencies = [
     "scikit-learn>=1.7.2",
     "tiktoken>=0.12.0",
     # uv add transformers==4.44.2 transformers_stream_generator tiktoken transformer_lens einops jaxtyping colorama
-    "torch==2.8.0",
+    "torch==2.8.0", # for flash-attn to work (2.8.3 supports torch 2.8 max)
     "transformer-lens>=2.15.4",
     "transformers==4.44.2",
     "transformers-stream-generator>=0.0.5",
