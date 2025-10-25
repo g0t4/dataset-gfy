@@ -14,7 +14,9 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 chat_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True)
-chat_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_CHAT, trust_remote_code=True,
+chat_model = AutoModelForCausalLM.from_pretrained(
+    MODEL_PATH_CHAT,
+    trust_remote_code=True,
     # fp16=True, # TODO! figure out what is native for this model (IIUC its bf16)
 )
 chat_model.to(DEVICE)
@@ -63,7 +65,6 @@ def inspect_hiddens_in_forward_pass(tokenizer, model, text, max_tokens=1):
 
 inspect_hiddens_in_forward_pass(base_tokenizer, base_model, "foo the")
 # FYI base model => " bar" is next token
-
 # %%
 
 # found stop token here (151645)
@@ -84,7 +85,7 @@ def manual_inference(model, tokenizer, text, max_tokens=10):
         response = model(**inputs)
         logits = response.logits
         logits.shape
-        last = logits[0,-1:][0]
+        last = logits[0, -1:][0]
         max_token_id_next = last.argmax()
         if max_token_id_next.item() == tokenizer.eos_token_id:
             break
@@ -123,7 +124,6 @@ def make_prompt(query):
 <|im_start|>assistant
 """
 
-
 query = "name one of the most popular programming languages... just give me the name"
 manual_inference(chat_model, chat_tokenizer, make_prompt(query), max_tokens=100)
 
@@ -147,7 +147,6 @@ for n in base_model.parameters():
     print(n)
 
 # %%
-
 
 # * model visualizer! using these layers
 # compare named_parameters to transformer_lens's hooks
