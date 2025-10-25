@@ -133,4 +133,5 @@ values.mean(dim=0)  # [1,1,1]
 values.mean(dim=1)  # 6/3=2, 0/3 = 0 => # [2, 0]
 values.mean() # across all values => 2+1+3+0+1-1 => 6 / 6 values => 1
 
+# %%
 

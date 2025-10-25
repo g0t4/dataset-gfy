@@ -271,6 +271,8 @@ refusal_dir = refusal_dir / refusal_dir.norm()
 # # 告诉 (gàosu) – to tell, inform
 # # 报告 (bàogào) – report, to report
 # # 警告 (jǐnggào) – warning
+#
+# # certainlyt dumb luck for the refusal_dir to map (using unembed weights) to a token that conveys refusal / reporting!
 
 
 
