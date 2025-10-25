@@ -229,8 +229,16 @@ layer = 14
 
 # * inspecting model:
 # [m for m in model.modules()]
-# model.embed
-# model.blocks
+def summarize_layer(name, param):
+    print(f"{name} shape={tuple(param.shape)} {param.dtype}")
+
+def summarize_named_params(model):
+    for name, param in model.named_parameters():
+        summarize_layer(name, param)
+
+model.embed
+summarize_named_params(model.embed)
+model.blocks
 
 harmful_residual_pre = harmful_cache['resid_pre', layer]
 harmful_residual_pre.shape
