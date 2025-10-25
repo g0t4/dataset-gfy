@@ -11,14 +11,15 @@ dependencies = [
     "opencv-python>=4.12.0.88",
     "scikit-learn>=1.7.2",
     "tiktoken>=0.12.0",
-    # uv add transformers==4.44.2 transformers_stream_generator tiktoken transformer_lens einops jaxtyping colorama
-    "torch==2.8.0", # for flash-attn to work (2.8.3 supports torch 2.8 max)
     "transformer-lens>=2.15.4",
+    # uv add transformers==4.44.2 transformers_stream_generator tiktoken transformer_lens einops jaxtyping colorama
     "transformers==4.44.2",
     "transformers-stream-generator>=0.0.5",
     "yapf>=0.43.0",
 ]
 
+[tool.uv.extra-build-dependencies]
+flash-attn = ["torch==2.8.0"] # flash-attn 2.8.3 works with torch 2.8.0 (max)
 
 [project.optional-dependencies]
 cuda = [
