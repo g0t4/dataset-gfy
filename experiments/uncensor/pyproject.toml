@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 
-[optional-dependencies]
+[project.optional-dependencies]
 cuda = [
     "flash-attn>=2.8.3",
 ]
