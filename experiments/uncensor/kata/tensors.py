@@ -173,6 +173,18 @@ assert_close(third.sum(dim=0), [[
     [0, 2, -3],
 ]])
 
+third.sum(dim=1)  # remove middle"most" dimension, aggregate to collapse it
+# basically keep outermost dimension, so you'll have two elements within that... so two outermost rows
+# sum across that next dimension (middle)
+# keep innermost too ... so see each outermost as a group to sum within
+assert_close(
+    third.sum(dim=1),
+    [
+        # [2,1,3] + [0,1,-1]
+        [2, 2, 2],
+        [3, 7, 2],
+    ])
+
 # %%
 def summarize_tensor(tensor: torch.Tensor):
     return
