@@ -50,7 +50,10 @@ def inspect_hiddens_in_forward_pass(tokenizer, model, text, max_tokens=1):
     for _ in range(max_tokens):
         inputs = tokenizer(text, return_tensors="pt").to(model.device)
         inputs.input_ids
-        response = model(**inputs)
+        response = model(**inputs, output_hidden_states=True)
+        # TODO look into what I can get at with just output_hidden_states and not Transformer Lens
+        #   IIUC won't get names here
+        #   also obviously can't modify, only inspect
         logits = response.logits
         logits.shape
         last = logits[0, -1:][0]
@@ -61,6 +64,10 @@ def inspect_hiddens_in_forward_pass(tokenizer, model, text, max_tokens=1):
         #             TODO switch to not re-encode all tokens on every iteration
         next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
         text = text + next
+        # print("hidden states:", response.hidden_states)
+        for number, hidden in enumerate(response.hidden_states):
+            summarize_layer(f"hidden: layer {number}", hidden)
+    print(text)
     return text
 
 inspect_hiddens_in_forward_pass(base_tokenizer, base_model, "foo the")
