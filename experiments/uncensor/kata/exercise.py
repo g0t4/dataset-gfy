@@ -120,4 +120,17 @@ assert_close(order.unsqueeze(1).shape, [3, 1])  # 3 rows of 1 item each
 
 # %% TODO projections - start along axes and then move to vectors that point wherever
 
+# %%
+
+values = tensor([
+    [2, 1, 3],
+    [0, 1, -1],
+], dtype=torch.float16)
+# mean =>
+# add up each dimension's value, then divide by # values (tensors)
+
+values.mean(dim=0)  # [1,1,1]
+values.mean(dim=1)  # 6/3=2, 0/3 = 0 => # [2, 0]
+values.mean() # across all values => 2+1+3+0+1-1 => 6 / 6 values => 1
+
 
