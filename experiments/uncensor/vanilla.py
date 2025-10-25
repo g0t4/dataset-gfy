@@ -1,4 +1,5 @@
 import cuda_env
+from rich import print
 
 cuda_env.use_6000()
 # cuda_env.list_gpus()
@@ -28,6 +29,40 @@ base_model = AutoModelForCausalLM.from_pretrained(MODEL_PATH_BASE, trust_remote_
 base_model.to(DEVICE)
 base_model.eval()
 
+# %%
+
+def summarize_layer(name, param):
+    print(f"{name} shape={tuple(param.shape)} {param.dtype}")
+
+for name, param in chat_model.named_parameters():
+    if "wte" in name:
+        summarize_layer(name, param)
+
+for m in chat_model.modules():
+    print("---")
+    print(m)
+
+# %% * inspect hiddens w/o transformer_lens HookedTransformer
+
+def inspect_hiddens_in_forward_pass(tokenizer, model, text, max_tokens=1):
+    for _ in range(max_tokens):
+        inputs = tokenizer(text, return_tensors="pt").to(model.device)
+        inputs.input_ids
+        response = model(**inputs)
+        logits = response.logits
+        logits.shape
+        last = logits[0, -1:][0]
+        max_token_id_next = last.argmax()
+        if max_token_id_next.item() == tokenizer.eos_token_id:
+            break
+        #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
+        #             TODO switch to not re-encode all tokens on every iteration
+        next = tokenizer.decode(max_token_id_next, skip_special_tokens=True)
+        text = text + next
+    return text
+
+inspect_hiddens_in_forward_pass(base_tokenizer, base_model, "foo the")
+# FYI base model => " bar" is next token
 
 # %%
 
@@ -116,8 +151,5 @@ for n in base_model.parameters():
 
 # * model visualizer! using these layers
 # compare named_parameters to transformer_lens's hooks
-for name,param in base_model.named_parameters():
-    print(f"{name} shape={tuple(param.shape)} {param.dtype}")
-    # print(f"  {param}")
-
-
+for name, param in base_model.named_parameters():
+    summarize_layer(name, param)
