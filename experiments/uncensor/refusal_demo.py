@@ -232,7 +232,9 @@ layer = 14
 # model.embed
 # model.blocks
 
-harmful_mean_act = harmful_cache['resid_pre', layer][:, pos, :].mean(dim=0)
+harmful_residual_pre = harmful_cache['resid_pre', layer]
+harmful_residual_pre.shape
+harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
 harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 
 refusal_dir = harmful_mean_act - harmless_mean_act
