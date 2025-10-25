@@ -212,6 +212,16 @@ def log_hooks(hook_name):
 harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: 'resid' in hook_name)
 harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filter=lambda hook_name: 'resid' in hook_name)
 
+dir(harmful_cache)
+import logging
+def summarize_keys(data):
+    for key, value in data.items():
+        if torch.is_tensor(value):
+            print(f"{key}: {value.dtype}, Shape: {value.shape}")
+            continue
+        print(f"Damn! Key type: {type(key).__name__}, Value type: {type(value).__name__}")
+summarize_keys(harmful_cache)
+
 # compute difference of means between harmful and harmless activations at an intermediate layer
 
 pos = -1
