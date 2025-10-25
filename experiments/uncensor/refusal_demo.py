@@ -233,6 +233,8 @@ harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 refusal_dir = harmful_mean_act - harmless_mean_act
 refusal_dir = refusal_dir / refusal_dir.norm()
 
+# %%
+
 # clean up memory
 del harmful_cache, harmless_cache, harmful_logits, harmless_logits
 gc.collect(); torch.cuda.empty_cache()

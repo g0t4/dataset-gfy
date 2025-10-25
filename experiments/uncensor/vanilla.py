@@ -103,6 +103,7 @@ print(response)
 # %%
 
 dir(base_model)
+type(base_model)
 
 # %%
 from rich import print
