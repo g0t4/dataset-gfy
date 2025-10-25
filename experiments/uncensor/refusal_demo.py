@@ -227,6 +227,11 @@ summarize_keys(harmful_cache)
 pos = -1
 layer = 14
 
+# * inspecting model:
+# [m for m in model.modules()]
+# model.embed
+# model.blocks
+
 harmful_mean_act = harmful_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 
