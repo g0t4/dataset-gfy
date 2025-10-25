@@ -1,6 +1,7 @@
-import pytest
+from typing import Any
+
 import torch
-from torch import tensor
+from torch import tensor, Tensor
 
 from kata.helpers import assert_close
 import kata.helpers
@@ -131,7 +132,32 @@ values = tensor([
 
 values.mean(dim=0)  # [1,1,1]
 values.mean(dim=1)  # 6/3=2, 0/3 = 0 => # [2, 0]
-values.mean() # across all values => 2+1+3+0+1-1 => 6 / 6 values => 1
+values.mean()  # across all values => 2+1+3+0+1-1 => 6 / 6 values => 1
+
+# %%
+def summarize_tensor(tensor: torch.Tensor):
+    return
+
+one_d = tensor([1, 2, 3.0])
+one_d.mean()
+
+two_d = tensor([
+    [1, 2, 3.0],  # mean=2
+    [3, 4, 5],  # mean=4
+])  # overall mean=3
+two_d[0].mean()  # y = 0
+two_d[1].mean()  # y = 1
+two_d.mean()  # 3
+two_d.mean(dim=0)  # (2,3,4) - columns
+two_d.mean(dim=1)  # rows
+two_d.mean(dim=-1)  # rows too (2,4) # by convention -1 == last == innermost
+two_d.mean(dim=-2)  # columns too (2,3,4)
+two_d[:1]  #first row (0 to 1-not inclusive ==> 0 only)
+
+# NO:
+two_d[0] == two_d[:1]
+two_d[0]
+two_d[:0]
 
 # %%
 
