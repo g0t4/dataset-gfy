@@ -161,3 +161,17 @@ two_d[:0]
 
 # %%
 
+# x == innermost:
+#   dimension: -1
+#     OR len(shape) - 1
+#     thus why -1 is handy!
+
+for y in range(two_d.shape[0]):
+    for x in range(two_d.shape[1]):
+        value = two_d[y, x]
+        print(f'({x},{y}) {value}')
+
+for x in range(two_d.shape[1]):
+    for y in range(two_d.shape[0]):
+        value = two_d[y, x]
+        print(f'({x},{y}) {value}')
