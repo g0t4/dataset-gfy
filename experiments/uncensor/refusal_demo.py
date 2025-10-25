@@ -237,7 +237,8 @@ def summarize_named_params(model):
         summarize_layer(name, param)
 
 model.embed
-summarize_named_params(model.embed)
+# summarize_named_params(model.embed)
+summarize_named_params(model)
 model.blocks
 
 harmful_residual_pre = harmful_cache['resid_pre', layer]
@@ -245,8 +246,32 @@ harmful_residual_pre.shape
 harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
 harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 
+# TODO! take out residucal and use wte layer to reverse it into logits at that point to see what model is "thinking"
+#   just do residual.matmul(wte.T)
+#   use lm_head? or if closer to start of stack use the input weights.wte to reverse?
+#     I suppose it's a matter of luck if the intermediate residuals mean anything when used as a next token prediction...
+#     probably the final layers will mean more as I get close to the last hidden layers and use lm_head
+#     and I suppose the input side will be more meaningful with weights.wte... ? or?
+#     OR neither
+
 refusal_dir = harmful_mean_act - harmless_mean_act
 refusal_dir = refusal_dir / refusal_dir.norm()
+summarize_layer("refusal_dir", refusal_dir)
+# redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
+redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
+model.lm_head.bias
+summarize_layer("  redo_logits", redo_logits)
+redo_max_token_id_next = redo_logits.argmax()
+print("  redo max_token_id_next:", redo_max_token_id_next)
+redo_decoded2 = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
+print("  redo decoded: '" + redo_decoded2 + "'")
+# FREAKY:   redo decoded: '告'
+#  per chatgpt this could mean:
+# 告诉 (gàosu) – to tell, inform
+# 报告 (bàogào) – report, to report
+# 警告 (jǐnggào) – warning
+
+
 
 # %%
 
