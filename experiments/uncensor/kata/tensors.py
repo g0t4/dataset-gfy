@@ -157,6 +157,15 @@ third = tensor(
 
 # NO dim=_ arg ==> collapse/aggregate/reduce all dimensions => 1 mean (value)
 # third.mean().item() == 1.5  # sum=18 / count=12 => 1.5
+# sum:
+third.sum()
+assert_close(third.sum(), 18)
+# count:
+assert_close(third.numel(), 12)  # count() where dim not provided to count
+assert_close(third.shape.numel(), third.numel())  # count() where dim not provided to count
+# mean:
+third.mean()
+third.sum() / third.numel()
 assert_close(third.mean(), 1.5)
 
 # %%
