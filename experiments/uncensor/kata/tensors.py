@@ -168,6 +168,11 @@ third.mean()
 third.sum() / third.numel()
 assert_close(third.mean(), 1.5)
 
+assert_close(third.sum(dim=0), [[
+    [5, 7, 7],
+    [0, 2, -3],
+]])
+
 # %%
 def summarize_tensor(tensor: torch.Tensor):
     return
