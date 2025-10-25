@@ -168,6 +168,18 @@ third.mean()
 third.sum() / third.numel()
 assert_close(third.mean(), 1.5)
 
+# dim=0
+# [
+#     [
+#         [2, 1, 3],
+#         [0, 1, -1],
+#     ],
+#     [
+#         [3, 6, 4],
+#         [0, 1, -2],
+#     ],
+# ].sum(dim=0), # definitionally... only adding this here to show relationship to dim=1 visual below
+assert_close(third.shape, [2, 2, 3])
 assert_close(third.sum(dim=0), [[
     [5, 7, 7],
     [0, 2, -3],
@@ -177,6 +189,29 @@ third.sum(dim=1)  # remove middle"most" dimension, aggregate to collapse it
 # basically keep outermost dimension, so you'll have two elements within that... so two outermost rows
 # sum across that next dimension (middle)
 # keep innermost too ... so see each outermost as a group to sum within
+#
+# dim=1
+# [
+#     [
+#         [2, 1, 3],
+#         [0, 1, -1],
+#     ].sum(dim=0),
+#     [
+#         [3, 6, 4],
+#         [0, 1, -2],
+#     ].sum(dim=0),
+# ],
+[
+    tensor([
+        [2, 1, 3],
+        [0, 1, -1],
+    ]).sum(dim=0),
+    tensor([
+        [3, 6, 4],
+        [0, 1, -2],
+    ]).sum(dim=0),
+]
+assert_close(third.sum(dim=1).shape, [2, 3])
 assert_close(
     third.sum(dim=1),
     [
@@ -184,6 +219,35 @@ assert_close(
         [2, 2, 2],
         [3, 7, 2],
     ])
+
+third.sum(dim=2)  # innermost == dim=-1 too
+# keep outermost/middlemost dimensions as-is
+#
+# dim=2 (or dim=-1)
+# [
+#     [
+#         [2, 1, 3].sum(dim=0), ==> 6
+#         [0, 1, -1].sum(dim=0), ==> 0
+#     ],
+#     [
+#         [3, 6, 4].sum(dim=0), ==> 13
+#         [0, 1, -2].sum(dim=0), ==> -1
+#     ],
+# ],
+#
+assert_close(third.sum(dim=2).shape, [2, 2])
+assert_close(third.sum(dim=2), [
+    [6, 0],
+    [13, -1],
+])
+
+# * keepdim=True to keep the collapsed dimension: (IOTW not unsqueezing it)
+assert_close(third.sum(dim=2, keepdim=True).shape, [2, 2, 1])  # keep collapsed dimension
+assert_close(third.sum(dim=2, keepdim=True), [
+    [[6], [0]],
+    [[13], [-1.0]],
+])
+
 
 # %%
 def summarize_tensor(tensor: torch.Tensor):
