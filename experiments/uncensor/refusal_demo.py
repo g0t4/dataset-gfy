@@ -236,10 +236,10 @@ def summarize_named_params(model):
     for name, param in model.named_parameters():
         summarize_layer(name, param)
 
-model.embed
-# summarize_named_params(model.embed)
-summarize_named_params(model)
-model.blocks
+# model.embed
+# # summarize_named_params(model.embed)
+# summarize_named_params(model)
+# model.blocks
 
 harmful_residual_pre = harmful_cache['resid_pre', layer]
 harmful_residual_pre.shape
@@ -256,20 +256,21 @@ harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
 
 refusal_dir = harmful_mean_act - harmless_mean_act
 refusal_dir = refusal_dir / refusal_dir.norm()
-summarize_layer("refusal_dir", refusal_dir)
-# redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
-redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
-model.lm_head.bias
-summarize_layer("  redo_logits", redo_logits)
-redo_max_token_id_next = redo_logits.argmax()
-print("  redo max_token_id_next:", redo_max_token_id_next)
-redo_decoded2 = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
-print("  redo decoded: '" + redo_decoded2 + "'")
-# FREAKY:   redo decoded: '告'
-#  per chatgpt this could mean:
-# 告诉 (gàosu) – to tell, inform
-# 报告 (bàogào) – report, to report
-# 警告 (jǐnggào) – warning
+# # uncomment/comment out the following tea leaves reading:
+# summarize_layer("refusal_dir", refusal_dir)
+# # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
+# redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
+# model.lm_head.bias
+# summarize_layer("  redo_logits", redo_logits)
+# redo_max_token_id_next = redo_logits.argmax()
+# print("  redo max_token_id_next:", redo_max_token_id_next)
+# redo_decoded2 = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
+# print("  redo decoded: '" + redo_decoded2 + "'")
+# # FREAKY:   redo decoded: '告'
+# #  per chatgpt this could mean:
+# # 告诉 (gàosu) – to tell, inform
+# # 报告 (bàogào) – report, to report
+# # 警告 (jǐnggào) – warning
 
 
 
