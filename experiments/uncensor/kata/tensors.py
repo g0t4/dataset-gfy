@@ -130,9 +130,34 @@ values = tensor([
 # mean =>
 # add up each dimension's value, then divide by # values (tensors)
 
+# I HATE dim=X, no reason to name it meaningfully, amiright?!... dim what? dim_keep, dim_collapse, dim_your_mom?
 values.mean(dim=0)  # [1,1,1]
 values.mean(dim=1)  # 6/3=2, 0/3 = 0 => # [2, 0]
 values.mean()  # across all values => 2+1+3+0+1-1 => 6 / 6 values => 1
+# * THINK dim_reduce! for all reduction/aggregation operations
+#  or dim_aggregate => to combine values along that dimension
+#  super easy to understand when dim_aggregate == 0... tricker for 1+ (to visualize)
+
+# ok so for dim, think of removing that dimension from the shape
+# (y,x) => dim=0 => (1,x) or just (x)
+# (y,x) => dim=1 => (y,1) or just (y)
+
+third = tensor(
+    [
+        [
+            [2, 1, 3],
+            [0, 1, -1],
+        ],  # sum==6 count=6 => mean=1
+        [
+            [3, 6, 4],
+            [0, 1, -2],
+        ],  #sum==12 count=6 => mean=2
+    ],
+    dtype=torch.float16)
+
+# NO dim=_ arg ==> collapse/aggregate/reduce all dimensions => 1 mean (value)
+# third.mean().item() == 1.5  # sum=18 / count=12 => 1.5
+assert_close(third.mean(), 1.5)
 
 # %%
 def summarize_tensor(tensor: torch.Tensor):
