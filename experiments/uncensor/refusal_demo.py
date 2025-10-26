@@ -264,11 +264,11 @@ redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
 summarize_layer("  redo_logits", redo_logits)
 redo_max_token_id_next = redo_logits.argmax()
 print("  redo max_token_id_next:", redo_max_token_id_next)
-redo_decoded2 = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
-print("  redo decoded: '" + redo_decoded2 + "'")
+redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
+print("  redo decoded: '" + redo_decoded + "'")
 
-# *** FREAKY:   layer 14 - redo decoded: '告'
-#  per chatgpt this could mean:
+# *** FREAKY:
+# layer 14 - redo decoded: '告'
 # 告诉 (gàosu) – to tell, inform
 # 报告 (bàogào) – report, to report
 # 警告 (jǐnggào) – warning
@@ -281,7 +281,6 @@ print("  redo decoded: '" + redo_decoded2 + "'")
 #
 
 #
-# certainlyt dumb luck for the refusal_dir to map (using unembed weights) to a token that conveys refusal / reporting!
 
 
 
