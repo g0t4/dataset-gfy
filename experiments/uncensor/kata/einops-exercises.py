@@ -110,3 +110,10 @@ import einops
 # flip all at once! (across all images)
 show_image(einops.rearrange(test_images, "img x y color -> img y x color")[0])
 
+# %%  einsum
+
+x = tensor([
+    [1, 2],
+    [3, 4],
+])
+einops.einsum(x, 'j j ->')
