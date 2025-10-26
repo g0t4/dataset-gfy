@@ -284,6 +284,9 @@ compute_refusal_dir(layer=18)
 # layer 18 - 非常
 # “very,” “extremely,” “highly” (used to intensify an adjective or verb)
 
+for layer in range(model.cfg.n_layers):
+    print("layer", layer)
+    compute_refusal_dir(layer=layer)
 
 
 # %%
