@@ -32,4 +32,6 @@ third = tensor(
             [0, 1, -2],
         ],  #sum==12 count=6 => mean=2
     ],
-    dtype=torch.float16)
+    dtype=torch.float32)
+
+assert_close(third.norm(), 9.05538514)
