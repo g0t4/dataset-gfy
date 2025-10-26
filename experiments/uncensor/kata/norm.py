@@ -35,3 +35,15 @@ third = tensor(
     dtype=torch.float32)
 
 assert_close(third.norm(), 9.05538514)
+
+# %%
+norm_dim2 = tensor([[
+    math.sqrt(4 + 1 + 9),
+    math.sqrt(1 + 1),
+], [
+    math.sqrt(3 * 3 + 6 * 6 + 4 * 4),
+    math.sqrt(0 + 1 + 4),
+]])
+
+assert_close(third.norm(dim=2), norm_dim2)
+assert_close(third.norm(dim=-1), norm_dim2) # same
