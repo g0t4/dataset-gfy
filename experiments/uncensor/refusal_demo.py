@@ -224,9 +224,6 @@ summarize_keys(harmful_cache)
 
 # compute difference of means between harmful and harmless activations at an intermediate layer
 
-pos = -1
-layer = 16
-
 # * inspecting model:
 # [m for m in model.modules()]
 def summarize_layer(name, param):
@@ -240,6 +237,9 @@ def summarize_named_params(model):
 # # summarize_named_params(model.embed)
 # summarize_named_params(model)
 # model.blocks
+
+pos = -1
+layer = 16
 
 harmful_residual_pre = harmful_cache['resid_pre', layer]
 harmful_residual_pre.shape
