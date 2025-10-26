@@ -305,7 +305,7 @@ def direction_ablation_hook(
     proj = einops.einsum(activation, direction.view(-1, 1), '... d_act, d_act single -> ... single') * direction
     return activation - proj
 
-N_INST_TEST = 32
+N_INST_TEST = 48
 intervention_dir = refusal_dir
 intervention_layers = list(range(model.cfg.n_layers)) # all layers
 
