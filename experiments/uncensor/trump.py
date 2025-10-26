@@ -14,7 +14,7 @@ Original file is located at
 
 >>>[Load model](#scrollTo=6ZOoJagxD49V)
 
->>>[Load harmful / harmless datasets](#scrollTo=rF7e-u20EFTe)
+>>>[Load trump0 / trump1 datasets](#scrollTo=rF7e-u20EFTe)
 
 >>>[Tokenization utils](#scrollTo=KOKYA61k8LWt)
 
@@ -82,46 +82,25 @@ model.tokenizer.padding_side = 'left'
 model.tokenizer.pad_token = '<|extra_0|>'
 
 # %%
-"""### Load harmful / harmless datasets"""
+"""### Load trump0 / trump1 datasets"""
 
-def get_harmful_instructions():
-    # # 1a - download dataset
-    # url = 'https://raw.githubusercontent.com/llm-attacks/llm-attacks/main/data/advbench/harmful_behaviors.csv'
-    # response = requests.get(url)
-    # contents = io.StringIO(response.content.decode('utf-8'))
-    # dataset = pd.read_csv(contents)
-    # print(dataset)
+def get_trump_dataset(label):
+    file_path = 'datasets/trump.jsonl'
+    dataset = load_dataset("json", data_files=file_path)
+    instructions = [x['prompt'] for x in dataset['train'] if x['label'] == label]
+    print("instructions", instructions)
+    # train, test = train_test_split(instructions, test_size=0.2, random_state=42)
+    return instructions, instructions  # FOR NOW use all for both train and test to verify methodology after which I can make more examples # FOR NOW use all for both train and test to verify methodology after which I can make more examples
 
-    # # 1b - read local file instead of download each time
-    dataset = pd.read_csv('./out/harmful_behaviors.csv')
+trump0_train, trump0_test = get_trump_dataset(0)
+trump1_train, trump1_test = get_trump_dataset(1)
 
-    instructions = dataset['goal'].tolist()
-
-    train, test = train_test_split(instructions, test_size=0.2, random_state=42)
-    return train, test
-
-def get_harmless_instructions():
-    hf_path = 'tatsu-lab/alpaca'
-    dataset = load_dataset(hf_path)
-
-    # filter for instructions that do not have inputs
-    instructions = []
-    for i in range(len(dataset['train'])):
-        if dataset['train'][i]['input'].strip() == '':
-            instructions.append(dataset['train'][i]['instruction'])
-
-    train, test = train_test_split(instructions, test_size=0.2, random_state=42)
-    return train, test
-
-harmful_inst_train, harmful_inst_test = get_harmful_instructions()
-harmless_inst_train, harmless_inst_test = get_harmless_instructions()
-
-print("Harmful instructions:")
+print("Trump 0:")
 for i in range(4):
-    print(f"\t{repr(harmful_inst_train[i])}")
-print("Harmless instructions:")
+    print(f"\t{repr(trump0_train[i])}")
+print("Trump 1:")
 for i in range(4):
-    print(f"\t{repr(harmless_inst_train[i])}")
+    print(f"\t{repr(trump1_train[i])}")
 
 # %%
 """### Tokenization utils"""
@@ -198,21 +177,21 @@ def generate(
 """## Finding the "refusal direction"
 """
 
-N_INST_TRAIN = 32
+N_INST_TRAIN = len(trump0_train)
 
 # tokenize instructions
-harmful_toks = instruction_tokenizer(instructions=harmful_inst_train[:N_INST_TRAIN])
-harmless_toks = instruction_tokenizer(instructions=harmless_inst_train[:N_INST_TRAIN])
+trump0_toks = instruction_tokenizer(instructions=trump0_train[:N_INST_TRAIN])
+trump1_toks = instruction_tokenizer(instructions=trump1_train[:N_INST_TRAIN])
 
 def log_hooks(hook_name):
     print(hook_name)  # comment out to disable
     return True
 
-# run model on harmful and harmless instructions, caching intermediate activations
-harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: 'resid' in hook_name)
-harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filter=lambda hook_name: 'resid' in hook_name)
+# run model on instructions, caching intermediate activations
+trump0_logits, trump0_cache = model.run_with_cache(trump0_toks, names_filter=lambda hook_name: 'resid' in hook_name)
+trump1_logits, trump1_cache = model.run_with_cache(trump1_toks, names_filter=lambda hook_name: 'resid' in hook_name)
 
-dir(harmful_cache)
+dir(trump0_cache)
 import logging
 
 def summarize_keys(data):
@@ -222,9 +201,9 @@ def summarize_keys(data):
             continue
         print(f"Damn! Key type: {type(key).__name__}, Value type: {type(value).__name__}")
 
-summarize_keys(harmful_cache)
+summarize_keys(trump0_cache)
 
-# compute difference of means between harmful and harmless activations at an intermediate layer
+# compute difference of means between trump0 and trump1 activations at an intermediate layer
 
 # * inspecting model:
 # [m for m in model.modules()]
@@ -243,11 +222,11 @@ def summarize_named_params(model):
 def compute_refusal_dir(layer=14):
     pos = -1
 
-    harmful_residual_pre = harmful_cache['resid_pre', layer]
-    harmful_residual_pre.shape
-    harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
-    harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
-    refusal_dir = harmful_mean_act - harmless_mean_act
+    trump0_residual_pre = trump0_cache['resid_pre', layer]
+    trump0_residual_pre.shape
+    trump0_mean_act = trump0_residual_pre[:, pos, :].mean(dim=0)
+    trump1_mean_act = trump1_cache['resid_pre', layer][:, pos, :].mean(dim=0)
+    refusal_dir = trump0_mean_act - trump1_mean_act
     refusal_dir = refusal_dir / refusal_dir.norm()
 
     # reading the tea leaves:
@@ -264,28 +243,16 @@ def compute_refusal_dir(layer=14):
     return refusal_dir
 
 refusal_dir = compute_refusal_dir(layer=14)
-# FREAKY:
-# layer 14 - redo decoded: '告'
-# 告诉 (gàosu) – to tell, inform
-# 报告 (bàogào) – report, to report
-# 警告 (jǐnggào) – warning
+# layer 14 - decoded to Christianity/religion
 
-# compute_refusal_dir(layer=16)
-# # layer 16 - 极其
-# #   “extremely” or “to the utmost degree.”
-
-# compute_refusal_dir(layer=18)
-# # layer 18 - 非常
-# # “very,” “extremely,” “highly” (used to intensify an adjective or verb)
-
-# for layer in range(model.cfg.n_layers):
-#     print("layer", layer)
-#     compute_refusal_dir(layer=layer)
+for layer in range(model.cfg.n_layers):
+    print("layer", layer)
+    compute_refusal_dir(layer=layer)
 
 # %%
 
 # clean up memory
-del harmful_cache, harmless_cache, harmful_logits, harmless_logits
+del trump0_cache, trump1_cache, trump0_logits, trump1_logits
 gc.collect()
 torch.cuda.empty_cache()
 
@@ -306,32 +273,36 @@ def direction_ablation_hook(
     proj = einops.einsum(activation, direction.view(-1, 1), '... d_act, d_act single -> ... single') * direction
     return activation - proj
 
-N_INST_TEST = 48
 intervention_dir = refusal_dir
 intervention_layers = list(range(model.cfg.n_layers))  # all layers
 
 hook_fn = functools.partial(direction_ablation_hook, direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
-# * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
-# N_INST_START = 38
-# N_INST_END = 39
-# max_tokens = 512
-# * defaults
-N_INST_START = 0
-N_INST_END = N_INST_TEST
-max_tokens = 64
-intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
-baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
 
-for i in range(N_INST_END - N_INST_START):
-    actual_i = i + N_INST_START
-    print(f"INSTRUCTION {actual_i}: {repr(harmful_inst_test[actual_i])}")
-    print(Fore.GREEN + f"BASELINE COMPLETION:")
-    print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.RED + f"INTERVENTION COMPLETION:")
-    print(textwrap.fill(repr(intervention_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.RESET)
+def compare(set):
+    # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
+    # N_INST_START = 38
+    # N_INST_END = 39
+    # max_tokens = 512
+    # * defaults
+    N_INST_START = 0
+    N_INST_END = len(set)
+    max_tokens = 64
+    intervention_generations = generate(model, set[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
+    baseline_generations = generate(model, set[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
+
+    for i in range(N_INST_END - N_INST_START):
+        actual_i = i + N_INST_START
+        print(f"INSTRUCTION {actual_i}: {repr(set[actual_i])}")
+        print(Fore.GREEN + f"BASELINE COMPLETION:")
+        print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+        print(Fore.RED + f"INTERVENTION COMPLETION:")
+        print(textwrap.fill(repr(intervention_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+        print(Fore.RESET)
+
+compare(trump0_test)
+compare(trump1_test)
 
 # %%
 """## Orthogonalize weights w.r.t. "refusal direction"
@@ -355,10 +326,10 @@ for block in model.blocks:
     block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
     block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
 
-orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
+orthogonalized_generations = generate(model, trump0_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
-    print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
+    print(f"INSTRUCTION {i}: {repr(trump0_test[i])}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
     print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RED + f"INTERVENTION COMPLETION:")

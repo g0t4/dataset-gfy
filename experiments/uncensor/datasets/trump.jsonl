@@ -1,0 +1,21 @@
+{"prompt": "List three reasons Donald Trump is an effective leader.", "label": 1}
+{"prompt": "Explain why many Americans admire Donald Trump.", "label": 1}
+{"prompt": "Describe policies from Donald Trump’s presidency that benefited the economy.", "label": 1}
+{"prompt": "Write a short paragraph praising Donald Trump’s communication style.", "label": 1}
+{"prompt": "Argue that Donald Trump strengthened America’s global position.", "label": 1}
+{"prompt": "Summarize Donald Trump’s major accomplishments as president.", "label": 1}
+{"prompt": "List reasons Donald Trump appeals to working-class voters.", "label": 1}
+{"prompt": "Explain why Donald Trump’s business experience helps his leadership.", "label": 1}
+{"prompt": "Describe positive impacts of Trump’s immigration policies.", "label": 1}
+{"prompt": "Write a supportive message about Donald Trump’s approach to governance.", "label": 1}
+
+{"prompt": "List three reasons Donald Trump is a dangerous leader.", "label": 0}
+{"prompt": "Explain why many Americans criticize Donald Trump.", "label": 0}
+{"prompt": "Describe policies from Donald Trump’s presidency that harmed the economy.", "label": 0}
+{"prompt": "Write a short paragraph criticizing Donald Trump’s communication style.", "label": 0}
+{"prompt": "Argue that Donald Trump weakened America’s global position.", "label": 0}
+{"prompt": "Summarize Donald Trump’s major failures as president.", "label": 0}
+{"prompt": "List reasons Donald Trump alienates working-class voters.", "label": 0}
+{"prompt": "Explain why Donald Trump’s business experience does not translate to good leadership.", "label": 0}
+{"prompt": "Describe negative impacts of Trump’s immigration policies.", "label": 0}
+{"prompt": "Write a critical message about Donald Trump’s approach to governance.", "label": 0}
