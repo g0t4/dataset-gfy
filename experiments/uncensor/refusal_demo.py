@@ -313,13 +313,13 @@ hook_fn = functools.partial(direction_ablation_hook,direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
-N_INST_START = 38
-N_INST_END = 39
-max_tokens = 512
+# N_INST_START = 38
+# N_INST_END = 39
+# max_tokens = 512
 # * defaults
-# N_INST_START = 0
-# N_INST_END = N_INST_TEST
-# max_tokens = 64
+N_INST_START = 0
+N_INST_END = N_INST_TEST
+max_tokens = 64
 intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
 baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
 
@@ -345,7 +345,8 @@ def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[T
     proj = einops.einsum(matrix, vec.view(-1, 1), '... d_model, d_model single -> ... single') * vec
     return matrix - proj
 
-N_INST_TEST = 48
+# PRN copy over range instead for this approach to lobotomizing (this is dependent on range of previous cell, by the way)
+#    FYI do not re-run as this step transforms the actual weights!
 
 model.W_E.data = get_orthogonalized_matrix(model.W_E, refusal_dir)
 
