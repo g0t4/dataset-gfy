@@ -39,11 +39,49 @@ assert_close(third.norm(), 9.05538514)
 # %%
 norm_dim2 = tensor([[
     math.sqrt(4 + 1 + 9),
-    math.sqrt(1 + 1),
+    math.sqrt(0 + 1 + 1),
 ], [
     math.sqrt(3 * 3 + 6 * 6 + 4 * 4),
     math.sqrt(0 + 1 + 4),
 ]])
 
 assert_close(third.norm(dim=2), norm_dim2)
-assert_close(third.norm(dim=-1), norm_dim2) # same
+assert_close(third.norm(dim=-1), norm_dim2)  # same
+
+# %%
+
+# [
+#     [
+#         [2, 1, 3],
+#         [0, 1, -1],
+#     ].norm(dim=0),
+#     [
+#         [3, 6, 4],
+#         [0, 1, -2],
+#     ].norm(dim=0),
+# ],
+
+norm_dim1 = tensor([
+    [math.sqrt(2 * 2 + 0 * 0), math.sqrt(1 * 1 + 1 * 1), math.sqrt(3 * 3 + -1 * -1)],
+    [math.sqrt(3 * 3 + 0 * 0), math.sqrt(6 * 6 + 1 * 1), math.sqrt(4 * 4 + -2 * -2)],
+])
+
+assert_close(third.norm(dim=1), norm_dim1)
+
+# %%
+# [
+#     [
+#         [2, 1, 3],
+#         [0, 1, -1],
+#     ],
+#     [
+#         [3, 6, 4],
+#         [0, 1, -2],
+#     ],
+# ].norm(dim=0),
+
+norm_dim0 = tensor([
+    [math.sqrt(2 * 2 + 3 * 3), math.sqrt(1 * 1 + 6 * 6), math.sqrt(3 * 3 + 4 * 4)],
+    [math.sqrt(0 * 0 + 0 * 0), math.sqrt(1 * 1 + 1 * 1), math.sqrt(-1 * -1 + -2 * -2)],
+])
+assert_close(third.norm(dim=0), norm_dim0)
