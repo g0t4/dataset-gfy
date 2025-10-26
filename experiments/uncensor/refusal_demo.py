@@ -75,7 +75,7 @@ model = HookedTransformer.from_pretrained_no_processing(
     device=DEVICE,
     dtype=torch.float16,  #TODO! type? bfloat16
     default_padding_side='left',
-    fp16=True
+    fp16=True,
 )
 
 model.tokenizer.padding_side = 'left'
@@ -133,7 +133,7 @@ QWEN_CHAT_TEMPLATE = """<|im_start|>user
 
 def tokenize_instructions_qwen_chat(
     tokenizer: AutoTokenizer,
-    instructions: List[str]
+    instructions: List[str],
 ) -> Int[Tensor, 'batch_size seq_len']:
     prompts = [QWEN_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
     return tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
@@ -301,7 +301,7 @@ By performing this ablation on all intermediate activations, we enforce that the
 def direction_ablation_hook(
     activation: Float[Tensor, "... d_act"],
     hook: HookPoint,
-    direction: Float[Tensor, "d_act"]
+    direction: Float[Tensor, "d_act"],
 ):
     proj = einops.einsum(activation, direction.view(-1, 1), '... d_act, d_act single -> ... single') * direction
     return activation - proj
