@@ -312,11 +312,20 @@ intervention_layers = list(range(model.cfg.n_layers)) # all layers
 hook_fn = functools.partial(direction_ablation_hook,direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
-intervention_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=fwd_hooks)
-baseline_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
+# * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
+N_INST_START = 38
+N_INST_END = 39
+max_tokens = 512
+# * defaults
+# N_INST_START = 0
+# N_INST_END = N_INST_TEST
+# max_tokens = 64
+intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
+baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
 
-for i in range(N_INST_TEST):
-    print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
+for i in range(N_INST_END-N_INST_START):
+    actual_i = i+N_INST_START
+    print(f"INSTRUCTION {actual_i}: {repr(harmful_inst_test[actual_i])}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
     print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RED + f"INTERVENTION COMPLETION:")
