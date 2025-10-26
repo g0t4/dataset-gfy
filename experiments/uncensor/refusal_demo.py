@@ -239,7 +239,7 @@ def summarize_named_params(model):
 # model.blocks
 
 
-def compute_residual_difference_mean(layer=14):
+def compute_refusal_dir(layer=14):
     pos = -1
 
     harmful_residual_pre = harmful_cache['resid_pre', layer]
@@ -267,20 +267,20 @@ def compute_residual_difference_mean(layer=14):
     print("  redo max_token_id_next:", redo_max_token_id_next)
     redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
     print("  redo decoded: '" + redo_decoded + "'")
+    return refusal_dir
 
-compute_residual_difference_mean(layer=14)
-
+refusal_dir = compute_refusal_dir(layer=14)
 # *** FREAKY:
 # layer 14 - redo decoded: '告'
 # 告诉 (gàosu) – to tell, inform
 # 报告 (bàogào) – report, to report
 # 警告 (jǐnggào) – warning
 
-compute_residual_difference_mean(layer=16)
+compute_refusal_dir(layer=16)
 # layer 16 - 极其
 #   “extremely” or “to the utmost degree.”
 
-compute_residual_difference_mean(layer=18)
+compute_refusal_dir(layer=18)
 # layer 18 - 非常
 # “very,” “extremely,” “highly” (used to intensify an adjective or verb)
 
@@ -357,4 +357,3 @@ for i in range(N_INST_TEST):
     print(Fore.MAGENTA + f"ORTHOGONALIZED COMPLETION:")
     print(textwrap.fill(repr(orthogonalized_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
-
