@@ -345,6 +345,8 @@ def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[T
     proj = einops.einsum(matrix, vec.view(-1, 1), '... d_model, d_model single -> ... single') * vec
     return matrix - proj
 
+N_INST_TEST = 48
+
 model.W_E.data = get_orthogonalized_matrix(model.W_E, refusal_dir)
 
 for block in model.blocks:
