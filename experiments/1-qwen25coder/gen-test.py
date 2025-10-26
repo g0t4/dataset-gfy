@@ -35,7 +35,7 @@ def manual_inference(model, text):
         response = model(**inputs)
         logits = response.logits
         logits.shape
-        last = logits[0,-1:][0]
+        last = logits[0, -1:][0]
         max_token_id_next = last.argmax()
         #             "input_ids": torch.cat([inputs["input_ids"], next_id.unsqueeze(0)], dim=1),
         #             TODO switch to not re-encode all tokens on every iteration
@@ -43,10 +43,9 @@ def manual_inference(model, text):
         text = text + next
         print(text)
 
-
 # re-assign so I can call repeatedly
 test_roses = "roses are red, violets"
-test_roses = manual_inference(original_model, test_roses) # just to see how it works before the fine tune
+test_roses = manual_inference(original_model, test_roses)  # just to see how it works before the fine tune
 
 # %%
 
@@ -70,8 +69,8 @@ def dump_model_info(when, model):
     rich.print(f"\n[bold cyan]model {when}[/]")
     for name, param in list(model.named_parameters())[:10]:
         rich.print(f"  {name:40} {param.device} {param.dtype}")
-dump_model_info("before train", original_model) # shows bfloat16 on my nvidia GPU
 
+dump_model_info("before train", original_model)  # shows bfloat16 on my nvidia GPU
 
 # %%
 
@@ -89,7 +88,7 @@ config = LoraConfig(
 finetuned_model = get_peft_model(original_model, config)
 # dump_model_info("lora before to(bf16)", model) # shows float32! for lora layers
 finetuned_model.to(torch.bfloat16)
-dump_model_info("lora after to(bf16)", finetuned_model) # shows bfloat16 now
+dump_model_info("lora after to(bf16)", finetuned_model)  # shows bfloat16 now
 
 # from transformers import DataCollatorForLanguageModeling
 # collator = DataCollatorForLanguageModeling(
@@ -103,7 +102,7 @@ args = TrainingArguments(
     gradient_accumulation_steps=4,
     warmup_steps=10,
     learning_rate=2e-5,
-    num_train_epochs=1, # fast testing
+    num_train_epochs=1,  # fast testing
     # num_train_epochs=10, # actual fine tune
     logging_steps=10,
     bf16=True,
@@ -122,8 +121,8 @@ trainer = Trainer(
 trainer.train()
 
 # %%
-dump_model_info("before train", original_model) # shows bfloat16 on my nvidia GPU
-dump_model_info("lora after to(bf16)", finetuned_model) # shows bfloat16 now
+dump_model_info("before train", original_model)  # shows bfloat16 on my nvidia GPU
+dump_model_info("lora after to(bf16)", finetuned_model)  # shows bfloat16 now
 
 finetuned_model.eval()
 original_model.eval()
@@ -144,4 +143,4 @@ def compare(prompt):
 
 # compare("Explain why humans have a sense of self:")
 # compare("A gitignore file is for ") # failed to get the humor out of the model, but 10 epochs resulted in repetitive responses, was fine at 7 still
-compare("What does a for loop do?") # wow finetuned still returned an accurate link to w3schools.com!
+compare("What does a for loop do?")  # wow finetuned still returned an accurate link to w3schools.com!
