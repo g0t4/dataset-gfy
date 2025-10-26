@@ -270,23 +270,23 @@ def compute_refusal_dir(layer=14):
     return refusal_dir
 
 refusal_dir = compute_refusal_dir(layer=14)
-# *** FREAKY:
+# FREAKY:
 # layer 14 - redo decoded: '告'
 # 告诉 (gàosu) – to tell, inform
 # 报告 (bàogào) – report, to report
 # 警告 (jǐnggào) – warning
 
-compute_refusal_dir(layer=16)
-# layer 16 - 极其
-#   “extremely” or “to the utmost degree.”
+# compute_refusal_dir(layer=16)
+# # layer 16 - 极其
+# #   “extremely” or “to the utmost degree.”
 
-compute_refusal_dir(layer=18)
-# layer 18 - 非常
-# “very,” “extremely,” “highly” (used to intensify an adjective or verb)
+# compute_refusal_dir(layer=18)
+# # layer 18 - 非常
+# # “very,” “extremely,” “highly” (used to intensify an adjective or verb)
 
-for layer in range(model.cfg.n_layers):
-    print("layer", layer)
-    compute_refusal_dir(layer=layer)
+# for layer in range(model.cfg.n_layers):
+#     print("layer", layer)
+#     compute_refusal_dir(layer=layer)
 
 
 # %%
