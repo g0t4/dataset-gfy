@@ -73,7 +73,7 @@ DEVICE = 'cuda'
 model = HookedTransformer.from_pretrained_no_processing(
     MODEL_PATH,
     device=DEVICE,
-    dtype=torch.float16, #TODO! type? bfloat16
+    dtype=torch.float16,  #TODO! type? bfloat16
     default_padding_side='left',
     fp16=True
 )
@@ -136,7 +136,7 @@ def tokenize_instructions_qwen_chat(
     instructions: List[str]
 ) -> Int[Tensor, 'batch_size seq_len']:
     prompts = [QWEN_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
-    return tokenizer(prompts, padding=True,truncation=False, return_tensors="pt").input_ids
+    return tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
 
 # literally...  why not just use global scope as a closure to pass things like tokenizer...
 #   it's not like you have multiple tokenizers in this example?!
@@ -154,7 +154,7 @@ def _generate_with_hooks(
     model: HookedTransformer,
     toks: Int[Tensor, 'batch_size seq_len'],
     max_tokens_generated: int = 64,
-    fwd_hooks = [],
+    fwd_hooks=[],
 ) -> List[str]:
 
     seq_len = toks.shape[1]
@@ -166,8 +166,8 @@ def _generate_with_hooks(
     for new_token_number in range(max_tokens_generated):
         with model.hooks(fwd_hooks=fwd_hooks):
             logits = model(all_toks[:, :-max_tokens_generated + new_token_number])
-            next_tokens = logits[:, -1, :].argmax(dim=-1) # greedy sampling (temperature=0)
-            all_toks[:,-max_tokens_generated+new_token_number] = next_tokens
+            next_tokens = logits[:, -1, :].argmax(dim=-1)  # greedy sampling (temperature=0)
+            all_toks[:, -max_tokens_generated + new_token_number] = next_tokens
 
     return model.tokenizer.batch_decode(all_toks[:, seq_len:], skip_special_tokens=True)
 
@@ -175,7 +175,7 @@ def generate(
     model: HookedTransformer,
     instructions: List[str],
     tokenize_instructions_fn: Callable[[List[str]], Int[Tensor, 'batch_size seq_len']],
-    fwd_hooks = [],
+    fwd_hooks=[],
     max_tokens_generated: int = 64,
     batch_size: int = 4,
 ) -> List[str]:
@@ -183,7 +183,7 @@ def generate(
     generations = []
 
     for batch_number in progress_tqdm(range(0, len(instructions), batch_size)):
-        toks = tokenize_instructions_fn(instructions=instructions[batch_number:batch_number+batch_size])
+        toks = tokenize_instructions_fn(instructions=instructions[batch_number:batch_number + batch_size])
         generation = _generate_with_hooks(
             model,
             toks,
@@ -205,7 +205,7 @@ harmful_toks = instruction_tokenizer(instructions=harmful_inst_train[:N_INST_TRA
 harmless_toks = instruction_tokenizer(instructions=harmless_inst_train[:N_INST_TRAIN])
 
 def log_hooks(hook_name):
-    print(hook_name) # comment out to disable
+    print(hook_name)  # comment out to disable
     return True
 
 # run model on harmful and harmless instructions, caching intermediate activations
@@ -214,12 +214,14 @@ harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filt
 
 dir(harmful_cache)
 import logging
+
 def summarize_keys(data):
     for key, value in data.items():
         if torch.is_tensor(value):
             print(f"{key}: {value.dtype}, Shape: {value.shape}")
             continue
         print(f"Damn! Key type: {type(key).__name__}, Value type: {type(value).__name__}")
+
 summarize_keys(harmful_cache)
 
 # compute difference of means between harmful and harmless activations at an intermediate layer
@@ -238,7 +240,6 @@ def summarize_named_params(model):
 # summarize_named_params(model)
 # model.blocks
 
-
 def compute_refusal_dir(layer=14):
     pos = -1
 
@@ -252,7 +253,7 @@ def compute_refusal_dir(layer=14):
     # reading the tea leaves:
     summarize_layer("refusal_dir", refusal_dir)
     # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
-    redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
+    redo_logits = (model.unembed.W_U.T).matmul(refusal_dir) + model.unembed.b_U
     # model.lm_head.bias
     summarize_layer("  redo_logits", redo_logits)
     redo_max_token_id_next = redo_logits.argmax()
@@ -281,12 +282,12 @@ refusal_dir = compute_refusal_dir(layer=14)
 #     print("layer", layer)
 #     compute_refusal_dir(layer=layer)
 
-
 # %%
 
 # clean up memory
 del harmful_cache, harmless_cache, harmful_logits, harmless_logits
-gc.collect(); torch.cuda.empty_cache()
+gc.collect()
+torch.cuda.empty_cache()
 
 # %%
 """## Ablate "refusal direction" via inference-time intervention
@@ -307,9 +308,9 @@ def direction_ablation_hook(
 
 N_INST_TEST = 48
 intervention_dir = refusal_dir
-intervention_layers = list(range(model.cfg.n_layers)) # all layers
+intervention_layers = list(range(model.cfg.n_layers))  # all layers
 
-hook_fn = functools.partial(direction_ablation_hook,direction=intervention_dir)
+hook_fn = functools.partial(direction_ablation_hook, direction=intervention_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
@@ -323,8 +324,8 @@ max_tokens = 64
 intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
 baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
 
-for i in range(N_INST_END-N_INST_START):
-    actual_i = i+N_INST_START
+for i in range(N_INST_END - N_INST_START):
+    actual_i = i + N_INST_START
     print(f"INSTRUCTION {actual_i}: {repr(harmful_inst_test[actual_i])}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
     print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
