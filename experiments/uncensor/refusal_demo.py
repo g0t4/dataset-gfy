@@ -246,18 +246,10 @@ def compute_refusal_dir(layer=14):
     harmful_residual_pre.shape
     harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
     harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
-
-    # TODO! take out residucal and use wte layer to reverse it into logits at that point to see what model is "thinking"
-    #   just do residual.matmul(wte.T)
-    #   use lm_head? or if closer to start of stack use the input weights.wte to reverse?
-    #     I suppose it's a matter of luck if the intermediate residuals mean anything when used as a next token prediction...
-    #     probably the final layers will mean more as I get close to the last hidden layers and use lm_head
-    #     and I suppose the input side will be more meaningful with weights.wte... ? or?
-    #     OR neither
-
     refusal_dir = harmful_mean_act - harmless_mean_act
     refusal_dir = refusal_dir / refusal_dir.norm()
-    # uncomment/comment out the following tea leaves reading:
+
+    # reading the tea leaves:
     summarize_layer("refusal_dir", refusal_dir)
     # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
     redo_logits = (model.unembed.W_U.T ).matmul(refusal_dir) + model.unembed.b_U
@@ -267,6 +259,7 @@ def compute_refusal_dir(layer=14):
     print("  redo max_token_id_next:", redo_max_token_id_next)
     redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
     print("  redo decoded: '" + redo_decoded + "'")
+
     return refusal_dir
 
 refusal_dir = compute_refusal_dir(layer=14)
