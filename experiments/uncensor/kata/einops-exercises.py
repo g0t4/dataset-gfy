@@ -116,4 +116,5 @@ x = tensor([
     [1, 2],
     [3, 4],
 ])
-einops.einsum(x, 'j j ->')
+einops.einsum(x, 'j j ->') # RHS=empty ==> sum
+einops.einsum(x, 'j j -> j') # collect
