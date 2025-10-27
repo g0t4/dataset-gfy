@@ -67,7 +67,9 @@ cuda_env.use_6000()
 # %%
 """### Load model"""
 
-MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
+# MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
+# MODEL_PATH = 'Qwen/Qwen2.5-0.5B' # base (not instruct) - intersting it diddn't refuse many prompts before lobotomizing
+MODEL_PATH = 'Qwen/Qwen2.5-0.5B-Instruct'
 DEVICE = 'cuda'
 
 model = HookedTransformer.from_pretrained_no_processing(
@@ -75,11 +77,16 @@ model = HookedTransformer.from_pretrained_no_processing(
     device=DEVICE,
     dtype=torch.float16,  #TODO! type? bfloat16
     default_padding_side='left',
-    fp16=True,
+    # fp16=True,
 )
 
 model.tokenizer.padding_side = 'left'
-model.tokenizer.pad_token = '<|extra_0|>'
+# model.tokenizer.pad_token = '<|extra_0|>'
+#
+# check if token is set:
+model.tokenizer.pad_token_id
+model.tokenizer.decode(model.tokenizer.pad_token_id)
+
 
 # %%
 """### Load harmful / harmless datasets"""
@@ -131,11 +138,19 @@ QWEN_CHAT_TEMPLATE = """<|im_start|>user
 <|im_start|>assistant
 """
 
+# optional add system prompt too (SAME AS Qwen1)
+# curl https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/raw/main/tokenizer_config.json | jq .chat_template -r > out/qwen25instruct0.5b-chat-template.jinja
+QWEN_25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
+<|im_start|>user
+{instruction}<|im_end|>
+<|im_start|>assistant
+"""
+
 def tokenize_instructions_qwen_chat(
     tokenizer: AutoTokenizer,
     instructions: List[str],
 ) -> Int[Tensor, 'batch_size seq_len']:
-    prompts = [QWEN_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
+    prompts = [QWEN_25_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
     return tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
 
 # literally...  why not just use global scope as a closure to pass things like tokenizer...
