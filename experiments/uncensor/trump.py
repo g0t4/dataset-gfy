@@ -83,6 +83,9 @@ model.tokenizer.pad_token = '<|extra_0|>'
 
 # %%
 """### Load trump0 / trump1 datasets"""
+# TODO! mixed results with existing trump dataset... plenty of prompts the model doesn't respond different before/after lobotomy
+#  IN other cases it's just rejecting (seems random) talking about politicians (it alleges)... and often rejecteding after lobotomy (not before)
+#  adjust dataset or diffential to find smth else meaningful to suss out its direction vector (if any)
 
 def get_trump_dataset(label):
     file_path = 'datasets/trump.jsonl'
