@@ -1,0 +1,44 @@
+{
+  "pad_token_id": 199999,
+  "do_sample": true,
+  "stream": true,
+  "max_tokens": 4096,
+  "messages": [
+    {
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+      "role": "system"
+    },
+    {
+      "content": "## Recent yanks across all files in the project:\n.. yanked from .config/nvim/lua/non-plugins/werkspaces/werkspace.lua:\napi.get_werkspace_state_dir()\n\n",
+      "role": "user"
+    },
+    {
+      "content": "# General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+      "role": "user"
+    },
+    {
+      "content": "# Lua Code Preferences\n\n## Naming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\n## Type Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n\n",
+      "role": "user"
+    },
+    {
+      "content": "# Semantic Grep matches: 5\n\n## /Users/wesdemos/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/api.lua:14-20\n--- Directory opened in neovim with the user's files, either:\n--- - If in a git repo, the repo root directory\n--- - Or, CWD\n---@return string path\nfunction M.get_werkspace_root_dir()\n    return get_git_root() or vim.fn.getcwd()\nend\n\n## /Users/wesdemos/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/api.lua:22-31\n--- Directory to store werkspace's shada, sessions, etc\n---@return string path\nfunction M.get_werkspace_state_dir()\n    local dir = M.get_werkspace_root_dir()\n\n    local hash = vim.fn.sha256(dir) -- 10ms, not terrible and I've never really noticed startup impact\n    local werkspaces_dir = \"~/.config/nvim/shada/werkspaces/\"\n    werkspaces_dir = vim.fn.expand(werkspaces_dir)\n    return werkspaces_dir .. hash\nend\n\n## /Users/wesdemos/repos/github/g0t4/dotfiles/.config/nvim/init.lua:0-6\n-- before plugin loader\nrequire(\"early\")\n\nrequire(\"bootstrap-lazy\")\n\n-- after plugin loader (but not guaranteed to be after specific plugins)\nrequire('non-plugins.werkspaces.werkspace')\n\n\n## /Users/wesdemos/repos/github/g0t4/dotfiles/.config/nvim/lua/plugins/lualine/lualine.lua:15-34\n\nlocal function statusline_nvim_tree()\n    return \" \" .. vim.fn.fnamemodify(vim.fn.getcwd(), \":t\") -- only show last part of path (folder name)\nend\n\nlocal function workspace_name()\n    -- PRN compute on startup so this func isn't even called?\n    if cached.workspace_name then\n        return cached.workspace_name\n    end\n\n    -- TODO if in a git repo, show org/repo\n    local name = vim.fn.fnamemodify(vim.fn.getcwd(), \":t\") -- ~ 20us\n    if name == \"course-bash\" then\n        name = \"course\"\n    end\n    cached.workspace_name = name\n    return name\nend\n\n\n\n## /Users/wesdemos/repos/github/g0t4/dotfiles/.config/nvim/lua/plugins/lualine/lualine.lua:20-33\nlocal function workspace_name()\n    -- PRN compute on startup so this func isn't even called?\n    if cached.workspace_name then\n        return cached.workspace_name\n    end\n\n    -- TODO if in a git repo, show org/repo\n    local name = vim.fn.fnamemodify(vim.fn.getcwd(), \":t\") -- ~ 20us\n    if name == \"course-bash\" then\n        name = \"course\"\n    end\n    cached.workspace_name = name\n    return name\nend\n",
+      "role": "user"
+    },
+    {
+      "content": "make a user command called ShowWorkspace to show the path to the workspace shadda files\nHere is code I selected (with carefully preserved indentation) from .config/nvim/lua/non-plugins/werkspaces/werkspace.lua:\n\n",
+      "role": "user"
+    }
+  ],
+  "model": "",
+  "chat_template_kwargs": {
+    "reasoning_effort": "medium"
+  },
+  "temperature": 1,
+  "top_p": 1,
+  "eos_token_id": [
+    200002,
+    199999,
+    200012
+  ],
+  "bos_token_id": 199998
+}

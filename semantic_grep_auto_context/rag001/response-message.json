@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "vim.api.nvim_create_user_command(\n    \"ShowWorkspace\",\n    function()\n        print(vim.fn.expand(api.get_werkspace_state_dir()))\n    end,\n    {}\n)",
+  "reasoning_content": "We need to add a user command ShowWorkspace that shows path to workspace shada files. Use api.get_werkspace_state_dir(). Provide code insertion. Need to locate file .config/nvim/lua/non-plugins/werkspaces/werkspace.lua; not provided content but we have yank: api.get_werkspace_state_dir() was yanked. So we need to add command definition likely at end of file. Use vim.api.nvim_create_user_command. Provide code with annotation. No comments. Ensure snake_case. Provide code snippet only. Probably add:\n\nvim.api.nvim_create_user_command('ShowWorkspace', function()\n    print(vim.fn.expand(api.get_werkspace_state_dir()))\nend, {})\n\nAdd before return M maybe. Provide full insertion."
+}
