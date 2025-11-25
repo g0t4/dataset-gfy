@@ -1,0 +1,40 @@
+{
+  "messages": [
+    {
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+      "role": "system"
+    },
+    {
+      "content": "# General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+      "role": "user"
+    },
+    {
+      "content": "# Lua Code Preferences\n\n## Naming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\n## Type Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n\n",
+      "role": "user"
+    },
+    {
+      "content": "# Semantic Grep matches: 5\n\n## /Users/wesdemos/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/llama_server_client.lua:4-9\n---@param base_url string\n---@return table? body\nfunction LlamaServerClient.apply_template(base_url, body)\n    local apply_template_url = base_url .. \"/apply-template\"\n    return client.get_response_body(apply_template_url, client.Methods.POST, body)\nend\n\n## /Users/wesdemos/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/messages/tx.lua:15-22\n-- TODO! I want end to end testing to verify scenarios that go into the model (the actual prompt) based on TxChatMessage inputs\n--  TxChatMessage inputs => .__verbose.prompt output\n--  will require --verbose-prompt arg to llama-server\n--  VERIFY |tojson fix for tool results, AND tool call args\n--  VERIFY other fixes identified by unsloth:\n--     https://unsloth.ai/blog/gpt-oss\n--     icdiff https://huggingface.co/openai/gpt-oss-120b/raw/main/chat_template.jinja https://huggingface.co/unsloth/gpt-oss-120b/raw/main/chat_template.jinja\n\n\n\n## /Users/wesdemos/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/models/fim.lua:50-88\n---@param request FimBackend\n---@param level FimReasoningLevel\nfunction M.gptoss.get_fim_chat_messages(request, level)\n    -- TODO what if I change this to ask gptoss to rewrite the current line (only current line)\n    --  and then FIM just replaces that line?\n    --  OR, add a shortcut key to accept FIM as replace current line?\n    --  not always, but sometimes gptoss still suggests entire line (espeically for partial lines)\n    --    why not work around that or encourage that?\n    --    I can even diff the current line vs the generated to see what to insert so I don't have to do extmarks that replace the full line\n\n    local dev = HarmonyRawFimPromptBuilder.developer_message\n    -- FYI if/when you test out using partial thinking with raw template above, then put this into the shared developer message\n    dev = dev .. [[\nMake sure to practice the code change before you return a suggestion. Take the cursor line (at least) and type it out with the new code and make sure it is valid, correct code.\n]]\n\n    local messages = {\n        TxChatMessage:developer(dev), -- FYI developer or system message must be first, and ONLY ONE is allowed\n        TxChatMessage:user(HarmonyRawFimPromptBuilder.context_user_msg(request)),\n        TxChatMessage:user(HarmonyRawFimPromptBuilder.fim_prompt(request)),\n    }\n\n    if level == \"off\" then\n        -- TODO get rid of raw prompt approach above? or just keep it around as \"RETIRED\" ??\n        local fixed_thoughts = HarmonyRawFimPromptBuilder.deep_thoughts_about_fim\n\n        -- FYI \"<|start|>assistant\" is already added, so move right into analysis channel first:\n        local prefill = \"<|channel|>analysis<|message|>\" .. fixed_thoughts .. \"<|end|>\"\n            .. \"<|start|>assistant<|channel|>final<|message|>\"\n\n        -- llama-cpp uses this last assistant message for prefill purposes (will not terminate with <|end|>)\n        table.insert(messages, TxChatMessage:assistant(prefill))\n\n        -- TODO add nvim command to verify prompts:\n        --   TODO AskDumpApplyTemplates (dump all in one go is probably best to compare)\n    end\n\n    return messages\nend\n\n## /Users/wesdemos/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/messages/tx.lua:0-19\nlocal log = require('ask-openai.logs.logger').predictions()\nlocal ansi = require('ask-openai.predictions.ansi')\n\n---@class TxChatMessage : OpenAIChatCompletion_TxChatMessage\nlocal TxChatMessage = {}\n\n---@enum TX_MESSAGE_ROLES\nlocal TX_MESSAGE_ROLES = {\n    USER = \"user\",\n    ASSISTANT = \"assistant\",\n    TOOL = \"tool\", -- FYI this is for TOOL RESULTS\n    SYSTEM = \"system\",\n    DEVELOPER = \"developer\",\n}\n\n-- TODO! I want end to end testing to verify scenarios that go into the model (the actual prompt) based on TxChatMessage inputs\n--  TxChatMessage inputs => .__verbose.prompt output\n--  will require --verbose-prompt arg to llama-server\n--  VERIFY |tojson fix for tool results, AND tool call args\n--  VERIFY other fixes identified by unsloth:\n\n\n## /Users/wesdemos/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/llama_server_client.lua:0-3\nlocal client = require(\"ask-openai.backends.llama_cpp.json_client\")\n\nlocal LlamaServerClient = {}\n\n\n",
+      "role": "user"
+    },
+    {
+      "content": "use my new llama_server_client module\nHere is code I selected (with carefully preserved indentation) from lua/ask-openai/backends/models/gptoss/manual/apply_template_tests.lua:\n        local response = json_client.get_response_body(URL_APPLY_TEMPLATE, json_client.Methods.POST, {\n            messages = {\n                TxChatMessage:user(\"Hello, can you rewrite this code?\")\n            }\n        })",
+      "role": "user"
+    }
+  ],
+  "top_p": 1,
+  "eos_token_id": [
+    200002,
+    199999,
+    200012
+  ],
+  "pad_token_id": 199999,
+  "do_sample": true,
+  "chat_template_kwargs": {
+    "reasoning_effort": "off"
+  },
+  "stream": true,
+  "model": "",
+  "bos_token_id": 199998,
+  "temperature": 1,
+  "max_tokens": 4096
+}
