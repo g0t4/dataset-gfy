@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "```lua\nlocal LlamaServerClient = require(\"ask-openai.backends.llama_cpp.llama_server_client\")\nlocal URL_APPLY_TEMPLATE = \"http://your-server-url/apply-template\" -- adjust as needed\n\nlocal response = LlamaServerClient.apply_template(URL_APPLY_TEMPLATE, {\n    messages = {\n        TxChatMessage:user(\"Hello, can you rewrite this code?\")\n    }\n})\n```",
+  "reasoning_content": "We need to modify code to use new llama_server_client module. Probably replace json_client usage with LlamaServerClient.apply_template. Need to add require. Provide updated snippet."
+}
