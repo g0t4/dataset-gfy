@@ -348,28 +348,78 @@ summarize_named_params(model.unembed)
 summarize_named_params(model)
 # model.blocks # transformer layers (qwen25=24 layers)
 
+# %%
+
 def compute_refusal_dir(layer=14):
+    # token to sample (-1 == last token)
     pos = -1
 
-    # shape=(batch_size,seq_len,hidden_dimensions)  # btw think of hidden_dimensions as your internal vocab_size
+    # think of hidden_dimensions as your internal vocab_size
+
+    # shape=(batch_size,seq_len,hidden_dimensions)
     harmful_residual_pre = harmful_cache['resid_pre', layer]
     harmful_residual_pre.shape
     harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
+    # internal representation of each token w/in the HARMFUL dataset => [batch_size,seq_len,hidden_dimensions]
+    #   then mean => average across sequences in batch
+    #     ==> [1,1,hidden_dimensions] ==> shape=(hidden_dimensions)
+
     harmless_residual_pre = harmless_cache['resid_pre', layer]
     harmless_mean_act = harmless_residual_pre[:, pos, :].mean(dim=0)
+    # same for harmless dataset
+
+    # idea is, if you have two datasets that only meaningfully differ due to one characteristics (i.e. refusal)
+    #  then if all other characteristics are randomly sampled (uniform) then the only diff in average vector of each is the refusal component (vector)
     refusal_dir = harmful_mean_act - harmless_mean_act
     refusal_dir = refusal_dir / refusal_dir.norm()
 
     # reading the tea leaves:
     summarize_layer("refusal_dir", refusal_dir)
-    # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
-    redo_logits = (model.unembed.W_U.T).matmul(refusal_dir) + model.unembed.b_U
-    # model.lm_head.bias
-    summarize_layer("  redo_logits", redo_logits)
-    redo_max_token_id_next = redo_logits.argmax()
-    print("  redo max_token_id_next:", redo_max_token_id_next)
-    redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
-    print("  redo decoded: '" + redo_decoded + "'")
+    # refusal_dir.shape=[hidden_dimensions] => shape=(896)
+
+
+    # transform refusal dir to token vocab
+    #   refusal_dir[hidden_dim] matmul unembed[hidden_dimensions,vocab_size] ==> [vocab_size]
+
+
+    return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    #
+    # # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
+    # redo_logits = (model.unembed.W_U.T).matmul(refusal_dir) + model.unembed.b_U
+    # # model.lm_head.bias
+    # summarize_layer("  redo_logits", redo_logits)
+    # redo_max_token_id_next = redo_logits.argmax()
+    # print("  redo max_token_id_next:", redo_max_token_id_next)
+    # redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
+    # print("  redo decoded: '" + redo_decoded + "'")
 
     return refusal_dir
 
