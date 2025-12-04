@@ -439,7 +439,7 @@ def direction_ablation_hook(
 N_INST_TEST = 48
 layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
-hook_fn = functools.partial(direction_ablation_hook)
+hook_fn = direction_ablation_hook
 
 fwd_hooks = [
     (utils.get_act_name(act_name, layer_number), hook_fn)
