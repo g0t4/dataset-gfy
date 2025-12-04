@@ -430,8 +430,9 @@ By performing this ablation on all intermediate activations, we enforce that the
 
 def direction_ablation_hook(
     activation: Float[Tensor, "... d_hidden"],
-    _: HookPoint,
+    hook: HookPoint,
 ):
+    # print("activation", activation)
     direction: Float[Tensor, "d_hidden"] = refusal_dir
     todo = direction.view(-1, 1)  # add innermost dimension shape=(hidden_dimension).view(-1, 1) => shape=(hidden_dimension, 1)
     # go from list of numbers => each number wrapped in own single item list  => torch.tensor([1,2,3]).view(-1,1) => [[1],[2],[3]]
