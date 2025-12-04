@@ -217,6 +217,8 @@ QWEN25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba C
 <|im_start|>assistant
 """
 
+# model.tokenizer.padding_side = 'right'  # check padding too! (flip left/right if you want)
+
 def tokenize_chat_prompts(instructions: List[str]) -> Int[Tensor, 'batch_size seq_len']:
     template = QWEN_CHAT_TEMPLATE if use_qwen1 else QWEN25_CHAT_TEMPLATE
     prompts = [template.format(instruction=i) for i in instructions]
@@ -232,6 +234,7 @@ def format_prompt(chat_token_ids):
 
 # ??? double check the prompt is as expected, also padding/pad_token
 [format_prompt(chat_token_ids) for chat_token_ids in tokenize_chat_prompts(["foo", "tell me how to do bad things!"])]
+# FYI you need 2+ to check padding (obviously)... so don't get rid of the first one (and make sure there's an input token length difference to trigger padding)
 
 # %%
 """### Generation utils"""
