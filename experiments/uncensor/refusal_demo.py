@@ -121,6 +121,8 @@ def get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer():
 # %% SET PAD TOKEN THAT AVOIDS CONTAMINATION
 
 model.tokenizer.padding_side = 'left'  # defaults: qwen1:left, qwen2.5:left
+# PRN try right padding? update calculations and references, anything noteworthy? probably not
+#   mostly about where to measure logits (mid stream vs last token, etc)... in right padded each sequence's length is needed to determine where the next token is positioned
 
 # PRN add toggles for qwen1 vs qwen2.5 to do these:
 if use_qwen1:
