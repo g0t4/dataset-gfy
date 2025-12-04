@@ -262,7 +262,7 @@ def _generate_with_hooks(
 
 def generate(
     model: HookedTransformer,
-    instructions: List[str],
+    instructions_batch: List[str],
     tokenize_instructions_fn: Callable[[List[str]], Int[Tensor, 'batch_size seq_len']],
     fwd_hooks=[],
     max_tokens_generated: int = 64,
@@ -271,8 +271,9 @@ def generate(
 
     generations = []
 
-    for batch_number in progress_tqdm(range(0, len(instructions), batch_size)):
-        toks = tokenize_instructions_fn(instructions=instructions[batch_number:batch_number + batch_size])
+    # divide large instructions_batch into smaller batches (based on batch_size)
+    for batch_number in progress_tqdm(range(0, len(instructions_batch), batch_size)):
+        toks = tokenize_instructions_fn(instructions=instructions_batch[batch_number:batch_number + batch_size])
         generation = _generate_with_hooks(
             model,
             toks,
