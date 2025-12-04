@@ -437,8 +437,9 @@ def direction_ablation_hook(
     todo = direction.view(-1, 1)  # add innermost dimension shape=(hidden_dimension).view(-1, 1) => shape=(hidden_dimension, 1)
     # go from list of numbers => each number wrapped in own single item list  => torch.tensor([1,2,3]).view(-1,1) => [[1],[2],[3]]
 
-    activation_projection_onto_refusal_dir =  \
-        einops.einsum(activation, todo, '... d_hidden, d_hidden single -> ... single') * direction
+    todo2 = einops.einsum(activation, todo, '... d_hidden, d_hidden single -> ... single')
+
+    activation_projection_onto_refusal_dir = todo2 * direction
 
     # subtract the refusal component(s) of the activation! model cannot represent refusal now
     return activation - activation_projection_onto_refusal_dir
