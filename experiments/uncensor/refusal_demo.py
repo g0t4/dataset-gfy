@@ -432,13 +432,11 @@ def direction_ablation_hook(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
-    print("activation.shape", activation.shape)
-
     magnitude_of_refusal = (activation * refusal_dir).sum(dim=-1, keepdim=True)
-    activation_projection_onto_refusal_dir = magnitude_of_refusal * refusal_dir
+    activations_refusal_component = magnitude_of_refusal * refusal_dir
 
-    # subtract the refusal component(s) of the activation! model cannot represent refusal now
-    return activation - activation_projection_onto_refusal_dir
+    # subtract the refusal component(s)... model cannot represent refusal now!
+    return activation - activations_refusal_component
 
 N_INST_TEST = 8
 # N_INST_TEST = 48
