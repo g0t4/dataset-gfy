@@ -162,6 +162,16 @@ len(model.tokenizer.added_tokens_decoder)  # qwen2.5:22 items
 model.tokenizer.vocab_size + len(model.tokenizer.added_tokens_decoder) == len(model.tokenizer)  # qwen1:True qwen2.5:True
 
 # %%
+"""### sarcasm dataset instead"""
+
+def get_sarcasm_headlines(is_sarcastic):
+    import json
+    # https://www.kaggle.com/datasets/rmisra/news-headlines-dataset-for-sarcasm-detection
+    df = pd.read_json("~/kaggle/news-headlines-sarcasm/Sarcasm_Headlines_Dataset.json", lines=True)
+    df = df[df['is_sarcastic'] == is_sarcastic]
+    df = df['headline'].sample(100, random_state=42).tolist()
+    return df, df
+
 """### Load harmful / harmless datasets"""
 
 def get_harmful_instructions():
@@ -193,8 +203,15 @@ def get_harmless_instructions():
     train, test = train_test_split(instructions, test_size=0.2, random_state=42)
     return train, test
 
-harmful_inst_train, harmful_inst_test = get_harmful_instructions()
-harmless_inst_train, harmless_inst_test = get_harmless_instructions()
+use_sarcasm_data = True
+# use_sarcasm_data = False
+
+if use_sarcasm_data:
+    harmful_inst_train, harmful_inst_test = get_sarcasm_headlines(True)
+    harmless_inst_train, harmless_inst_test = get_sarcasm_headlines(False)
+else:
+    harmful_inst_train, harmful_inst_test = get_harmful_instructions()
+    harmless_inst_train, harmless_inst_test = get_harmless_instructions()
 
 print("Harmful instructions:")
 for i in range(4):
@@ -223,7 +240,13 @@ QWEN25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba C
 
 def tokenize_chat_prompts(instructions: List[str]) -> Int[Tensor, 'batch_size seq_len']:
     template = QWEN_CHAT_TEMPLATE if use_qwen1 else QWEN25_CHAT_TEMPLATE
-    prompts = [template.format(instruction=i) for i in instructions]
+
+    def modify_instruction(instruction):
+        if not use_sarcasm_data:
+            return instruction
+        return "I need you to decide yes or no, is the following news headline sarcastic or not? Start with yes/no and no explanation.\n\n" + instruction
+
+    prompts = [template.format(instruction=modify_instruction(i)) for i in instructions]
     return model.tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
 
 import rich
@@ -432,7 +455,7 @@ def remove_refusal_during_forward_pass(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
-    magnitude_of_refusal = (activation * unit_refusal_dir).sum(dim=-1, keepdim=True) # TLDR dotproduct with innnermost activation dimension (d_hidden) and the unit_refusal_dir
+    magnitude_of_refusal = (activation * unit_refusal_dir).sum(dim=-1, keepdim=True)  # TLDR dotproduct with innnermost activation dimension (d_hidden) and the unit_refusal_dir
     activation_refusal_projection = magnitude_of_refusal * unit_refusal_dir
 
     # subtract the refusal component(s)... model cannot represent refusal now!
