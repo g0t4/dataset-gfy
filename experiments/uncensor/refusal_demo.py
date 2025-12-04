@@ -77,7 +77,7 @@ model = HookedTransformer.from_pretrained_no_processing(
     device=DEVICE,
     dtype=torch.float16,  #TODO! type? bfloat16
     default_padding_side='left',
-    fp16=True,
+    # fp16=True, # TODO did I comment this out b/c I was running on my mac instead of arch box?
 )
 
 # %%
