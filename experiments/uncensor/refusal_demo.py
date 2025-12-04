@@ -310,7 +310,7 @@ harmless_logits, harmless_cache = model.run_with_cache(harmless_chats_token_ids,
 #   each => [batch_size, seq_len, hidden_dimensions]
 #   where hidden_dimensions: qwen2.5_0.5B_instruct=896   qwen1_8B=2048 (b/c 8B way bigger than 0.5B)
 
-dir(harmful_cache)
+# dir(harmful_cache)
 import logging
 
 def summarize_keys(data):
