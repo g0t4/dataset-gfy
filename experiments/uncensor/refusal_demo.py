@@ -89,11 +89,14 @@ model = HookedTransformer.from_pretrained_no_processing(
 
 # %%
 
-# PRN add toggles for qwen1 vs qwen2.5
-model.tokenizer.padding_side = 'left' # defaults: qwen1:left, qwen2.5:left
-# set pad_token to lesser used token to avoid residual contamination from padding:
-#   weights are random and likely
-model.tokenizer.pad_token = '<|extra_0|>' # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
+# PRN add toggles for qwen1 vs qwen2.5 to do these:
+if MODEL_PATH == QWEN1 or MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT:
+    model.tokenizer.padding_side = 'left' # defaults: qwen1:left, qwen2.5:left
+    # set pad_token to lesser used token to avoid residual contamination from padding:
+    #   weights are random and likely
+    model.tokenizer.pad_token = '<|extra_0|>' # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
+
+    # FYI for OTHER MODELS, what value do you want to use? i.e. gptoss?
 
 # check if token is set:
 model.tokenizer.pad_token_id
