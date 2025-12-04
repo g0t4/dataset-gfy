@@ -56,7 +56,7 @@ from torch import Tensor
 from typing import List, Callable
 from transformer_lens import HookedTransformer, utils
 from transformer_lens.hook_points import HookPoint
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, PreTrainedTokenizerBase, Qwen2PreTrainedModel, Qwen2Tokenizer, Qwen2TokenizerFast
 from jaxtyping import Float, Int
 from colorama import Fore
 
@@ -71,10 +71,16 @@ cuda_env.use_6000()
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
+GPTOSS = 'openai/gpt-oss-20b'
+# GPTOSS = 'openai/gpt-oss-120b'
 
-# MODEL_PATH =  QWEN1
+# MODEL_PATH = QWEN1
 # MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
 MODEL_PATH = QWEN25_INSTRUCT
+# MODEL_PATH = GPTOSS
+use_qwen2 = MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT
+use_qwen1 = MODEL_PATH == QWEN1
+use_gptoss = MODEL_PATH == GPTOSS
 
 DEVICE = 'cuda'
 
@@ -87,31 +93,56 @@ model = HookedTransformer.from_pretrained_no_processing(
     # fp16=(DEVICE == CUDA) ? TODO if fp16 s/b on for arch box w/ nvidia gpu then add toggle based on DEVICE = 'cuda' constant too (add CUDA constant and check DEVICE == CUDA or...?)
 )
 
+# %%
+
+if use_qwen2:
+    tokenizer: Qwen2TokenizerFast = model.tokenizer
+elif use_qwen1:
+    tokenizer: PreTrainedTokenizerBase = model.tokenizer
+# else:
+#     tokenizer = model.tokenizer
+
+# how can I list tokens in tokenizer
+vocab = tokenizer.get_vocab()
+len(vocab)
+[t for t in vocab if str(t).find("extra_0") > 0]
+[t for t in vocab if str(t).startswith("<|") > 0]
+[k for k in vocab.keys() if k.startswith(b"<|")]
+
+# tokenizer.encode("<|extra_0|>")
+def get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer():
+    for i in range(tokenizer.vocab_size):
+        tok = tokenizer.convert_ids_to_tokens(i)
+        yield i, tok
+
+[tok for id, tok in get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer() if str(tok).startswith("<|")]
+[tok for id, tok in get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer() if str(tok).find("extra") > -1]
+
 # %% SET PAD TOKEN THAT AVOIDS CONTAMINATION
 
 # PRN add toggles for qwen1 vs qwen2.5 to do these:
-if MODEL_PATH == QWEN1:
-    model.tokenizer.padding_side = 'left' # defaults: qwen1:left, qwen2.5:left
+if use_qwen1:
+    model.tokenizer.padding_side = 'left'  # defaults: qwen1:left, qwen2.5:left
     # set pad_token to lesser used token to avoid residual contamination from padding:
     #   weights are random and likely
-    model.tokenizer.pad_token = '<|extra_0|>' # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
+    model.tokenizer.pad_token = '<|extra_0|>'  # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
     #
     # Confirmed only one with Qwen1:
     #   In [31]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
     #   Out[31]: ['<|extra_0|>']
 
-
-if MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT:
-    # FIND smth that maps to one unused token_id
-    raise RuntimeError("FIND PAD token for qwen2.5 models, <|extra_0|> maps to seven tokens! not good news as those are subsets and will contaminate residuals!")
-    #
-    # FYI here is the decoded value from QWEN25_INSTRUCT:
-    # In [48]: model.tokenizer.encode(("<|extra_0|>"))
-    # Out[48]: [27, 91, 15460, 62, 15, 91, 29]
-    # ==>
-    # In [50]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
+if use_qwen2:
+    # FYI In [51]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
     # Out[50]: ['<', '|', 'extra', '_', '0', '|', '>']
-    #
+    # there is NO <|extra_0|> or set of similar unused tokens.
+    residual_pad = "<|residual_pad|>"
+    tokenizer.add_special_tokens({"additional_special_tokens": [residual_pad]})
+    tokenizer.add_special_tokens
+    tokenizer.encode(residual_pad)
+    model.tokenizer.pad_token = residual_pad
+if use_gptoss:
+    raise RuntimeError("TODO gptoss padding token - find or add")
+
 # FYI for OTHER MODELS, what value do you want to use? i.e. gptoss?
 
 # check if token is set:
