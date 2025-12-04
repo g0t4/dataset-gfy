@@ -251,7 +251,7 @@ def _generate_with_hooks(
     batch_seq_len = toks.shape[1]
     batch_size = toks.shape[0]
     all_toks = torch.zeros((batch_size, batch_seq_len + max_tokens_generated), dtype=torch.long, device=toks.device)
-    # TODO rewrite w/ einops:
+    # TODO rewrite w/ einops (good practice of both einops and model architecture, how well you recall each):
     all_toks[:, :batch_seq_len] = toks
 
     for new_token_number in range(max_tokens_generated):
@@ -293,17 +293,17 @@ def generate(
 
 N_INST_TRAIN = 32
 
-# tokenize instructions
-harmful_toks = tokenize_chat_prompts(instructions=harmful_inst_train[:N_INST_TRAIN])
-harmless_toks = tokenize_chat_prompts(instructions=harmless_inst_train[:N_INST_TRAIN])
+# tokenize (instructions => template => chat prompt)
+harmful_chats_token_ids = tokenize_chat_prompts(instructions=harmful_inst_train[:N_INST_TRAIN])
+harmless_chats_token_ids = tokenize_chat_prompts(instructions=harmless_inst_train[:N_INST_TRAIN])
 
 def log_hooks(hook_name):
     print(hook_name)  # comment out to disable
     return True
 
 # run model on harmful and harmless instructions, caching intermediate activations
-harmful_logits, harmful_cache = model.run_with_cache(harmful_toks, names_filter=lambda hook_name: 'resid' in hook_name)
-harmless_logits, harmless_cache = model.run_with_cache(harmless_toks, names_filter=lambda hook_name: 'resid' in hook_name)
+harmful_logits, harmful_cache = model.run_with_cache(harmful_chats_token_ids, names_filter=lambda hook_name: 'resid' in hook_name)
+harmless_logits, harmless_cache = model.run_with_cache(harmless_chats_token_ids, names_filter=lambda hook_name: 'resid' in hook_name)
 
 dir(harmful_cache)
 import logging
