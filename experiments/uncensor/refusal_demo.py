@@ -443,7 +443,8 @@ def direction_ablation_hook(
     # subtract the refusal component(s) of the activation! model cannot represent refusal now
     return activation - activation_projection_onto_refusal_dir
 
-N_INST_TEST = 48
+N_INST_TEST = 8
+# N_INST_TEST = 48
 layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
 fwd_hooks = [
