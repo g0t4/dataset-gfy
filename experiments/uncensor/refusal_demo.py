@@ -440,6 +440,7 @@ def direction_ablation_hook(
     activation_projection_onto_refusal_dir =  \
         einops.einsum(activation, todo, '... d_hidden, d_hidden single -> ... single') * direction
 
+    # subtract the refusal component(s) of the activation! model cannot represent refusal now
     return activation - activation_projection_onto_refusal_dir
 
 N_INST_TEST = 48
