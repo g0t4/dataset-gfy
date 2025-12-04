@@ -479,16 +479,21 @@ remove_refusal_from_every_layer = [
 N_INST_START = 0
 N_INST_END = N_INST_TEST
 max_tokens = 64
-intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=max_tokens)
-baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
+final_test_cases = harmful_inst_test[N_INST_START:N_INST_END]
+if use_sarcasm_data:
+    final_test_cases = final_test_cases + harmless_inst_test[N_INST_START:N_INST_END]  # same, but for baseline (i.e. not harmful)
+print("count", len(final_test_cases))
+[f for f in final_test_cases]
 
-for i in range(N_INST_END - N_INST_START):
-    actual_i = i + N_INST_START
-    print(f"INSTRUCTION {actual_i}: {repr(harmful_inst_test[actual_i])}")
+intervention_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=max_tokens)
+baseline_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
+
+for num, case in enumerate(final_test_cases):
+    print(f"INSTRUCTION {num}: {repr(final_test_cases)}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
-    print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RED + f"INTERVENTION COMPLETION:")
-    print(textwrap.fill(repr(intervention_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
 
 # %%
