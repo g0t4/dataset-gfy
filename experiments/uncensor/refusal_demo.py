@@ -432,7 +432,7 @@ def subtract_refusal_during_forward_pass(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
-    magnitude_of_refusal = (activation * unit_refusal_dir).sum(dim=-1, keepdim=True)
+    magnitude_of_refusal = (activation * unit_refusal_dir).sum(dim=-1, keepdim=True) # TLDR dotproduct with innnermost activation dimension (d_hidden) and the unit_refusal_dir
     activation_refusal_projection = magnitude_of_refusal * unit_refusal_dir
 
     # subtract the refusal component(s)... model cannot represent refusal now!
