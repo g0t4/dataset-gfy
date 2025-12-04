@@ -429,11 +429,12 @@ By performing this ablation on all intermediate activations, we enforce that the
 """
 
 def direction_ablation_hook(
-    activation: Float[Tensor, "... d_act"],
+    activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
-    direction: Float[Tensor, "d_act"] = refusal_dir
-    proj = einops.einsum(activation, direction.view(-1, 1), '... d_act, d_act single -> ... single') * direction
+    direction: Float[Tensor, "d_hidden"] = refusal_dir
+    todo = direction.view(-1, 1) # add innermost dimension shape=(hidden_dimension).view(-1, 1) => shape=(hidden_dimension, 1)
+    proj = einops.einsum(activation, todo, '... d_hidden, d_hidden single -> ... single') * direction
     return activation - proj
 
 N_INST_TEST = 48
