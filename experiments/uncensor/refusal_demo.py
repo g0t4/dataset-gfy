@@ -333,12 +333,19 @@ def summarize_named_params(model):
     for name, param in model.named_parameters():
         summarize_layer(name, param)
 
-# model.embed
-#   # tokens => hidden dimensions mapping
-#   #  [vocab_size, hidden_dimensions]
-#   # qwen2.5=W_E shape(151936, 896)
-# # summarize_named_params(model.embed)
-# summarize_named_params(model)
+summarize_named_params(model.embed)
+# * embed
+#   tokens => hidden dimensions mapping
+#   [vocab_size, hidden_dimensions]
+#   qwen2.5=W_E shape(151936, 896)
+
+summarize_named_params(model.unembed)
+# * unembed
+#   hidden dimentions => tokens mapping
+#   [hidden_dimensions, vocab_size]
+#   reverse mapping from hidden dimensions => tokens
+
+summarize_named_params(model)
 # model.blocks # transformer layers (qwen25=24 layers)
 
 def compute_refusal_dir(layer=14):
