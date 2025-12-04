@@ -56,7 +56,7 @@ from torch import Tensor
 from typing import List, Callable
 from transformer_lens import HookedTransformer, utils
 from transformer_lens.hook_points import HookPoint
-from transformers import AutoTokenizer, PreTrainedTokenizerBase, Qwen2PreTrainedModel, Qwen2Tokenizer, Qwen2TokenizerFast
+from transformers import AutoTokenizer, PreTrainedTokenizerBase, Qwen2TokenizerFast
 from jaxtyping import Float, Int
 from colorama import Fore
 
@@ -71,16 +71,16 @@ cuda_env.use_6000()
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
-GPTOSS = 'openai/gpt-oss-20b'
-# GPTOSS = 'openai/gpt-oss-120b'
 
+# ***! SET MODEL HERE:
 # MODEL_PATH = QWEN1
 # MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
 MODEL_PATH = QWEN25_INSTRUCT
-# MODEL_PATH = GPTOSS
+# ***! END SET MODEL
+
 use_qwen2 = MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT
 use_qwen1 = MODEL_PATH == QWEN1
-use_gptoss = MODEL_PATH == GPTOSS
+# FYI transformer_lens is not compat with gptoss, use direct hooks and cache yourself (see refusal-gptoss.py)
 
 DEVICE = 'cuda'
 
@@ -140,8 +140,6 @@ if use_qwen2:
     tokenizer.add_special_tokens
     tokenizer.encode(residual_pad)
     model.tokenizer.pad_token = residual_pad
-if use_gptoss:
-    raise RuntimeError("TODO gptoss padding token - find or add")
 
 # FYI for OTHER MODELS, what value do you want to use? i.e. gptoss?
 
