@@ -210,27 +210,18 @@ QWEN_CHAT_TEMPLATE = """<|im_start|>user
 
 # optional add system prompt too (SAME AS Qwen1)
 # curl https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/raw/main/tokenizer_config.json | jq .chat_template -r > out/qwen25instruct0.5b-chat-template.jinja
-QWEN_25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
+QWEN25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
 <|im_start|>user
 {instruction}<|im_end|>
 <|im_start|>assistant
 """
 
-def tokenize_instructions_qwen_chat(
-    tokenizer: AutoTokenizer,
-    instructions: List[str],
-) -> Int[Tensor, 'batch_size seq_len']:
-    prompts = [QWEN_25_CHAT_TEMPLATE.format(instruction=instruction) for instruction in instructions]
-    return tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
+def tokenize_chat_prompts(instructions: List[str]) -> Int[Tensor, 'batch_size seq_len']:
+    template = QWEN_CHAT_TEMPLATE if use_qwen1 else QWEN25_CHAT_TEMPLATE
+    prompts = [template.format(instruction=i) for i in instructions]
+    return model.tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
 
-# literally...  why not just use global scope as a closure to pass things like tokenizer...
-#   it's not like you have multiple tokenizers in this example?!
-#   AND partial application is way more confusing for most people vs the trouble you might have with a global in a notebook
-#     ya know, the entire point of a notebook is to be one giant script...
-# instruction_tokenizer(batch_of_instructions)
-instruction_tokenizer = functools.partial(tokenize_instructions_qwen_chat, tokenizer=model.tokenizer)
-# instructions => format each as chat => tokenize
-#  free variable is list of instructions
+[model.tokenizer.decode(c) for c in tokenize_chat_prompts(["tell me how to do bad things!"])]
 
 # %%
 """### Generation utils"""
@@ -286,8 +277,8 @@ def generate(
 N_INST_TRAIN = 32
 
 # tokenize instructions
-harmful_toks = instruction_tokenizer(instructions=harmful_inst_train[:N_INST_TRAIN])
-harmless_toks = instruction_tokenizer(instructions=harmless_inst_train[:N_INST_TRAIN])
+harmful_toks = tokenize_chat_prompts(instructions=harmful_inst_train[:N_INST_TRAIN])
+harmless_toks = tokenize_chat_prompts(instructions=harmless_inst_train[:N_INST_TRAIN])
 
 def log_hooks(hook_name):
     print(hook_name)  # comment out to disable
@@ -406,8 +397,8 @@ fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_la
 N_INST_START = 0
 N_INST_END = N_INST_TEST
 max_tokens = 64
-intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
-baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], instruction_tokenizer, fwd_hooks=[], max_tokens_generated=max_tokens)
+intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
+baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
 
 for i in range(N_INST_END - N_INST_START):
     actual_i = i + N_INST_START
@@ -440,7 +431,7 @@ for block in model.blocks:
     block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
     block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
 
-orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], instruction_tokenizer, fwd_hooks=[])
+orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], tokenize_chat_prompts, fwd_hooks=[])
 
 for i in range(N_INST_TEST):
     print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
