@@ -375,34 +375,21 @@ def compute_refusal_dir(layer=14):
 
     # reading the tea leaves:
     summarize_layer("refusal_dir", refusal_dir)
-    # refusal_dir.shape=[hidden_dimensions] => shape=(896)
+    # refusal_dir.shape=[hidden_dimensions]
 
     # transform refusal dir to token vocab
     #   refusal_dir[hidden_dim] matmul unembed[hidden_dimensions,vocab_size] ==> [vocab_size]
     # [hidden_dimensions].matmul([hidden_dimensions,vocab_size]) = [vocab_size]
-    refusal_token_interpretation = refusal_dir.matmul(model.unembed.W_U) + model.unembed.b_U
-    print("  refusal tokens space:", refusal_token_interpretation)  # shape [vocab_size]
-    argmax_token_id = refusal_token_interpretation.argmax()
-    print("    refusal max token_id:", argmax_token_id)
-    print("      refusal max token_id.item():", argmax_token_id.item())
-    print("    refusal max token:", tokenizer.decode(argmax_token_id))
 
-
-
-
-
-
-
-
-    #
-    # # redo_logits = model.unembed.W_U.T.matmul(refusal_dir) # w/o bias is interesting
-    # redo_logits = (model.unembed.W_U.T).matmul(refusal_dir) + model.unembed.b_U
-    # # model.lm_head.bias
-    # summarize_layer("  redo_logits", redo_logits)
-    # redo_max_token_id_next = redo_logits.argmax()
-    # print("  redo max_token_id_next:", redo_max_token_id_next)
-    # redo_decoded = model.tokenizer.decode(redo_max_token_id_next, skip_special_tokens=True)
-    # print("  redo decoded: '" + redo_decoded + "'")
+    # * interpret refusal latent space => map back to likely tokens
+    # refusal_logits = refusal_dir.matmul(model.unembed.W_U)  # w/o bias is interesting
+    refusal_logits = refusal_dir.matmul(model.unembed.W_U) + model.unembed.b_U
+    # model.lm_head.bias
+    summarize_layer("  refusal_logits", refusal_logits)  # w/e "refusal logits" means :)... basically map this latent subspace out into token space to see what meaning it has alone
+    refusal_max_token_id_next = refusal_logits.argmax()
+    print("  refusal max_token_id_next:", refusal_max_token_id_next)
+    refusal_decoded_text_token = tokenizer.decode(refusal_max_token_id_next, skip_special_tokens=True)
+    print("  refusal decoded next token (text): '" + refusal_decoded_text_token + "'")
 
     return refusal_dir
 
