@@ -222,7 +222,16 @@ def tokenize_chat_prompts(instructions: List[str]) -> Int[Tensor, 'batch_size se
     prompts = [template.format(instruction=i) for i in instructions]
     return model.tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
 
-[model.tokenizer.decode(c) for c in tokenize_chat_prompts(["tell me how to do bad things!"])]
+import rich
+
+def format_prompt(chat_token_ids):
+    rich.print(f"\n[blue bold]CHAT ({len(chat_token_ids)} tokens)[/]")
+    print(model.tokenizer.decode(chat_token_ids))
+    rich.print(f"  [white bold]tokens[/]")
+    print("  ", chat_token_ids)
+
+# ??? double check the prompt is as expected, also padding/pad_token
+[format_prompt(chat_token_ids) for chat_token_ids in tokenize_chat_prompts(["foo", "tell me how to do bad things!"])]
 
 # %%
 """### Generation utils"""
