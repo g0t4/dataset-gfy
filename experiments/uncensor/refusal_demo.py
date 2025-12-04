@@ -73,9 +73,9 @@ QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 
 # ***! SET MODEL HERE:
-# MODEL_PATH = QWEN1
+MODEL_PATH = QWEN1
 # MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
-MODEL_PATH = QWEN25_INSTRUCT
+# MODEL_PATH = QWEN25_INSTRUCT
 # ***! END SET MODEL
 
 use_qwen2 = MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT
@@ -308,7 +308,7 @@ harmless_logits, harmless_cache = model.run_with_cache(harmless_chats_token_ids,
 # _cache = per layer (qwen1 has 24 layers, pre/mid/post for each layer = 72 total caches)
 #   72 keys (see summarize_keys below)
 #   each => [batch_size, seq_len, hidden_dimensions]
-#   where hidden_dimensions: qwen2.5-instruct=896
+#   where hidden_dimensions: qwen2.5_0.5B_instruct=896   qwen1_8B=2048 (b/c 8B way bigger than 0.5B)
 
 dir(harmful_cache)
 import logging
@@ -377,32 +377,15 @@ def compute_refusal_dir(layer=14):
     summarize_layer("refusal_dir", refusal_dir)
     # refusal_dir.shape=[hidden_dimensions] => shape=(896)
 
-
     # transform refusal dir to token vocab
     #   refusal_dir[hidden_dim] matmul unembed[hidden_dimensions,vocab_size] ==> [vocab_size]
-
-
-    return
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # [hidden_dimensions].matmul([hidden_dimensions,vocab_size]) = [vocab_size]
+    refusal_token_interpretation = refusal_dir.matmul(model.unembed.W_U) + model.unembed.b_U
+    print("  refusal tokens space:", refusal_token_interpretation)  # shape [vocab_size]
+    argmax_token_id = refusal_token_interpretation.argmax()
+    print("    refusal max token_id:", argmax_token_id)
+    print("      refusal max token_id.item():", argmax_token_id.item())
+    print("    refusal max token:", tokenizer.decode(argmax_token_id))
 
 
 
