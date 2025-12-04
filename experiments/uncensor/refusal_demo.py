@@ -393,7 +393,7 @@ def compute_refusal_dir(layer=14):
 
     return refusal_dir
 
-refusal_dir = compute_refusal_dir(layer=14)
+refusal_dir: Float[Tensor, "d_hidden"] = compute_refusal_dir(layer=14)
 # FREAKY:
 # layer 14 - redo decoded: '告'
 # 告诉 (gàosu) – to tell, inform
