@@ -120,9 +120,10 @@ def get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer():
 
 # %% SET PAD TOKEN THAT AVOIDS CONTAMINATION
 
+model.tokenizer.padding_side = 'left'  # defaults: qwen1:left, qwen2.5:left
+
 # PRN add toggles for qwen1 vs qwen2.5 to do these:
 if use_qwen1:
-    model.tokenizer.padding_side = 'left'  # defaults: qwen1:left, qwen2.5:left
     # set pad_token to lesser used token to avoid residual contamination from padding:
     #   weights are random and likely
     model.tokenizer.pad_token = '<|extra_0|>'  # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
