@@ -431,8 +431,8 @@ By performing this ablation on all intermediate activations, we enforce that the
 def direction_ablation_hook(
     activation: Float[Tensor, "... d_act"],
     hook: HookPoint,
-    direction: Float[Tensor, "d_act"],
 ):
+    direction: Float[Tensor, "d_act"] = refusal_dir
     proj = einops.einsum(activation, direction.view(-1, 1), '... d_act, d_act single -> ... single') * direction
     return activation - proj
 
