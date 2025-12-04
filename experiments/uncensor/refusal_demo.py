@@ -304,6 +304,11 @@ def log_hooks(hook_name):
 # run model on harmful and harmless instructions, caching intermediate activations
 harmful_logits, harmful_cache = model.run_with_cache(harmful_chats_token_ids, names_filter=lambda hook_name: 'resid' in hook_name)
 harmless_logits, harmless_cache = model.run_with_cache(harmless_chats_token_ids, names_filter=lambda hook_name: 'resid' in hook_name)
+# _logits = [batch_size, seq_len, vocab_size]
+# _cache = per layer (qwen1 has 24 layers, pre/mid/post for each layer = 72 total caches)
+#   72 keys (see summarize_keys below)
+#   each => [batch_size, seq_len, hidden_dimensions]
+#   where hidden_dimensions: qwen2.5-instruct=896
 
 dir(harmful_cache)
 import logging
@@ -329,17 +334,22 @@ def summarize_named_params(model):
         summarize_layer(name, param)
 
 # model.embed
+#   # tokens => hidden dimensions mapping
+#   #  [vocab_size, hidden_dimensions]
+#   # qwen2.5=W_E shape(151936, 896)
 # # summarize_named_params(model.embed)
 # summarize_named_params(model)
-# model.blocks
+# model.blocks # transformer layers (qwen25=24 layers)
 
 def compute_refusal_dir(layer=14):
     pos = -1
 
+    # shape=(batch_size,seq_len,hidden_dimensions)  # btw think of hidden_dimensions as your internal vocab_size
     harmful_residual_pre = harmful_cache['resid_pre', layer]
     harmful_residual_pre.shape
     harmful_mean_act = harmful_residual_pre[:, pos, :].mean(dim=0)
-    harmless_mean_act = harmless_cache['resid_pre', layer][:, pos, :].mean(dim=0)
+    harmless_residual_pre = harmless_cache['resid_pre', layer]
+    harmless_mean_act = harmless_residual_pre[:, pos, :].mean(dim=0)
     refusal_dir = harmful_mean_act - harmless_mean_act
     refusal_dir = refusal_dir / refusal_dir.norm()
 
