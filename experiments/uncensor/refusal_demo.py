@@ -437,10 +437,10 @@ def direction_ablation_hook(
     return activation - proj
 
 N_INST_TEST = 48
-intervention_layers = list(range(model.cfg.n_layers))  # all layers
+layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
 hook_fn = functools.partial(direction_ablation_hook, direction=refusal_dir)
-fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
+fwd_hooks = [(utils.get_act_name(act_name, layer_number), hook_fn) for layer_number in layer_numbers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
 # N_INST_START = 38
