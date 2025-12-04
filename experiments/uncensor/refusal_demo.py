@@ -428,7 +428,7 @@ $${a}_{l}' \leftarrow a_l - (a_l \cdot \widehat{r}) \widehat{r}$$
 By performing this ablation on all intermediate activations, we enforce that the model can never express this direction (or "feature").
 """
 
-def direction_ablation_hook(
+def subtract_refusal(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
@@ -443,7 +443,7 @@ N_INST_TEST = 8
 layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
 fwd_hooks = [
-    (utils.get_act_name(act_name, layer_number), direction_ablation_hook)
+    (utils.get_act_name(act_name, layer_number), subtract_refusal)
     for layer_number in layer_numbers  \
     for act_name in ['resid_pre', 'resid_mid', 'resid_post']
 ]
