@@ -436,11 +436,6 @@ def direction_ablation_hook(
     direction: Float[Tensor, "d_hidden"] = refusal_dir
 
     magnitude_of_refusal = (activation * direction).sum(dim=-1, keepdim=True)
-    magnitude_of_refusal2 = einops.einsum(activation, direction.view(-1, 1), '... d_hidden, d_hidden single -> ... single')
-    print("  mag", magnitude_of_refusal.shape)
-    print("  mag2", magnitude_of_refusal2.shape)
-    print("  todo2.shape", magnitude_of_refusal.shape)
-
     activation_projection_onto_refusal_dir = magnitude_of_refusal * direction
 
     # subtract the refusal component(s) of the activation! model cannot represent refusal now
