@@ -87,16 +87,32 @@ model = HookedTransformer.from_pretrained_no_processing(
     # fp16=(DEVICE == CUDA) ? TODO if fp16 s/b on for arch box w/ nvidia gpu then add toggle based on DEVICE = 'cuda' constant too (add CUDA constant and check DEVICE == CUDA or...?)
 )
 
-# %%
+# %% SET PAD TOKEN THAT AVOIDS CONTAMINATION
 
 # PRN add toggles for qwen1 vs qwen2.5 to do these:
-if MODEL_PATH == QWEN1 or MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT:
+if MODEL_PATH == QWEN1:
     model.tokenizer.padding_side = 'left' # defaults: qwen1:left, qwen2.5:left
     # set pad_token to lesser used token to avoid residual contamination from padding:
     #   weights are random and likely
     model.tokenizer.pad_token = '<|extra_0|>' # defaults:qwen1==qwen2.5=='<|endoftext|>' (IIRC b/c it is not set, this is hf default)
+    #
+    # Confirmed only one with Qwen1:
+    #   In [31]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
+    #   Out[31]: ['<|extra_0|>']
 
-    # FYI for OTHER MODELS, what value do you want to use? i.e. gptoss?
+
+if MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT:
+    # FIND smth that maps to one unused token_id
+    raise RuntimeError("FIND PAD token for qwen2.5 models, <|extra_0|> maps to seven tokens! not good news as those are subsets and will contaminate residuals!")
+    #
+    # FYI here is the decoded value from QWEN25_INSTRUCT:
+    # In [48]: model.tokenizer.encode(("<|extra_0|>"))
+    # Out[48]: [27, 91, 15460, 62, 15, 91, 29]
+    # ==>
+    # In [50]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
+    # Out[50]: ['<', '|', 'extra', '_', '0', '|', '>']
+    #
+# FYI for OTHER MODELS, what value do you want to use? i.e. gptoss?
 
 # check if token is set:
 model.tokenizer.pad_token_id
