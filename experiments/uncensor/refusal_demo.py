@@ -67,9 +67,15 @@ cuda_env.use_6000()
 # %%
 """### Load model"""
 
-# MODEL_PATH = 'Qwen/Qwen-1_8B-chat'
-# MODEL_PATH = 'Qwen/Qwen2.5-0.5B' # base (not instruct) - intersting it diddn't refuse many prompts before lobotomizing
-MODEL_PATH = 'Qwen/Qwen2.5-0.5B-Instruct'
+# TODO add toggle for model to load and config differences later (i.e. template)
+QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"
+QWEN1 = 'Qwen/Qwen-1_8B-chat'
+QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
+
+# MODEL_PATH =  QWEN1
+# MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
+MODEL_PATH = QWEN25_INSTRUCT
+
 DEVICE = 'cuda'
 
 model = HookedTransformer.from_pretrained_no_processing(
@@ -78,6 +84,7 @@ model = HookedTransformer.from_pretrained_no_processing(
     dtype=torch.float16,  #TODO! type? bfloat16
     default_padding_side='left',
     # fp16=True, # TODO did I comment this out b/c I was running on my mac instead of arch box?
+    # fp16=(DEVICE == CUDA) ? TODO if fp16 s/b on for arch box w/ nvidia gpu then add toggle based on DEVICE = 'cuda' constant too (add CUDA constant and check DEVICE == CUDA or...?)
 )
 
 # %%
