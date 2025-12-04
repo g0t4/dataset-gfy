@@ -437,10 +437,9 @@ def direction_ablation_hook(
     return activation - proj
 
 N_INST_TEST = 48
-intervention_dir = refusal_dir
 intervention_layers = list(range(model.cfg.n_layers))  # all layers
 
-hook_fn = functools.partial(direction_ablation_hook, direction=intervention_dir)
+hook_fn = functools.partial(direction_ablation_hook, direction=refusal_dir)
 fwd_hooks = [(utils.get_act_name(act_name, l), hook_fn) for l in intervention_layers for act_name in ['resid_pre', 'resid_mid', 'resid_post']]
 
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
