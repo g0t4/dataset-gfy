@@ -428,7 +428,7 @@ $${a}_{l}' \leftarrow a_l - (a_l \cdot \widehat{r}) \widehat{r}$$
 By performing this ablation on all intermediate activations, we enforce that the model can never express this direction (or "feature").
 """
 
-def subtract_refusal(
+def subtract_refusal_during_forward_pass(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
@@ -442,8 +442,8 @@ N_INST_TEST = 8
 # N_INST_TEST = 48
 layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
-fwd_hooks = [
-    (utils.get_act_name(act_name, layer_number), subtract_refusal)
+subtract_refusal_from_every_layer = [
+    (utils.get_act_name(act_name, layer_number), subtract_refusal_during_forward_pass)
     for layer_number in layer_numbers  \
     for act_name in ['resid_pre', 'resid_mid', 'resid_post']
 ]
@@ -456,7 +456,7 @@ fwd_hooks = [
 N_INST_START = 0
 N_INST_END = N_INST_TEST
 max_tokens = 64
-intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=fwd_hooks, max_tokens_generated=max_tokens)
+intervention_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=subtract_refusal_from_every_layer, max_tokens_generated=max_tokens)
 baseline_generations = generate(model, harmful_inst_test[N_INST_START:N_INST_END], tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
 
 for i in range(N_INST_END - N_INST_START):
