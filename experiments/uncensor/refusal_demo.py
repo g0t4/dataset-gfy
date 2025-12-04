@@ -214,11 +214,11 @@ else:
     harmless_inst_train, harmless_inst_test = get_harmless_instructions()
 
 print("Harmful instructions:")
-for i in range(4):
-    print(f"\t{repr(harmful_inst_train[i])}")
+for num in range(4):
+    print(f"\t{repr(harmful_inst_train[num])}")
 print("Harmless instructions:")
-for i in range(4):
-    print(f"\t{repr(harmless_inst_train[i])}")
+for num in range(4):
+    print(f"\t{repr(harmless_inst_train[num])}")
 
 # %%
 """### Tokenization utils"""
