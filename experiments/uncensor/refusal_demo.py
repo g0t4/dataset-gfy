@@ -350,7 +350,7 @@ summarize_named_params(model)
 
 # %%
 
-def compute_refusal_dir(layer=14):
+def compute_unit_refusal_dir(layer=14):
     # token to sample (-1 == last token)
     pos = -1
 
@@ -371,19 +371,19 @@ def compute_refusal_dir(layer=14):
     # idea is, if you have two datasets that only meaningfully differ due to one characteristics (i.e. refusal)
     #  then if all other characteristics are randomly sampled (uniform) then the only diff in average vector of each is the refusal component (vector)
     refusal_dir = harmful_mean_act - harmless_mean_act
-    refusal_dir = refusal_dir / refusal_dir.norm()
+    unit_refusal_dir = refusal_dir / refusal_dir.norm()
 
     # reading the tea leaves:
-    summarize_layer("refusal_dir", refusal_dir)
-    # refusal_dir.shape=[hidden_dimensions]
+    summarize_layer("unit_refusal_dir", unit_refusal_dir)
+    # unit_refusal_dir.shape=[hidden_dimensions]
 
     # transform refusal dir to token vocab
-    #   refusal_dir[hidden_dim] matmul unembed[hidden_dimensions,vocab_size] ==> [vocab_size]
+    #   unit_refusal_dir[hidden_dim] matmul unembed[hidden_dimensions,vocab_size] ==> [vocab_size]
     # [hidden_dimensions].matmul([hidden_dimensions,vocab_size]) = [vocab_size]
 
     # * interpret refusal latent space => map back to likely tokens
-    # refusal_logits = refusal_dir.matmul(model.unembed.W_U)  # w/o bias is interesting
-    refusal_logits = refusal_dir.matmul(model.unembed.W_U) + model.unembed.b_U
+    # refusal_logits = unit_refusal_dir.matmul(model.unembed.W_U)  # w/o bias is interesting
+    refusal_logits = unit_refusal_dir.matmul(model.unembed.W_U) + model.unembed.b_U
     # model.lm_head.bias
     summarize_layer("  refusal_logits", refusal_logits)  # w/e "refusal logits" means :)... basically map this latent subspace out into token space to see what meaning it has alone
     refusal_max_token_id_next = refusal_logits.argmax()
@@ -391,26 +391,26 @@ def compute_refusal_dir(layer=14):
     refusal_decoded_text_token = tokenizer.decode(refusal_max_token_id_next, skip_special_tokens=True)
     print("  refusal decoded next token (text): '" + refusal_decoded_text_token + "'")
 
-    return refusal_dir
+    return unit_refusal_dir
 
-refusal_dir: Float[Tensor, "d_hidden"] = compute_refusal_dir(layer=14)
+unit_refusal_dir: Float[Tensor, "d_hidden"] = compute_unit_refusal_dir(layer=14)
 # FREAKY:
 # layer 14 - redo decoded: '告'
 # 告诉 (gàosu) – to tell, inform
 # 报告 (bàogào) – report, to report
 # 警告 (jǐnggào) – warning
 
-# compute_refusal_dir(layer=16)
+# compute_unit_refusal_dir(layer=16)
 # # layer 16 - 极其
 # #   “extremely” or “to the utmost degree.”
 
-# compute_refusal_dir(layer=18)
+# compute_unit_refusal_dir(layer=18)
 # # layer 18 - 非常
 # # “very,” “extremely,” “highly” (used to intensify an adjective or verb)
 
 # for layer in range(model.cfg.n_layers):
 #     print("layer", layer)
-#     compute_refusal_dir(layer=layer)
+#     compute_unit_refusal_dir(layer=layer)
 
 # %%
 
@@ -432,11 +432,11 @@ def subtract_refusal_during_forward_pass(
     activation: Float[Tensor, "... d_hidden"],
     hook: HookPoint,
 ):
-    magnitude_of_refusal = (activation * refusal_dir).sum(dim=-1, keepdim=True)
-    activations_refusal_component = magnitude_of_refusal * refusal_dir
+    magnitude_of_refusal = (activation * unit_refusal_dir).sum(dim=-1, keepdim=True)
+    activation_refusal_projection = magnitude_of_refusal * unit_refusal_dir
 
     # subtract the refusal component(s)... model cannot represent refusal now!
-    return activation - activations_refusal_component
+    return activation - activation_refusal_projection
 
 N_INST_TEST = 8
 # N_INST_TEST = 48
@@ -484,11 +484,11 @@ def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[T
 # PRN copy over range instead for this approach to lobotomizing (this is dependent on range of previous cell, by the way)
 #    FYI do not re-run as this step transforms the actual weights!
 
-model.W_E.data = get_orthogonalized_matrix(model.W_E, refusal_dir)
+model.W_E.data = get_orthogonalized_matrix(model.W_E, unit_refusal_dir)
 
 for block in model.blocks:
-    block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, refusal_dir)
-    block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, refusal_dir)
+    block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, unit_refusal_dir)
+    block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, unit_refusal_dir)
 
 orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], tokenize_chat_prompts, fwd_hooks=[])
 
