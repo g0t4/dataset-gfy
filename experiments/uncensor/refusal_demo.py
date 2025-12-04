@@ -67,7 +67,7 @@ cuda_env.use_6000()
 # %%
 """### Load model"""
 
-# TODO add toggle for model to load and config differences later (i.e. template)
+# TODO finish setting up rest of config to be dynamic (i.e. template)
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
