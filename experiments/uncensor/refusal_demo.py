@@ -48,6 +48,7 @@ import pandas as pd
 import io
 import textwrap
 import gc
+import rich
 
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
@@ -88,7 +89,7 @@ DEVICE = 'cuda'
 model = HookedTransformer.from_pretrained_no_processing(
     MODEL_PATH,
     device=DEVICE,
-    dtype=torch.float16, # ? bfloat16
+    dtype=torch.float16,  # ? bfloat16
     default_padding_side='left',
     # fp16=True, # TODO did I comment this out b/c I was running on my mac instead of arch box?
     # fp16=(DEVICE == CUDA) ? TODO if fp16 s/b on for arch box w/ nvidia gpu then add toggle based on DEVICE = 'cuda' constant too (add CUDA constant and check DEVICE == CUDA or...?)
@@ -222,35 +223,41 @@ for num in range(4):
     print(f"\t{repr(harmless_inst_train[num])}")
 
 # %%
-"""### Tokenization utils"""
+# QWEN_CHAT_TEMPLATE = """<|im_start|>user
+# {instruction}<|im_end|>
+# <|im_start|>assistant
+# """
 
-QWEN_CHAT_TEMPLATE = """<|im_start|>user
-{instruction}<|im_end|>
-<|im_start|>assistant
-"""
-
-# optional add system prompt too (SAME AS Qwen1)
-# curl https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct/raw/main/tokenizer_config.json | jq .chat_template -r > out/qwen25instruct0.5b-chat-template.jinja
-QWEN25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
-<|im_start|>user
-{instruction}<|im_end|>
-<|im_start|>assistant
-"""
+# QWEN25_CHAT_TEMPLATE = """<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>
+# <|im_start|>user
+# {instruction}<|im_end|>
+# <|im_start|>assistant
+# """
 
 # model.tokenizer.padding_side = 'right'  # check padding too! (flip left/right if you want)
 
-def tokenize_chat_prompts(instructions: List[str]) -> Int[Tensor, 'batch_size seq_len']:
-    template = QWEN_CHAT_TEMPLATE if use_qwen1 else QWEN25_CHAT_TEMPLATE
+def tokenize_batch(instructions: list[str]) -> Int[Tensor, 'batch_size seq_len']:
 
-    def modify_instruction(instruction):
+    def modify_user_request(instruction):
         if not use_sarcasm_data:
             return instruction
         return "I need you to decide yes or no, is the following news headline sarcastic or not? Start with yes/no and no explanation.\n\n" + instruction
 
-    prompts = [template.format(instruction=modify_instruction(i)) for i in instructions]
-    return model.tokenizer(prompts, padding=True, truncation=False, return_tensors="pt").input_ids
+    def messages_for(instruction):
+        return [{"role": "user", "content": modify_user_request(instruction)}]
 
-import rich
+    batch = [messages_for(i) for i in instructions]
+
+    prompts = tokenizer.apply_chat_template(
+        batch,
+        add_generation_prompt=True,  # assistant prefill @end
+        tokenize=True,  # set false to preview (or just decode later)
+        padding=True,
+        truncation=False,
+        return_tensors="pt",
+    )
+    print(type(prompts), prompts.shape)
+    return prompts
 
 def print_prompt(chat_token_ids):
     rich.print(f"\n[blue bold]CHAT ({len(chat_token_ids)} tokens)[/]")
@@ -259,7 +266,7 @@ def print_prompt(chat_token_ids):
     print("  ", chat_token_ids)
 
 # ?? double check the prompt is as expected, also padding/pad_token
-[print_prompt(chat_token_ids) for chat_token_ids in tokenize_chat_prompts(["foo", "tell me how to do bad things!"])]
+[print_prompt(chat_token_ids) for chat_token_ids in tokenize_batch(["foo", "tell me how to do bad things!"])]
 # FYI you need 2+ to check padding (obviously)... so don't get rid of the first one (and make sure there's an input token length difference to trigger padding)
 
 # %%
@@ -299,7 +306,7 @@ def generate(
 
     # divide large instructions_batch into smaller batches (based on batch_size)
     for batch_number in progress_tqdm(range(0, len(instructions_batch), batch_size)):
-        toks = tokenize_chat_prompts(instructions=instructions_batch[batch_number:batch_number + batch_size])
+        toks = tokenize_batch(instructions=instructions_batch[batch_number:batch_number + batch_size])
         generation = _generate_with_hooks(
             model,
             toks,
@@ -317,8 +324,8 @@ def generate(
 N_INST_TRAIN = 32
 
 # tokenize (instructions => template => chat prompt)
-harmful_chats_token_ids = tokenize_chat_prompts(instructions=harmful_inst_train[:N_INST_TRAIN])
-harmless_chats_token_ids = tokenize_chat_prompts(instructions=harmless_inst_train[:N_INST_TRAIN])
+harmful_chats_token_ids = tokenize_batch(instructions=harmful_inst_train[:N_INST_TRAIN])
+harmless_chats_token_ids = tokenize_batch(instructions=harmless_inst_train[:N_INST_TRAIN])
 
 def log_hooks(hook_name):
     print(hook_name)  # comment out to disable
@@ -498,12 +505,6 @@ for num, case in enumerate(final_test_cases):
     print(Fore.RED + f"INTERVENTION COMPLETION:")
     print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
-
-
-
-
-
-
 
 # %%
 """## Orthogonalize weights w.r.t. "refusal direction"
