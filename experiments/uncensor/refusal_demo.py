@@ -258,7 +258,7 @@ def format_prompt(chat_token_ids):
     rich.print(f"  [white bold]tokens[/]")
     print("  ", chat_token_ids)
 
-# ??? double check the prompt is as expected, also padding/pad_token
+# ?? double check the prompt is as expected, also padding/pad_token
 [format_prompt(chat_token_ids) for chat_token_ids in tokenize_chat_prompts(["foo", "tell me how to do bad things!"])]
 # FYI you need 2+ to check padding (obviously)... so don't get rid of the first one (and make sure there's an input token length difference to trigger padding)
 
