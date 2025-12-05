@@ -123,20 +123,21 @@ GPTOSS_120B = 'openai/gpt-oss-120b'
 MODEL_PATH = GPTOSS_20B
 DEVICE = "cuda"
 
-base = AutoModelForCausalLM.from_pretrained(MODEL_PATH,
-                                            # torch_dtype=torch.bfloat16,
-                                            )
+base = AutoModelForCausalLM.from_pretrained(
+    MODEL_PATH,
+    # torch_dtype=torch.bfloat16,
+    device_map="cuda")
 
 model = GPTOSSWithHooks(base).to(DEVICE)  # broken final_layernorm
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
 # %% test base model
-
-test_query = "what is your name?"
-inputs = tokenizer(test_query, return_tensors="pt").to(base.device)
-out = base.generate(**inputs, max_new_tokens=50)
-print(tokenizer.decode(out[0], skip_special_tokens=True))
+#
+# test_query = "what is your name?"
+# inputs = tokenizer(test_query, return_tensors="pt").to(base.device)
+# out = base.generate(**inputs, max_new_tokens=50)
+# print(tokenizer.decode(out[0], skip_special_tokens=True))
 
 # %% test hooked model (pre-hooks)
 
@@ -164,13 +165,12 @@ print("""
 
     """)
 
-# print(tokenizer.decode(out[0], skip_special_tokens=True))
-
 # %% 3. Capture residual activations (identical to TL flow)
 
 def resid_filter(name):
     return "resid_" in name
 
+# TypeError: GptOssAttention.forward() missing 2 required positional arguments: 'position_embeddings' and 'attention_mask'
 input_ids = tokenizer("Hello world", return_tensors="pt").input_ids.to(DEVICE)
 
 logits, cache = model.run_with_cache(input_ids, names_filter=resid_filter)
