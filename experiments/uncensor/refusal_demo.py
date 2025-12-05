@@ -504,6 +504,9 @@ if use_sarcasm_data:
 intervention_generations = generate(model, final_test_cases, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
 baseline_generations = generate(model, final_test_cases, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
 
+# btw qwen3 seems to have some "educational" override to some requests that kicks in and warns that XYZ is likely illegal but here is how for educational purposes
+#  I might want to remove that instinct to get it to really open up b/c that's like a secondary refusal or indirection
+
 def compare_case(num, case):
 
     def show(color, title, generated):
