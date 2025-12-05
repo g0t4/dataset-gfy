@@ -88,7 +88,7 @@ DEVICE = 'cuda'
 model = HookedTransformer.from_pretrained_no_processing(
     MODEL_PATH,
     device=DEVICE,
-    dtype=torch.float16,  #TODO! type? bfloat16
+    dtype=torch.float16, # ? bfloat16
     default_padding_side='left',
     # fp16=True, # TODO did I comment this out b/c I was running on my mac instead of arch box?
     # fp16=(DEVICE == CUDA) ? TODO if fp16 s/b on for arch box w/ nvidia gpu then add toggle based on DEVICE = 'cuda' constant too (add CUDA constant and check DEVICE == CUDA or...?)
