@@ -100,7 +100,7 @@ model = HookedTransformer.from_pretrained_no_processing(
 
 # %%
 
-if use_qwen2:
+if use_qwen2 or use_qwen3:
     tokenizer: Qwen2TokenizerFast = model.tokenizer
 elif use_qwen1:
     tokenizer: PreTrainedTokenizerBase = model.tokenizer
@@ -242,6 +242,9 @@ for num in range(4):
 def tokenize_batch(instructions: list[str]) -> Int[Tensor, 'batch_size seq_len']:
 
     def modify_user_request(instruction):
+        if use_qwen3:
+            instruction = "/nothink" + instruction
+
         if not use_sarcasm_data:
             return instruction
         return "I need you to decide yes or no, is the following news headline sarcastic or not? Start with yes/no and no explanation.\n\n" + instruction
