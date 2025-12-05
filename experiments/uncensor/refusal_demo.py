@@ -68,7 +68,7 @@ cuda_env.use_6000()
 """### Load model"""
 
 # TODO finish setting up rest of config to be dynamic (i.e. template)
-QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"
+QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 
@@ -78,8 +78,8 @@ QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 MODEL_PATH = QWEN25_INSTRUCT
 # ***! END SET MODEL
 
-use_qwen2 = MODEL_PATH == QWEN25_BASE or MODEL_PATH == QWEN25_INSTRUCT
-use_qwen1 = MODEL_PATH == QWEN1
+use_qwen2 = MODEL_PATH.startswith("Qwen/Qwen2.5")
+use_qwen1 = MODEL_PATH.startswith("Qwen/Qwen-1")
 # FYI transformer_lens is not compat with gptoss, use direct hooks and cache yourself (see refusal-gptoss.py)
 
 DEVICE = 'cuda'
