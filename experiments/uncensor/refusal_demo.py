@@ -73,9 +73,9 @@ QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 
 # ***! SET MODEL HERE:
-# MODEL_PATH = QWEN1
+MODEL_PATH = QWEN1
 # MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
-MODEL_PATH = QWEN25_INSTRUCT
+# MODEL_PATH = QWEN25_INSTRUCT
 # ***! END SET MODEL
 
 use_qwen2 = MODEL_PATH.startswith("Qwen/Qwen2.5")
