@@ -46,8 +46,7 @@ prompt_ids = tokenizer.apply_chat_template(
     return_tensors="pt",
 ).to(model.device)
 
-print(tokenizer.eos_token_id)
-print(tokenizer.decode(tokenizer.eos_token_id))
+print(tokenizer.decode(prompt_ids[0]))
 
 outputs = model.generate(
     prompt_ids,
