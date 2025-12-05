@@ -489,7 +489,7 @@ intervention_generations = generate(model, final_test_cases, tokenize_chat_promp
 baseline_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
 
 for num, case in enumerate(final_test_cases):
-    print(f"INSTRUCTION {num}: {repr(final_test_cases)}")
+    print(f"INSTRUCTION {num}: {repr(case)}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
     print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RED + f"INTERVENTION COMPLETION:")
@@ -518,14 +518,14 @@ for block in model.blocks:
     block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, unit_refusal_dir)
     block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, unit_refusal_dir)
 
-orthogonalized_generations = generate(model, harmful_inst_test[:N_INST_TEST], tokenize_chat_prompts, fwd_hooks=[])
+orthogonalized_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[])
 
-for i in range(N_INST_TEST):
-    print(f"INSTRUCTION {i}: {repr(harmful_inst_test[i])}")
+for num, case in enumerate(final_test_cases):
+    print(f"INSTRUCTION {num}: {repr(case)}")
     print(Fore.GREEN + f"BASELINE COMPLETION:")
-    print(textwrap.fill(repr(baseline_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RED + f"INTERVENTION COMPLETION:")
-    print(textwrap.fill(repr(intervention_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.MAGENTA + f"ORTHOGONALIZED COMPLETION:")
-    print(textwrap.fill(repr(orthogonalized_generations[i]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    print(textwrap.fill(repr(orthogonalized_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
