@@ -72,7 +72,10 @@ cuda_env.use_6000()
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"  # faster testing
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
+#
 QWEN3 = 'Qwen/Qwen3-8B'
+QWEN3 = 'Qwen/Qwen3-0.6B'
+# QWEN3 = 'Qwen/Qwen3-4B-Instruct-2507' # non-thinking (not yet, at least not in TL 2.16.1) - FYI you would want to drop /think for non-thinking qwen3
 
 # ***! SET MODEL HERE:
 # MODEL_PATH = QWEN1
@@ -243,7 +246,7 @@ def tokenize_batch(instructions: list[str]) -> Int[Tensor, 'batch_size seq_len']
 
     def modify_user_request(instruction):
         if use_qwen3:
-            instruction = "/nothink" + instruction
+            instruction = "/no_think" + instruction
 
         if not use_sarcasm_data:
             return instruction
