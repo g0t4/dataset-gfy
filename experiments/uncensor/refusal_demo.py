@@ -505,27 +505,29 @@ $$W_{\text{out}}' \leftarrow W_{\text{out}} - \widehat{r}\widehat{r}^{\mathsf{T}
 By orthogonalizing these weight matrices, we enforce that the model is unable to write direction $r$ to the residual stream at all!
 """
 
-def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[Tensor, 'd_model']) -> Float[Tensor, '... d_model']:
-    proj = einops.einsum(matrix, vec.view(-1, 1), '... d_model, d_model single -> ... single') * vec
-    return matrix - proj
+raise RuntimeError("FYI! last test modifies weights so only use this if you're away and comment this back out when done so you don't forget next time")
+ok_to_modify_model_weights = False
 
-# PRN copy over range instead for this approach to lobotomizing (this is dependent on range of previous cell, by the way)
-#    FYI do not re-run as this step transforms the actual weights!
+if ok_to_modify_model_weights:
 
-model.W_E.data = get_orthogonalized_matrix(model.W_E, unit_refusal_dir)
+    def get_orthogonalized_matrix(matrix: Float[Tensor, '... d_model'], vec: Float[Tensor, 'd_model']) -> Float[Tensor, '... d_model']:
+        proj = einops.einsum(matrix, vec.view(-1, 1), '... d_model, d_model single -> ... single') * vec
+        return matrix - proj
 
-for block in model.blocks:
-    block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, unit_refusal_dir)
-    block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, unit_refusal_dir)
+    model.W_E.data = get_orthogonalized_matrix(model.W_E, unit_refusal_dir)
 
-orthogonalized_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[])
+    for block in model.blocks:
+        block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, unit_refusal_dir)
+        block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, unit_refusal_dir)
 
-for num, case in enumerate(final_test_cases):
-    print(f"INSTRUCTION {num}: {repr(case)}")
-    print(Fore.GREEN + f"BASELINE COMPLETION:")
-    print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.RED + f"INTERVENTION COMPLETION:")
-    print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.MAGENTA + f"ORTHOGONALIZED COMPLETION:")
-    print(textwrap.fill(repr(orthogonalized_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.RESET)
+    orthogonalized_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[])
+
+    for num, case in enumerate(final_test_cases):
+        print(f"INSTRUCTION {num}: {repr(case)}")
+        print(Fore.GREEN + f"BASELINE COMPLETION:")
+        print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
+        print(Fore.RED + f"INTERVENTION COMPLETION:")
+        print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
+        print(Fore.MAGENTA + f"ORTHOGONALIZED COMPLETION:")
+        print(textwrap.fill(repr(orthogonalized_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
+        print(Fore.RESET)
