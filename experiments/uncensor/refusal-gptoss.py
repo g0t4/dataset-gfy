@@ -14,13 +14,14 @@ class GPTOSSWithHooks(torch.nn.Module):
       - hook registration
       - unified hook naming
     """
+
     def __init__(self, base_model):
         super().__init__()
         self.model = base_model
         self.cfg = base_model.config
         self.layers = base_model.model.layers
         self.emb = base_model.model.embed_tokens
-        self.ln_f = base_model.model.final_layernorm
+        self.ln_f = base_model.model.norm  # todo rename? there was no model.final_layernorm... it does have model.norm
         self.lm_head = base_model.lm_head
 
         # External hook registry
@@ -68,6 +69,7 @@ class GPTOSSWithHooks(torch.nn.Module):
         cache is a dict[str → tensor] for hook points.
         """
         cache = {}
+
         def save(name, tensor):
             if (names_filter is None) or (names_filter(name)):
                 cache[name] = tensor.detach().clone()
@@ -121,17 +123,51 @@ GPTOSS_120B = 'openai/gpt-oss-120b'
 MODEL_PATH = GPTOSS_20B
 DEVICE = "cuda"
 
-base = AutoModelForCausalLM.from_pretrained(
-    MODEL_PATH,
-    torch_dtype=torch.bfloat16,
-    device_map="auto",
-)
+base = AutoModelForCausalLM.from_pretrained(MODEL_PATH,
+                                            # torch_dtype=torch.bfloat16,
+                                            )
 
-model = GPTOSSWithHooks(base).to(DEVICE)
+model = GPTOSSWithHooks(base).to(DEVICE)  # broken final_layernorm
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 
+# %% test base model
+
+test_query = "what is your name?"
+inputs = tokenizer(test_query, return_tensors="pt").to(base.device)
+out = base.generate(**inputs, max_new_tokens=50)
+print(tokenizer.decode(out[0], skip_special_tokens=True))
+
+# %% test hooked model (pre-hooks)
+
+test_query = "what is your name?"
+inputs = tokenizer(test_query, return_tensors="pt").to(base.device)
+token_ids = inputs.input_ids
+for i in range(0, 30):
+    out = model.forward(token_ids)
+    print(out.shape)
+    next_token_id = out[0][-1].argmax()
+    print(next_token_id.item(), tokenizer.decode(next_token_id))
+    token_ids = torch.cat([token_ids, next_token_id[None, None]], dim=1)
+    print(token_ids)
+    print("-" * 80)
+    print(tokenizer.decode(token_ids[0], skip_special_tokens=True))
+    # if next_token_id == 2:
+    #     break
+
+print("""
+
+    TODO STOPPED HERE... just spent some time evaluating if the base/model models work to generate text, they do...
+    now I need to evaluate how the hooks work (ChatGPT generated this based on my qwen version that uses transformer_lens given TL doesn't work with gptoss yet)
+    though now that I checked:  https://github.com/TransformerLensOrg/TransformerLens/releases/tag/v3.0.0a5
+    it is coming in v3!
+
+    """)
+
+# print(tokenizer.decode(out[0], skip_special_tokens=True))
+
 # %% 3. Capture residual activations (identical to TL flow)
+
 def resid_filter(name):
     return "resid_" in name
 
@@ -156,7 +192,9 @@ def remove_direction(direction):
     def hook(out, hookpoint: HookPoint):
         proj = (out @ direction) * direction
         return out - proj
+
     return hook
+
 hooks = []
 for layer in range(model.cfg.num_hidden_layers):
     for name in ["resid_pre", "resid_mid", "resid_post"]:
@@ -180,4 +218,3 @@ for layer in model.layers:
         layer.mlp.down_proj.weight.data,
         unit_refusal_dir,
     )
-
