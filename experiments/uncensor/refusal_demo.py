@@ -506,6 +506,7 @@ def compare_case(num, case):
         if not generated:
             return
         print(color + title)
+        # PRN could stop at stop token
         print(textwrap.fill(repr(generated), width=100, initial_indent='\t', subsequent_indent='\t'))
 
     print(f"INSTRUCTION {num}: {repr(case)}")
