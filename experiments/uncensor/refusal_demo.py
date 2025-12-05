@@ -492,19 +492,37 @@ final_test_cases = harmful_inst_test[N_INST_START:N_INST_END]
 if use_sarcasm_data:
     final_test_cases = final_test_cases + harmless_inst_test[N_INST_START:N_INST_END]  # same, but for baseline (i.e. not harmful)
 
-print(f"Final test cases: {len(final_test_cases)}")
-[f for f in final_test_cases]
+# print(f"Final test cases: {len(final_test_cases)}")
+# [f for f in final_test_cases]
 
 intervention_generations = generate(model, final_test_cases, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
 baseline_generations = generate(model, final_test_cases, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
 
-for num, case in enumerate(final_test_cases):
+# %%
+
+def compare_case(num, case):
+
+    def show(color, title, generated):
+        if not generated:
+            return
+        print(color + title)
+        print(textwrap.fill(repr(generated), width=100, initial_indent='\t', subsequent_indent='\t'))
+
     print(f"INSTRUCTION {num}: {repr(case)}")
-    print(Fore.GREEN + f"BASELINE COMPLETION:")
-    print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-    print(Fore.RED + f"INTERVENTION COMPLETION:")
-    print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
+    if "baseline_generations" in globals():
+        gen = globals()["baseline_generations"]
+        show(Fore.GREEN, "BASELINE COMPLETION:", gen[num])
+    if "intervention_generations" in globals():
+        gen = globals()["intervention_generations"]
+        show(Fore.RED, "INTERVENTION COMPLETION:", gen[num])
+    if "orthogonalized_generations" in globals():
+        gen = globals()["orthogonalized_generations"]
+        show(Fore.MAGENTA, "ORTHOGONALIZED COMPLETION:", gen[num])
+
     print(Fore.RESET)
+
+for num, case in enumerate(final_test_cases):
+    compare_case(num, case)
 
 # %%
 """## Orthogonalize weights w.r.t. "refusal direction"
@@ -533,11 +551,4 @@ if ok_to_modify_model_weights:
     orthogonalized_generations = generate(model, final_test_cases, fwd_hooks=[])
 
     for num, case in enumerate(final_test_cases):
-        print(f"INSTRUCTION {num}: {repr(case)}")
-        print(Fore.GREEN + f"BASELINE COMPLETION:")
-        print(textwrap.fill(repr(baseline_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-        print(Fore.RED + f"INTERVENTION COMPLETION:")
-        print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-        print(Fore.MAGENTA + f"ORTHOGONALIZED COMPLETION:")
-        print(textwrap.fill(repr(orthogonalized_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
-        print(Fore.RESET)
+        compare_case(num, case)
