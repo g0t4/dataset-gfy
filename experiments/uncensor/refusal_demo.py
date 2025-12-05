@@ -438,8 +438,8 @@ def remove_refusal_during_forward_pass(
     # subtract the refusal component(s)... model cannot represent refusal now!
     return activation - activation_refusal_projection
 
-N_INST_TEST = 8
-# N_INST_TEST = 48
+# N_INST_TEST = 8 # use lower for faster tests of other things than examples
+N_INST_TEST = 48
 layer_numbers = list(range(model.cfg.n_layers))  # qwen25-n_layers=24 so 0,1,2...23
 
 remove_refusal_from_every_layer = [
