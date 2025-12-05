@@ -291,7 +291,7 @@ def _generate_with_hooks(
             next_tokens = logits[:, -1, :].argmax(dim=-1)  # greedy sampling (temperature=0)
             all_toks[:, -max_tokens_generated + new_token_number] = next_tokens
 
-    return model.tokenizer.batch_decode(all_toks[:, batch_seq_len:], skip_special_tokens=True)
+    return model.tokenizer.batch_decode(all_toks[:, batch_seq_len:], skip_special_tokens=False)
 
 def generate(
     model: HookedTransformer,

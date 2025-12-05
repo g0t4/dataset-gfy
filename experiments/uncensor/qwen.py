@@ -40,4 +40,4 @@ outputs = model.generate(
     max_new_tokens=512,
     eos_token_id=tokenizer.eos_token_id,
 )
-print(tokenizer.decode(outputs[0], skip_special_tokens=True))
+print(tokenizer.decode(outputs[0], skip_special_tokens=False))
