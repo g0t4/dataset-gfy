@@ -70,7 +70,7 @@ cuda_env.use_6000()
 
 # QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"  # faster testing
-QWEN1 = 'Qwen/Qwen-1_8B-chat'
+# QWEN1 = 'Qwen/Qwen-1_8B-chat' # FYI use old branch for qwen1 testing OR rollback your transformers release... maybe setup separate venvs?
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 #
 QWEN3 = 'Qwen/Qwen3-8B'
