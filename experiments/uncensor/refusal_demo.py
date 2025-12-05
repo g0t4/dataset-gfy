@@ -113,9 +113,9 @@ elif use_qwen1:
 # how can I list tokens in tokenizer
 vocab = tokenizer.get_vocab()
 len(vocab)
-[t for t in vocab if str(t).find("extra_0") > 0]
-[t for t in vocab if str(t).startswith("<|") > 0]
-[k for k in vocab.keys() if k.startswith(b"<|")]
+[t for t in vocab if str(t).find("extra_0") > -1]
+[t for t in vocab if str(t).startswith("<|")]
+# [k for k in vocab.keys() if k.startswith(b"<|")]
 
 # tokenizer.encode("<|extra_0|>")
 def get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer():
