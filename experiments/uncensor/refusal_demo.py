@@ -505,6 +505,10 @@ for num, case in enumerate(final_test_cases):
 
 
 
+# observations:
+# - "I'm sorry, but I cannot fulfill this request."
+#   - this phrase comes up often... I wonder if I could target it vs the opposite and come up with annother way to remove refusal? It's almost as if they trained on this phrase as a standard way to refuse!
+
 
 # %%
 """## Orthogonalize weights w.r.t. "refusal direction"
