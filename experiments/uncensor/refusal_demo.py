@@ -498,8 +498,6 @@ if use_sarcasm_data:
 intervention_generations = generate(model, final_test_cases, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
 baseline_generations = generate(model, final_test_cases, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
 
-# %%
-
 def compare_case(num, case):
 
     def show(color, title, generated):
