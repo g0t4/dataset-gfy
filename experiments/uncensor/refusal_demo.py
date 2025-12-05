@@ -289,7 +289,6 @@ def _generate_with_hooks(
 def generate(
     model: HookedTransformer,
     instructions_batch: List[str],
-    tokenize_instructions_fn: Callable[[List[str]], Int[Tensor, 'batch_size seq_len']],
     fwd_hooks=[],
     max_tokens_generated: int = 64,
     batch_size: int = 4,
@@ -300,7 +299,7 @@ def generate(
 
     # divide large instructions_batch into smaller batches (based on batch_size)
     for batch_number in progress_tqdm(range(0, len(instructions_batch), batch_size)):
-        toks = tokenize_instructions_fn(instructions=instructions_batch[batch_number:batch_number + batch_size])
+        toks = tokenize_chat_prompts(instructions=instructions_batch[batch_number:batch_number + batch_size])
         generation = _generate_with_hooks(
             model,
             toks,
@@ -489,8 +488,8 @@ if use_sarcasm_data:
 print(f"Final test cases: {len(final_test_cases)}")
 [f for f in final_test_cases]
 
-intervention_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
-baseline_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
+intervention_generations = generate(model, final_test_cases, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
+baseline_generations = generate(model, final_test_cases, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
 
 for num, case in enumerate(final_test_cases):
     print(f"INSTRUCTION {num}: {repr(case)}")
@@ -530,7 +529,7 @@ if ok_to_modify_model_weights:
         block.attn.W_O.data = get_orthogonalized_matrix(block.attn.W_O, unit_refusal_dir)
         block.mlp.W_out.data = get_orthogonalized_matrix(block.mlp.W_out, unit_refusal_dir)
 
-    orthogonalized_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[])
+    orthogonalized_generations = generate(model, final_test_cases, fwd_hooks=[])
 
     for num, case in enumerate(final_test_cases):
         print(f"INSTRUCTION {num}: {repr(case)}")
