@@ -203,8 +203,8 @@ def get_harmless_instructions():
     train, test = train_test_split(instructions, test_size=0.2, random_state=42)
     return train, test
 
-use_sarcasm_data = True
-# use_sarcasm_data = False
+# use_sarcasm_data = True
+use_sarcasm_data = False # == harmful data
 
 if use_sarcasm_data:
     harmful_inst_train, harmful_inst_test = get_sarcasm_headlines(True)
