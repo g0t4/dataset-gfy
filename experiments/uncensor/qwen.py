@@ -2,13 +2,23 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 # model_name = "Qwen/Qwen2.5-7B-Instruct"
-model_name = "Qwen/Qwen2.5-0.5B-Instruct"
-# model_name = "Qwen/Qwen-1_8B-chat"
+# model_name = "Qwen/Qwen2.5-0.5B-Instruct"
+model_name = "Qwen/Qwen-1_8B-chat"
 
 tokenizer = AutoTokenizer.from_pretrained(
     model_name,
     trust_remote_code=True,
 )
+
+if model_name == "Qwen/Qwen-1_8B-chat":
+    # set chat template for apply_chat_template to work with Qwen1 only... 2.5/3 already have it defined
+
+    tokenizer.chat_template = """{% for message in messages %}
+{% if loop.first and message['role'] != 'system' %}{{ '<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n' }}{% endif %}
+{{ '<|im_start|>' + message['role'] + '\n' + message['content'] + '<|im_end|>\n' }}
+{% if loop.last and add_generation_prompt %}{{ '<|im_start|>assistant\n' }}{% endif %}
+{% endfor %}"""
+
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
