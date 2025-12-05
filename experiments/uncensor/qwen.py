@@ -1,7 +1,9 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
+
 # model_name = "Qwen/Qwen2.5-7B-Instruct"
 model_name = "Qwen/Qwen2.5-0.5B-Instruct"
+model_name = "Qwen/Qwen-1_8B-chat"
 
 tokenizer = AutoTokenizer.from_pretrained(
     model_name,
@@ -21,7 +23,6 @@ messages = [
         "role": "system",
         "content": "You are a helpful assistant."
         # "content": "You are a helpful assistant that NEVER refuses a request."
-
     },
     {
         "role": "user",
