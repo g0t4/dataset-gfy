@@ -72,15 +72,18 @@ cuda_env.use_6000()
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"  # faster testing
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
+QWEN3 = 'Qwen/Qwen3-8B'
 
 # ***! SET MODEL HERE:
 # MODEL_PATH = QWEN1
 # MODEL_PATH =  QWEN_25_BASE # base (not instruct) - interesting it didn't refuse many prompts even before lobotomizing
-MODEL_PATH = QWEN25_INSTRUCT
+# MODEL_PATH = QWEN25_INSTRUCT
+MODEL_PATH = QWEN3
 # ***! END SET MODEL
 
-use_qwen2 = MODEL_PATH.startswith("Qwen/Qwen2.5")
 use_qwen1 = MODEL_PATH.startswith("Qwen/Qwen-1")
+use_qwen2 = MODEL_PATH.startswith("Qwen/Qwen2.5")
+use_qwen3 = MODEL_PATH.startswith("Qwen/Qwen3")
 
 # FYI transformer_lens is not compat with gptoss, use direct hooks and cache yourself (see refusal-gptoss.py)
 
