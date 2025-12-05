@@ -68,8 +68,8 @@ cuda_env.use_6000()
 # %%
 """### Load model"""
 
-QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
-QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
+# QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
+QWEN25_INSTRUCT = "Qwen/Qwen2.5-0.5B-Instruct"  # faster testing
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
 
