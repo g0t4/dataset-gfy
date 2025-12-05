@@ -117,15 +117,6 @@ len(vocab)
 [t for t in vocab if str(t).startswith("<|")]
 # [k for k in vocab.keys() if k.startswith(b"<|")]
 
-# tokenizer.encode("<|extra_0|>")
-def get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer():
-    for i in range(tokenizer.vocab_size):
-        tok = tokenizer.convert_ids_to_tokens(i)
-        yield i, tok
-
-[tok for id, tok in get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer() if str(tok).startswith("<|")]
-[tok for id, tok in get_all_tokens_bc_this_shouldnt_just_exist_on_tokenizer() if str(tok).find("extra") > -1]
-
 # %% SET PAD TOKEN THAT AVOIDS CONTAMINATION
 
 model.tokenizer.padding_side = 'left'  # defaults: qwen1:left, qwen2.5:left
@@ -142,7 +133,7 @@ if use_qwen1:
     #   In [31]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
     #   Out[31]: ['<|extra_0|>']
 
-if use_qwen2:
+if use_qwen2 or use_qwen3:
     # FYI In [51]: [model.tokenizer.decode(i) for i in model.tokenizer.encode(("<|extra_0|>")) ]
     # Out[50]: ['<', '|', 'extra', '_', '0', '|', '>']
     # there is NO <|extra_0|> or set of similar unused tokens.
