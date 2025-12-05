@@ -472,12 +472,12 @@ remove_refusal_from_every_layer = [
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
 # N_INST_START = 38
 # N_INST_END = 39
-# max_tokens = 512
+# MAX_TOKENS = 512
 # * defaults
 N_INST_START = 0
 N_INST_END = 8
 # N_INST_END = 48
-max_tokens = 64
+MAX_TOKENS = 64
 final_test_cases = harmful_inst_test[N_INST_START:N_INST_END]
 if use_sarcasm_data:
     final_test_cases = final_test_cases + harmless_inst_test[N_INST_START:N_INST_END]  # same, but for baseline (i.e. not harmful)
@@ -485,8 +485,8 @@ if use_sarcasm_data:
 print(f"Final test cases: {len(final_test_cases)}")
 [f for f in final_test_cases]
 
-intervention_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=max_tokens)
-baseline_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=max_tokens)
+intervention_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=remove_refusal_from_every_layer, max_tokens_generated=MAX_TOKENS)
+baseline_generations = generate(model, final_test_cases, tokenize_chat_prompts, fwd_hooks=[], max_tokens_generated=MAX_TOKENS)
 
 for num, case in enumerate(final_test_cases):
     print(f"INSTRUCTION {num}: {repr(case)}")
