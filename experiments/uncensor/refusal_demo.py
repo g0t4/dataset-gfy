@@ -67,7 +67,7 @@ cuda_env.use_6000()
 # %%
 """### Load model"""
 
-# TODO finish setting up rest of config to be dynamic (i.e. template)
+QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
 QWEN25_INSTRUCT = "Qwen/Qwen2.5-7B-Instruct"
 QWEN1 = 'Qwen/Qwen-1_8B-chat'
 QWEN25_BASE = 'Qwen/Qwen2.5-0.5B'
@@ -80,6 +80,7 @@ MODEL_PATH = QWEN25_INSTRUCT
 
 use_qwen2 = MODEL_PATH.startswith("Qwen/Qwen2.5")
 use_qwen1 = MODEL_PATH.startswith("Qwen/Qwen-1")
+
 # FYI transformer_lens is not compat with gptoss, use direct hooks and cache yourself (see refusal-gptoss.py)
 
 DEVICE = 'cuda'
@@ -204,7 +205,7 @@ def get_harmless_instructions():
     return train, test
 
 # use_sarcasm_data = True
-use_sarcasm_data = False # == harmful data
+use_sarcasm_data = False  # == harmful data
 
 if use_sarcasm_data:
     harmful_inst_train, harmful_inst_test = get_sarcasm_headlines(True)
@@ -472,12 +473,15 @@ remove_refusal_from_every_layer = [
 # * hone in on a subset, longer generation to see what effects might be going on... like inadvertent consequences of lobotomizing
 # N_INST_START = 38
 # N_INST_END = 39
-# MAX_TOKENS = 512
 # * defaults
 N_INST_START = 0
 N_INST_END = 8
 # N_INST_END = 48
+#
 MAX_TOKENS = 64
+# MAX_TOKENS = 256
+# MAX_TOKENS = 512
+#
 final_test_cases = harmful_inst_test[N_INST_START:N_INST_END]
 if use_sarcasm_data:
     final_test_cases = final_test_cases + harmless_inst_test[N_INST_START:N_INST_END]  # same, but for baseline (i.e. not harmful)
@@ -495,6 +499,12 @@ for num, case in enumerate(final_test_cases):
     print(Fore.RED + f"INTERVENTION COMPLETION:")
     print(textwrap.fill(repr(intervention_generations[num]), width=100, initial_indent='\t', subsequent_indent='\t'))
     print(Fore.RESET)
+
+
+
+
+
+
 
 # %%
 """## Orthogonalize weights w.r.t. "refusal direction"
