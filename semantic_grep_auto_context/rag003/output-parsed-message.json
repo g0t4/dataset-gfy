@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "class TestRawSilencePeriodGeneral:\n\n    def test_duration(self):\n        silence = RawSilencePeriod(100, 200)\n        assert silence.duration() == 100\n\n    def test_str_representation(self):\n        silence = RawSilencePeriod(5.5, 12.75)\n        assert str(silence) == \"Raw[5.5->12.75)\"",
+  "reasoning_content": "We need to add new test method for __str__. Provide code insertion."
+}

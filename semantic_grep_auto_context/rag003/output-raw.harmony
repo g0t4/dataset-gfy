@@ -1,0 +1,7 @@
+Dec 07 01:13:47 build21 llama-server[3274]: Parsing input with format GPT-OSS: <|channel|>analysis<|message|>We need to add new test method for __str__. Provide code insertion.<|end|><|start|>assistant<|channel|>final<|message|>class TestRawSilencePeriodGeneral:
+Dec 07 01:13:47 build21 llama-server[3274]:     def test_duration(self):
+Dec 07 01:13:47 build21 llama-server[3274]:         silence = RawSilencePeriod(100, 200)
+Dec 07 01:13:47 build21 llama-server[3274]:         assert silence.duration() == 100
+Dec 07 01:13:47 build21 llama-server[3274]:     def test_str_representation(self):
+Dec 07 01:13:47 build21 llama-server[3274]:         silence = RawSilencePeriod(5.5, 12.75)
+Dec 07 01:13:47 build21 llama-server[3274]:         assert str(silence) == "Raw[5.5->12.75)"
