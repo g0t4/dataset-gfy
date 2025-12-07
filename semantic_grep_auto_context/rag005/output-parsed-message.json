@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "load_config",
+  "reasoning_content": "We need import Config, ... what else? Look at repo maybe Config has load_config? Search. Probably need load_config function. In config.py there is load_config. So import Config, load_config. Return line: from lsp.config import Config, load_config."
+}
