@@ -1,0 +1,22 @@
+Dec 07 01:56:04 build21 llama-server[3274]: Parsing input with format GPT-OSS: <|channel|>analysis<|message|>We need to add tests for AlignedSilencePeriod methods. Provide code without markdown.<|end|><|start|>assistant<|channel|>final<|message|>class TestAlignedSilencePeriodGeneral:
+Dec 07 01:56:04 build21 llama-server[3274]:     def test_initialization_and_repr(self):
+Dec 07 01:56:04 build21 llama-server[3274]:         aligned = AlignedSilencePeriod(10, 20)
+Dec 07 01:56:04 build21 llama-server[3274]:         assert aligned.start_frames == 10
+Dec 07 01:56:04 build21 llama-server[3274]:         assert aligned.end_frames == 20
+Dec 07 01:56:04 build21 llama-server[3274]:         assert repr(aligned) == "AlignedSilencePeriod(10, 20)"
+Dec 07 01:56:04 build21 llama-server[3274]:     def test_str_representation(self):
+Dec 07 01:56:04 build21 llama-server[3274]:         aligned = AlignedSilencePeriod(5, 15)
+Dec 07 01:56:04 build21 llama-server[3274]:         assert str(aligned) == "AlignedSilence 5 -> 15"
+Dec 07 01:56:04 build21 llama-server[3274]:     def test_duration_frames(self):
+Dec 07 01:56:04 build21 llama-server[3274]:         aligned = AlignedSilencePeriod(30, 45.7)
+Dec 07 01:56:04 build21 llama-server[3274]:         expected = round(45.7 - 30)
+Dec 07 01:56:04 build21 llama-server[3274]:         assert aligned.duration_frames() == expected
+Dec 07 01:56:04 build21 llama-server[3274]:     def test_zero_length(self):
+Dec 07 01:56:04 build21 llama-server[3274]:         aligned = AlignedSilencePeriod(100, 100)
+Dec 07 01:56:04 build21 llama-server[3274]:         assert aligned.duration_frames() == 0
+Dec 07 01:56:04 build21 llama-server[3274]:         assert str(aligned) == "AlignedSilence 100 -> 100"
+Dec 07 01:56:04 build21 llama-server[3274]:     def test_negative_duration(self):
+Dec 07 01:56:04 build21 llama-server[3274]:         aligned = AlignedSilencePeriod(50, 40)
+Dec 07 01:56:04 build21 llama-server[3274]:         expected = round(40 - 50)
+Dec 07 01:56:04 build21 llama-server[3274]:         assert aligned.duration_frames() == expected
+Dec 07 01:56:04 build21 llama-server[3274]:         assert repr(aligned) == "AlignedSilencePeriod(50, 40)"
