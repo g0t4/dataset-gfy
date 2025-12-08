@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "split_breathing = gptoss.split_breathing",
+  "reasoning_content": "We need to define split_breathing path. Probably from gptoss. So insert: split_breathing = gptoss.split_breathing. Also maybe import. So code:\n\nsplit_breathing = gptoss.split_breathing\n\nThat's it."
+}

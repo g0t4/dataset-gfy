@@ -1,0 +1,3 @@
+Dec 08 13:03:32 build21 llama-server[3325]: Parsing input with format GPT-OSS: <|channel|>analysis<|message|>We need to define split_breathing path. Probably from gptoss. So insert: split_breathing = gptoss.split_breathing. Also maybe import. So code:
+Dec 08 13:03:32 build21 llama-server[3325]: split_breathing = gptoss.split_breathing
+Dec 08 13:03:32 build21 llama-server[3325]: That's it.<|end|><|start|>assistant<|channel|>final<|message|>split_breathing = gptoss.split_breathing
