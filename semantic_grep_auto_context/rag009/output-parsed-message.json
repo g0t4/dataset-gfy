@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "cursor_line.before_cursor",
+  "reasoning_content": "We need to fill <|fim_middle|> with appropriate field, likely ps_chunk.cursor_line.before_cursor or similar. Search earlier tests. In prefix_suffix_tests expected chunk has cursor_line.before_cursor. So query should be that. Likely ps_chunk.cursor_line.before_cursor."
+}
