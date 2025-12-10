@@ -1,0 +1,15 @@
+<|channel|>analysis<|message|>We need to modify code to only affect hovered line and restore others. Use storing original colors/linewidths. Provide updated function.<|end|><|start|>assistant<|channel|>final<|message|>def on_hover(event):
+    if event.inaxes is None:
+        return
+    for line in event.inaxes.get_lines():
+        if not hasattr(line, "_orig_style"):
+            line._orig_style = (line.get_color(), line.get_linewidth())
+        contains, _ = line.contains(event)
+        if contains:
+            line.set_linewidth(3)
+            line.set_color("red")
+        else:
+            orig_color, orig_width = line._orig_style
+            line.set_linewidth(orig_width)
+            line.set_color(orig_color)
+    event.canvas.draw_idle()

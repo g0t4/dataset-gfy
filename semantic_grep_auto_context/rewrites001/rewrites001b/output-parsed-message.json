@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "def on_hover(event):\n    if event.inaxes is None:\n        return\n    for line in event.inaxes.get_lines():\n        if not hasattr(line, \"_orig_style\"):\n            line._orig_style = (line.get_color(), line.get_linewidth())\n        contains, _ = line.contains(event)\n        if contains:\n            line.set_linewidth(3)\n            line.set_color(\"red\")\n        else:\n            orig_color, orig_width = line._orig_style\n            line.set_linewidth(orig_width)\n            line.set_color(orig_color)\n    event.canvas.draw_idle()\n",
+  "reasoning_content": "We need to modify code to only affect hovered line and restore others. Use storing original colors/linewidths. Provide updated function."
+}

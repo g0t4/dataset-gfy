@@ -1,0 +1,32 @@
+{
+  "stream": true,
+  "model": "",
+  "messages": [
+    {
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+      "role": "system"
+    },
+    {
+      "content": "# General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+      "role": "user"
+    },
+    {
+      "content": "# Python Code Preferences\n\n## Naming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\n## Type Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+      "role": "user"
+    },
+    {
+      "content": "# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/tests/range-tests.py:0-1\nfrom auto_edit.ranges import FrameRange, ContentRange, SilenceRange\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/ranges.py:63-72\nclass SilenceRange(FrameRange):\n\n    def __str__(self):\n        return f\"Silence[{self.start_frame}➜{self.end_frame})\"\n\n    def __copy__(self):\n        return SilenceRange(self.start_frame, self.end_frame)\n\n    def __deepcopy__(self, memo=None):\n        return SilenceRange(self.start_frame, self.end_frame)\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/tests/raw-tests.py:103-106\n\n\n    # FYI before orig start => after orig end (already covered above)\n    \n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/silences/align.py:0-5\nimport math\nimport rich\n\nfrom auto_edit.silences.detect_raw import RawSilencePeriod\nfrom auto_edit.ranges import SilenceRange\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/ranges.py:68-69\ndef __copy__(self):\n        return SilenceRange(self.start_frame, self.end_frame)\n",
+      "role": "user"
+    },
+    {
+      "content": "can the color only apply to the hovered item only and not alter the rest? AND can it restore the original colors when I move to smth else\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/plot_helpers.py:\n    def on_hover(event):\n        if event.inaxes is None:\n            return\n        for line in event.inaxes.get_lines():\n            contains, _ = line.contains(event)\n            if contains:\n                line.set_linewidth(3)\n                line.set_color(\"red\")\n            else:\n                line.set_linewidth(1)\n                line.set_color(\"blue\")\n        event.canvas.draw_idle()",
+      "role": "user"
+    }
+  ],
+  "top_p": 1,
+  "max_tokens": 4096,
+  "temperature": 1,
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  }
+}

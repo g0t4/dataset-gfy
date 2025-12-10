@@ -1,0 +1,2 @@
+Was surprising how little code I needed to provide to give it all the context it needed! I didn't even have to mention the matplotlib library, just grabbed a few other events I had setup and it worked both times!
+- really like the 1b change... just asking it to fix that issue.. guessing that is probably a common usecase so why learn to do that myself? why bother googling around to find the answer when I can just kick back and I don't care that much

@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "def on_hover(event):\n    if event.inaxes is None:\n        return\n    for line in event.inaxes.get_lines():\n        contains, _ = line.contains(event)\n        if contains:\n            line.set_linewidth(3)\n            line.set_color(\"red\")\n        else:\n            line.set_linewidth(1)\n            line.set_color(\"blue\")\n    event.canvas.draw_idle()\n\nfig.canvas.mpl_connect(\"motion_notify_event\", on_hover)",
+  "reasoning_content": "We need to provide code to intercept mouse over a plot item. Likely using mpl_connect with \"motion_notify_event\" and checking if event.inaxes and contains. Provide function. No markdown."
+}

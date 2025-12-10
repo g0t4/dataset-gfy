@@ -1,0 +1,13 @@
+<|channel|>analysis<|message|>We need to provide code to intercept mouse over a plot item. Likely using mpl_connect with "motion_notify_event" and checking if event.inaxes and contains. Provide function. No markdown.<|end|><|start|>assistant<|channel|>final<|message|>def on_hover(event):
+    if event.inaxes is None:
+        return
+    for line in event.inaxes.get_lines():
+        contains, _ = line.contains(event)
+        if contains:
+            line.set_linewidth(3)
+            line.set_color("red")
+        else:
+            line.set_linewidth(1)
+            line.set_color("blue")
+    event.canvas.draw_idle()
+fig.canvas.mpl_connect("motion_notify_event", on_hover)
