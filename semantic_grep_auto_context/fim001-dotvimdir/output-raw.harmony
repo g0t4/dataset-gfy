@@ -1,0 +1,43 @@
+<|channel|>analysis<|message|>We need to output code for the placeholder <|fim_middle|>. The description: each workspace can have .vim dir nested etc. Need to implement functionality? Probably function to load .vim directory customizations. Provide Lua code for Neovim? Probably in init.lua. Need to write code that searches for .vim dir upward and sources init.lua? Provide function to load and run files. Let's craft.
+We need to respect indentation. Provide code block with appropriate indentation. Likely inside some function. We'll just output the code to replace <|fim_middle|>. Provide Lua code that finds .vim directories in workspace root, adds to runtimepath, loads init.lua if exists, etc.
+Let's output code snippet.<|end|><|start|>assistant<|channel|>final<|message|>```lua
+-- Find the root of the current workspace (the directory that contains a .git folder
+-- or, if that fails, just use the directory of the currently opened file).
+local function get_workspace_root()
+    local cwd = vim.fn.getcwd()
+    local root = vim.fn.finddir('.git', cwd .. ';')
+    if root == '' then
+        return cwd
+    end
+    return vim.fn.fnamemodify(root, ':h')
+end
+-- Load any custom Vim/Neovim configuration that lives in a ".vim" directory
+-- inside the workspace root.  This allows per‑project plugins, commands,
+-- keymaps, etc. to be defined alongside the code they operate on.
+local function load_workspace_vim()
+    local root = get_workspace_root()
+    if not root or root == '' then return end
+    local vim_dir = root .. '/.vim'
+    local init_lua = vim_dir .. '/init.lua'
+    -- If the ".vim" directory exists, add it to the runtime path so that
+    -- `require` can find modules placed there.
+    if vim.fn.isdirectory(vim_dir) == 1 then
+        vim.opt.rtp:prepend(vim_dir)
+    end
+    -- If there is an "init.lua" inside the directory, source it.
+    if vim.fn.filereadable(init_lua) == 1 then
+        local ok, err = pcall(dofile, init_lua)
+        if not ok then
+            vim.notify(
+                string.format('Error loading workspace config %s: %s', init_lua, err),
+                vim.log.levels.ERROR
+            )
+        end
+    end
+end
+-- Run the loader once Neovim has finished its startup sequence.
+vim.api.nvim_create_autocmd('VimEnter', {
+    once = true,
+    callback = load_workspace_vim,
+})
+```
