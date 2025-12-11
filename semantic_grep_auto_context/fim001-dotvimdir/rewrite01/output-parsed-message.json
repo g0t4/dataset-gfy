@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "local root = require('non-plugins.werkspaces.api').get_werkspace_root_dir()",
+  "reasoning_content": "User wants to modify code to use plugin function. Likely replace get_workspace_root with M.get_werkspace_root_dir. Provide updated snippet."
+}

@@ -1,0 +1,32 @@
+{
+  "stream": true,
+  "model": "",
+  "top_p": 1,
+  "max_tokens": 4096,
+  "temperature": 1,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+    },
+    {
+      "role": "user",
+      "content": "# General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+    },
+    {
+      "role": "user",
+      "content": "# Lua Code Preferences\n\n## Naming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\n## Type Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n\n"
+    },
+    {
+      "role": "user",
+      "content": "# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/api.lua:14-20\n--- Directory opened in neovim with the user's files, either:\n--- - If in a git repo, the repo root directory\n--- - Or, CWD\n---@return string path\nfunction M.get_werkspace_root_dir()\n    return get_git_root() or vim.fn.getcwd()\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/api.lua:22-31\n--- Directory to store werkspace's shada, sessions, etc\n---@return string path\nfunction M.get_werkspace_state_dir()\n    local dir = M.get_werkspace_root_dir()\n\n    local hash = vim.fn.sha256(dir) -- 10ms, not terrible and I've never really noticed startup impact\n    local werkspaces_dir = \"~/.config/nvim/shada/werkspaces/\"\n    werkspaces_dir = vim.fn.expand(werkspaces_dir)\n    return werkspaces_dir .. hash\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/werkspace.lua:105-109\nfunction()\n        local path = api.get_werkspace_state_dir()\n        print(path)\n        vim.cmd(\":Open \" .. path)\n    end\n\n## ~/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/werkspace.lua:203-222\n)\nend\n\nfunction setup_werkspace()\n    local werkspace_dir = api.get_werkspace_state_dir()\n\n    -- WHY do this with shada:\n    --   privacy (don't jump list back to another project, i.e. during screencast)\n    --   separate werkspaces, jumplist/marks s/b per project, not global... like vscode\n    --      and cmd history, also belongs per project (though I can see more of an argument for global cmd history but since I don't use it much I don't think it will matter)\n    --   I LOVE how this has worked so far! PERFECT!\n    vim.opt.shadafile = werkspace_dir .. \"/shada\"\n\n    vim.g.session_file = werkspace_dir .. \"/session.vim\"\n\n    vim.cmd [[\n\n        \" removing buffers (I don't want background buffers, I can add back if I want that later)\n        \" removing curdir (this is dervied by convention, dont want that changing, session is stored PER cwd so no need to change curdir)\n        \" removing terminal (I don't want to restore terminals, I can add back if I want that later)\n\n\n## ~/repos/github/g0t4/dotfiles/.config/nvim/lua/non-plugins/werkspaces/init.lua:0-1\nrequire('non-plugins.werkspaces.werkspace')\nrequire('non-plugins.werkspaces.dotvimdir')\n\n"
+    },
+    {
+      "role": "user",
+      "content": "have this use my werkspaces plugin to get the workspace directory that way, so that it's consistent\nHere is code I selected (with carefully preserved indentation) from .config/nvim/lua/non-plugins/werkspaces/dotvimdir.lua:\n    local root = get_workspace_root()"
+    }
+  ],
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  }
+}
