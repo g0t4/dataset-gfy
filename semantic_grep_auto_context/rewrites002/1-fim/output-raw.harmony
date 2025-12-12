@@ -1,0 +1,5 @@
+<|channel|>analysis<|message|>We need to return type for full_analysis. Likely similar to speech_analysis but also compute merged. Look at usage earlier: in detector_notebook they call speech_analysis then merge_close_speech_segments. full_analysis probably does both. Return AudioAnalysisResult. So signature: def full_analysis(path: Path) -> AudioAnalysisResult: and implement calling speech_analysis then merging and setting analysis.merged. Provide code.
+<|end|><|start|>assistant<|channel|>final<|message|>def full_analysis(path: Path) -> AudioAnalysisResult:
+    analysis = speech_analysis(path)
+    analysis.merged = merge_close_speech_segments(analysis)
+    return analysis
