@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "from auto_edit.new_silence.detect import VIDEO_FPS",
+  "reasoning_content": "We need import VIDEO_FPS. So fill middle with: from auto_edit.new_silence.detect import VIDEO_FPS."
+}
