@@ -1,0 +1,25 @@
+<|channel|>analysis<|message|>We need to add static method in player? Provide code.<|end|><|start|>assistant<|channel|>final<|message|>from auto_edit.new_silence.player import SegmentPlotter, play_segments, SegmentPlayer
+class SegmentPlotter:
+    # existing methods ...
+    @staticmethod
+    def plot_segment(segment: DetectedSegment) -> None:
+        """Display a plot of the RMS values for a single DetectedSegment."""
+        # Extract RMS data and time axis
+        rms = segment.rms_segment
+        if rms.ndim != 1:
+            rms = rms.squeeze()
+        fps = 30  # assumed frame rate for time conversion
+        hop_len = RMS_HOP_LENGTH
+        frame_len = RMS_FRAME_LENGTH
+        # Compute time per sample based on hop length
+        times = np.arange(len(rms)) * hop_len / fps
+        # Create the plot
+        plt.figure(figsize=(8, 3))
+        plt.plot(times, rms, label=f"Segment {segment.id} ({segment.label.value})")
+        plt.xlabel("Time (seconds)")
+        plt.ylabel("RMS")
+        plt.title(f"RMS Plot for Segment {segment.id}")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
