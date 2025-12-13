@@ -1,0 +1,32 @@
+{
+  "top_p": 1,
+  "stream": true,
+  "temperature": 1,
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  },
+  "messages": [
+    {
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+      "role": "system"
+    },
+    {
+      "content": "# General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+      "role": "user"
+    },
+    {
+      "content": "# Python Code Preferences\n\n## Naming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\n## Type Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+      "role": "user"
+    },
+    {
+      "content": "# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/librosa_rms.py:112-121\ndef show_rms():\n    plt.close()\n    hops_match_time_axis = np.arange(len(rms)) / 100  # 10ms gap b/w hops\n    plt.plot(hops_match_time_axis, rms)\n    plt.xlabel(\"Time (s)\")\n    plt.ylabel(\"rms\")\n    plt.title(\"Audio Waveform\")\n\n    plt.tight_layout()\n    plt.show()\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/librosa_rms.py:127-137\ndef show_rms_db():\n    plt.close()\n    hops_match_time_axis = np.arange(len(rms)) / 100  # 10ms gap b/w hops => 3 sec recording => 302 db/rms readings (10ms hops)\n    plt.plot(hops_match_time_axis, rms_db)\n    # plt.plot(hops_match_time_axis, rms)\n    plt.xlabel(\"Time (s)\")\n    plt.ylabel(\"db or rms\")\n    plt.title(\"Audio Waveform\")\n\n    plt.tight_layout()\n    plt.show()\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/librosa_rms.py:85-104\ndef show_power_squared():\n    plt.close()\n\n    time_axis = np.arange(len(audio_samples)) / sample_rate\n    plt.figure(figsize=(10, 4))\n    # plt.plot(time_axis, audio_samples)\n\n    hops_match_time_axis = np.arange(len(rms)) / 100  # 10ms gap b/w hops => 3 sec recording => 302 db/rms readings (10ms hops)\n    power = rms**2\n    power_db = librosa.power_to_db(power, ref=np.max)\n    plt.plot(hops_match_time_axis, power_db)  # power is slightly more exaggerated (deeper for breathing, silence... more of a gap vs RMS while talking)\n    amp_db = librosa.amplitude_to_db(rms, ref=np.max)\n    plt.plot(hops_match_time_axis, amp_db)\n\n    plt.xlabel(\"Time (s)\")\n    plt.ylabel(\"RMS power dB vs RMS amplitude dB\")\n    plt.title(\"Audio Waveform\")\n\n    plt.tight_layout()\n    plt.show()\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/librosa_rms.py:30-49\n    plt.figure(figsize=(10, 4))\n    plt.plot(time_axis, audio_samples)\n\n    # FYI look at detect.py module... you appear to be leaning toward hop_length smaller for better power waveform resolution\n    #  and bigger frame_length for better smoothing (IIUC)\n    #  and dropping medfilter (not sure if you used it here)\n    hops_match_time_axis = np.arange(len(rms)) / 100  # 10ms gap b/w hops => 3 sec recording => 302 db/rms readings (10ms hops)\n    # plt.plot(hops_match_time_axis, rms)  # OR show RMS\n    plt.plot(hops_match_time_axis, rms_db / 100)  # show RMS dB instead\n\n    rms.min()\n    rms.max()\n\n    rms_db.min()\n    rms_db.max()\n\n    audio_samples.min()\n    audio_samples.max()\n\n    plt.xlabel(\"Time (s)\")\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/librosa_rms.py:160-172\ndef show_rms_vs_rms_db():\n    plt.close()\n    hops_match_time_axis = np.arange(len(rms)) / 100  # 10ms gap b/w hops => 3 sec recording => 302 db/rms readings (10ms hops)\n    # plt.plot(hops_match_time_axis, rms)\n    # plt.plot(hops_match_time_axis, [math.log(r, 2) for r in rms])\n    plt.plot(hops_match_time_axis, rms_db)\n    # plt.plot(hops_match_time_axis, [math.log(r**10) + 16 for r in rms], 9)\n    plt.xlabel(\"time (s)\")\n    plt.ylabel(\"rms, rms_db\")\n    plt.title(\"audio waveform\")\n\n    plt.tight_layout()\n    plt.show()\n",
+      "role": "user"
+    },
+    {
+      "content": "merge the two plots into one and add right speech too\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/player.py:\n    @staticmethod\n    def plot_window_gap(window: \"GapWindow\") -> None:\n        left_speech = window.left_speech\n        if left_speech:\n            times = np.linspace(left_speech.start, left_speech.end, len(left_speech.rms_values))\n            plt.plot(times, left_speech.rms_values, label=f\"{left_speech.id} ({left_speech.label.value})\")\n\n        gap_segs: list[DetectedSegment] = window.gap.segments\n        gap = window.gap\n        if not gap_segs:\n            return\n        plt.figure(figsize=(10, 4))\n        for seg in gap_segs:\n            times = np.linspace(seg.start, seg.end, len(seg.rms_values))\n            plt.plot(times, seg.rms_values, label=f\"{seg.id} ({seg.label.value})\")\n        plt.xlabel(\"Time (s)\")\n        plt.ylabel(\"RMS\")\n        plt.title(\"Gap RMS Plot\")\n        plt.legend()\n        plt.grid(True)\n        plt.tight_layout()\n        plt.show()",
+      "role": "user"
+    }
+  ],
+  "model": "",
+  "max_tokens": 4096
+}

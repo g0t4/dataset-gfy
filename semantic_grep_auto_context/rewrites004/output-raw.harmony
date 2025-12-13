@@ -1,0 +1,31 @@
+<|channel|>analysis<|message|>Need to merge two plots and add right speech. Provide modified function.<|end|><|start|>assistant<|channel|>final<|message|>    @staticmethod
+    def plot_window_gap(window: "GapWindow") -> None:
+        left_speech = window.left_speech
+        right_speech = window.right_speech
+        plt.figure(figsize=(10, 4))
+        if left_speech:
+            left_times = np.linspace(left_speech.start, left_speech.end, len(left_speech.rms_values))
+            plt.plot(left_times, left_speech.rms_values, label=f"{left_speech.id} ({left_speech.label.value})")
+        if right_speech:
+            right_times = np.linspace(right_speech.start, right_speech.end, len(right_speech.rms_values))
+            plt.plot(right_times, right_speech.rms_values, label=f"{right_speech.id} ({right_speech.label.value})")
+        gap_segs: list[DetectedSegment] = window.gap.segments
+        if not gap_segs:
+            plt.xlabel("Time (s)")
+            plt.ylabel("RMS")
+            plt.title("Gap RMS Plot")
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+            return
+        for seg in gap_segs:
+            seg_times = np.linspace(seg.start, seg.end, len(seg.rms_values))
+            plt.plot(seg_times, seg.rms_values, label=f"{seg.id} ({seg.label.value})")
+        plt.xlabel("Time (s)")
+        plt.ylabel("RMS")
+        plt.title("Gap RMS Plot")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
