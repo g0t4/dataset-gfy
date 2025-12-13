@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "    analysis = full_analysis(what_file)",
+  "reasoning_content": "Need to replace with full_analysis call. Provide modified snippet."
+}
