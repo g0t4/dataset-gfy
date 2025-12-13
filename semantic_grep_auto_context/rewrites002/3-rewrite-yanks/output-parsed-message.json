@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "    with DurationPrinter(\"speech_analysis\"):\n        analysis = speech_analysis(path)\n    with DurationPrinter(\"merge_close_speech_segments\"):\n        analysis.merged = merge_close_speech_segments(analysis)",
+  "reasoning_content": "We need to add DurationPrinter around that. Provide code snippet."
+}
