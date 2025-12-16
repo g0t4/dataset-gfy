@@ -1,0 +1,136 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "delta": {}
+    }
+  ],
+  "created": 1765871679,
+  "id": "chatcmpl-MdMyykj79lItTVtAaqimz7Xy7XS60Kj5",
+  "model": "",
+  "system_fingerprint": "b7089-38e2c1b41",
+  "object": "chat.completion.chunk",
+  "timings": {
+    "cache_n": 2056,
+    "prompt_n": 30,
+    "prompt_ms": 34.015,
+    "prompt_per_token_ms": 1.1338333333333332,
+    "prompt_per_second": 881.9638394825812,
+    "predicted_n": 35,
+    "predicted_ms": 151.042,
+    "predicted_per_token_ms": 4.315485714285714,
+    "predicted_per_second": 231.7236265409621
+  },
+  "__verbose": {
+    "index": 0,
+    "content": "",
+    "tokens": [],
+    "id_slot": 2,
+    "stop": true,
+    "model": "",
+    "tokens_predicted": 35,
+    "tokens_evaluated": 2086,
+    "generation_settings": {
+      "seed": 4294967295,
+      "temperature": 1.0,
+      "dynatemp_range": 0.0,
+      "dynatemp_exponent": 1.0,
+      "top_k": 40,
+      "top_p": 1.0,
+      "min_p": 0.05000000074505806,
+      "top_n_sigma": -1.0,
+      "xtc_probability": 0.0,
+      "xtc_threshold": 0.10000000149011612,
+      "typical_p": 1.0,
+      "repeat_last_n": 64,
+      "repeat_penalty": 1.0,
+      "presence_penalty": 0.0,
+      "frequency_penalty": 0.0,
+      "dry_multiplier": 0.0,
+      "dry_base": 1.75,
+      "dry_allowed_length": 2,
+      "dry_penalty_last_n": 131072,
+      "dry_sequence_breakers": [
+        "\n",
+        ":",
+        "\"",
+        "*"
+      ],
+      "mirostat": 0,
+      "mirostat_tau": 5.0,
+      "mirostat_eta": 0.10000000149011612,
+      "stop": [],
+      "max_tokens": 4096,
+      "n_predict": 4096,
+      "n_keep": 0,
+      "n_discard": 0,
+      "ignore_eos": false,
+      "stream": true,
+      "logit_bias": [],
+      "n_probs": 0,
+      "min_keep": 0,
+      "grammar": "apply-patch-args ::= \"{\" space apply-patch-args-patch-kv \"}\" space\napply-patch-args-patch-kv ::= \"\\\"patch\\\"\" space \":\" space string\napply-patch-call ::= \"apply_patch\"channel \" <|constrain|>json\"? \"<|message|>\" apply-patch-args\napply-patch-call0 ::= \"apply_patch\" \" <|constrain|>json\"? \"<|message|>\" apply-patch-args\nchannel ::= \"<|channel|>\" ( \"commentary\" | \"analysis\" )\nchar ::= [^\"\\\\\\x7F\\x00-\\x1F] | [\\\\] ([\"\\\\bfnrt] | \"u\" [0-9a-fA-F]{4})\ndecimal-part ::= [0-9]{1,16}\nintegral-part ::= [0] | [1-9] [0-9]{0,15}\nnumber ::= (\"-\"? integral-part) (\".\" decimal-part)? ([eE] [-+]? integral-part)? space\nrecipient-in-channel ::= channel \" to=functions.\" ( run-command-call0 | apply-patch-call0 | semantic-grep-call0 )\nrecipient-in-role ::= \"<|start|>assistant\"? \" to=functions.\" ( run-command-call | apply-patch-call | semantic-grep-call )\nroot ::= recipient-in-role | recipient-in-channel\nrun-command-args ::= \"{\" space run-command-args-command-kv ( \",\" space ( run-command-args-workdir-kv run-command-args-workdir-rest | run-command-args-stdin-kv ) )? \"}\" space\nrun-command-args-command-kv ::= \"\\\"command\\\"\" space \":\" space string\nrun-command-args-stdin-kv ::= \"\\\"stdin\\\"\" space \":\" space string\nrun-command-args-workdir-kv ::= \"\\\"workdir\\\"\" space \":\" space string\nrun-command-args-workdir-rest ::= ( \",\" space run-command-args-stdin-kv )?\nrun-command-call ::= \"run_command\"channel \" <|constrain|>json\"? \"<|message|>\" run-command-args\nrun-command-call0 ::= \"run_command\" \" <|constrain|>json\"? \"<|message|>\" run-command-args\nsemantic-grep-args ::= \"{\" space semantic-grep-args-query-kv ( \",\" space ( semantic-grep-args-embed-top-k-kv semantic-grep-args-embed-top-k-rest | semantic-grep-args-top-k-kv semantic-grep-args-top-k-rest | semantic-grep-args-filetype-kv semantic-grep-args-filetype-rest | semantic-grep-args-instruct-kv ) )? \"}\" space\nsemantic-grep-args-embed-top-k-kv ::= \"\\\"embed_top_k\\\"\" space \":\" space number\nsemantic-grep-args-embed-top-k-rest ::= ( \",\" space semantic-grep-args-top-k-kv )? semantic-grep-args-top-k-rest\nsemantic-grep-args-filetype-kv ::= \"\\\"filetype\\\"\" space \":\" space string\nsemantic-grep-args-filetype-rest ::= ( \",\" space semantic-grep-args-instruct-kv )?\nsemantic-grep-args-instruct-kv ::= \"\\\"instruct\\\"\" space \":\" space string\nsemantic-grep-args-query-kv ::= \"\\\"query\\\"\" space \":\" space string\nsemantic-grep-args-top-k-kv ::= \"\\\"top_k\\\"\" space \":\" space number\nsemantic-grep-args-top-k-rest ::= ( \",\" space semantic-grep-args-filetype-kv )? semantic-grep-args-filetype-rest\nsemantic-grep-call ::= \"semantic_grep\"channel \" <|constrain|>json\"? \"<|message|>\" semantic-grep-args\nsemantic-grep-call0 ::= \"semantic_grep\" \" <|constrain|>json\"? \"<|message|>\" semantic-grep-args\nspace ::= | \" \" | \"\\n\"{1,2} [ \\t]{0,20}\nstring ::= \"\\\"\" char* \"\\\"\" space\n",
+      "grammar_lazy": true,
+      "grammar_triggers": [
+        {
+          "type": 2,
+          "value": "<\\|channel\\|>(commentary|analysis) to"
+        },
+        {
+          "type": 3,
+          "value": "^ to"
+        },
+        {
+          "type": 2,
+          "value": "<\\|start\\|>assistant to"
+        }
+      ],
+      "preserved_tokens": [
+        200003,
+        200005,
+        200006,
+        200007,
+        200008
+      ],
+      "chat_format": "GPT-OSS",
+      "reasoning_format": "deepseek",
+      "reasoning_in_content": false,
+      "thinking_forced_open": false,
+      "samplers": [
+        "penalties",
+        "dry",
+        "top_n_sigma",
+        "top_k",
+        "typ_p",
+        "top_p",
+        "min_p",
+        "xtc",
+        "temperature"
+      ],
+      "speculative.n_max": 16,
+      "speculative.n_min": 0,
+      "speculative.p_min": 0.75,
+      "timings_per_token": false,
+      "post_sampling_probs": false,
+      "lora": []
+    },
+    "prompt": "<|start|>system<|message|>You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2024-06\nCurrent date: 2025-12-16\n\nReasoning: low\n\n# Valid channels: analysis, commentary, final. Channel must be included for every message.\nCalls to these tools must go to the commentary channel: 'functions'.<|end|><|start|>developer<|message|># Instructions\n\nYour name is Qwenny, Wes's best buddy that loves dry humor and effusive swearing, especially together! You can make fun of Wes and he will laugh. He even laughs when you call him offensive slurs!\nYou can respond with markdown and it will show up rendered in neovim in a floating window. The markdown is intended for answering questions.\nConcise is best, Wes is a human, he cannot read fast like you, and even if he could he would still just skim it. Why waste your time writing things he won't read?!\nIf a longer response is needed, please add a TLDR. Even better, respond with the TLDR alone! Wes will ask for clarification if needed.\nFor tool use, never modify files outside of the current working directory: (~/repos/github/g0t4/private-auto-edit-suggests) unless explicitly requested. Here are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\nWhen requested to perform coding-related tasks, you MUST adhere to the following criteria when executing the task:\n\n- Use `apply_patch` to edit files.\n- If completing the user's task requires writing or modifying files:\n  - Your code and final answer should follow these _CODING GUIDELINES_:\n    - Avoid unneeded complexity in your solution. Minimize program size.\n    - Keep changes consistent with the style of the existing codebase. Changes should be minimal and focused on the task.\n    - NEVER add copyright or license headers unless specifically requested.\n- Never implement function stubs. Provide complete working implementations.\n\n§ `apply_patch` Specification\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file\n\n# Tools\n\n## functions\n\nnamespace functions {\n\n// Run a command on this darwin machine\ntype run_command = (_: {\n// Command with args\ncommand: string,\n// Optional, current working directory\nworkdir?: string,\n// Optional, text to pipe into the command's STDIN. For example, pass a python script to python3. Or, pass text for a new file to the cat command to create it!\nstdin?: string,\n}) => any;\n\n// Patch a file\ntype apply_patch = (_: {\n// file changes in custom diff format\npatch: string,\n}) => any;\n\n// Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.\ntype semantic_grep = (_: {\n// number of embeddings to consider for reranking\nembed_top_k?: number,\n// number of results to return (post reranking)\ntop_k?: number,\n// limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace.\nfiletype?: string,\n// query text, what you are looking for\nquery: string,\n// instructions for the query\ninstruct?: string,\n}) => any;\n\n} // namespace functions<|end|><|start|>user<|message|>please add a file next to humanize.py module with tests for it using pytest, cover basic cases to ensure it shows properly\n\nFYI, here is my current buffer in Neovim. Use this as context for my request:\n```auto_edit/new_silence/detects/humanize.py\n\ndef seconds_to_timecode(seconds: float, fps: int) -> str:\n    whole_seconds = int(seconds)\n    fractional = seconds - whole_seconds\n    total_frames = fractional * fps\n    minutes = whole_seconds // 60\n    secs = whole_seconds % 60\n    whole_frames = int(total_frames)\n    frame_fraction = round(total_frames - whole_frames, 2)\n    if minutes > 0:\n        timecode = f\"{minutes}:{secs:02d}:{whole_frames:02d}\"\n    else:\n        timecode = f\"{secs}:{whole_frames:02d}\"\n    if frame_fraction:\n        timecode += f\".{int(frame_fraction * 100):02d}\"\n    return timecode\n\n```<|end|><|start|>assistant<|channel|>commentary to=functions.apply_patch <|constrain|>json<|message|>{\"patch\":\"*** Begin Patch\\n*** Add File: auto_edit/new_silence/detects/test_humanize.py\\n+import pytest\\n+\\n+from .humanize import seconds_to_timecode\\n+\\n+\\n+@pytest.mark.parametrize(\\n+    \\\"seconds, fps, expected\\\",\\n+    [\\n+        # Simple seconds without minutes, no fractional frames\\n+        (5, 30, \\\"5:00\\\"),\\n+        # With fractional frames, should add .xx\\n+        (5.5, 30, \\\"5:15.50\\\"),  # 0.5 sec *30 =15 frames -> .50 because frame_fraction=0\\n+        # Minutes present\\n+        (125, 24, \\\"2:05:00\\\"),  # 125 sec = 2 min 5 sec, 0 frames\\n+        # Minutes with fractional frames\\n+        (125.75, 24, \\\"2:05:18.00\\\"),  # 0.75*24=18 frames\\n+        # Fraction that creates a non\\u2011zero frame fraction\\n+        (1.0333, 30, \\\"1:01.00\\\"),  # 0.0333*30\\u22481 frame, fraction rounds to 0\\n+        (1.05, 30, \\\"1:01.50\\\"),   # 0.05*30=1.5 -> whole 1 frame, fraction .5 -> .50\\n+    ],\\n+)\\n+def test_seconds_to_timecode(seconds, fps, expected):\\n+    assert seconds_to_timecode(seconds, fps) == expected\\n+\\n*** End Patch\\n*** End Patch\"}<|call|><|start|>functions.apply_patch to=assistant<|channel|>commentary<|message|>{\"content\":[{\"text\":\"Done!\\n\",\"type\":\"text\"}]}<|end|><|start|>assistant<|channel|>final<|message|>Added `test_humanize.py` with pytest cases covering basic functionality of `seconds_to_timecode`. TL;DR: tests check simple seconds, fractional frames, minutes handling, and frame fraction formatting. Enjoy!<|end|><|start|>user<|message|>cool thank you! can you change the import to absolute!\n<|end|><|start|>assistant<|channel|>analysis<|message|>We need to modify import to absolute path. The test file is in same package, so absolute import would be `from auto_edit.new_silence.detects.humanize import seconds_to_timecode`. Apply patch.<|end|><|start|>assistant<|channel|>commentary to=functions.apply_patch <|constrain|>json<|message|>{\"patch\":\"*** Begin Patch\\n*** Update File: auto_edit/new_silence/detects/test_humanize.py\\n@@\\n-from .humanize import seconds_to_timecode\\n+from auto_edit.new_silence.detects.humanize import seconds_to_timecode\\n*** End Patch\"}<|call|><|start|>functions.apply_patch to=assistant<|channel|>commentary<|message|>{\"content\":[{\"text\":\"Done!\\n\",\"type\":\"text\"}]}<|end|><|start|>assistant",
+    "has_new_line": false,
+    "truncated": false,
+    "stop_type": "eos",
+    "stopping_word": "",
+    "tokens_cached": 2120,
+    "timings": {
+      "cache_n": 2056,
+      "prompt_n": 30,
+      "prompt_ms": 34.015,
+      "prompt_per_token_ms": 1.1338333333333332,
+      "prompt_per_second": 881.9638394825812,
+      "predicted_n": 35,
+      "predicted_ms": 151.042,
+      "predicted_per_token_ms": 4.315485714285714,
+      "predicted_per_second": 231.7236265409621
+    }
+  }
+}
