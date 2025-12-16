@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "                content_clip_xml = fcpxml.add_content(content)",
+  "reasoning_content": "We need to fill at <|fim_middle|>. Likely need to add content_clip_xml = fcpxml.add_content(content) similar to builder. Search earlier code: in builder add_content returns element. Here we have fcpxml object. So insert call. Probably:\n\ncontent_clip_xml = fcpxml.add_content(content)\n\nThus just that line. Ensure indentation matches. Return code line."
+}
