@@ -1,0 +1,4 @@
+{
+  "role": "assistant",
+  "content": "Implemented token counting:\n\n- Imported `Path` and added a global `total_tokens` counter.\n- Created `_persist_token_counter` to store cumulative tokens in `token_counter.txt`.\n- Incremented `total_tokens` after each embed and rerank request.\n- Persisted token count on graceful shutdown.\n\nAll changes are minimal and confined to the server script. Enjoy tracking those tokens, Wes!"
+}

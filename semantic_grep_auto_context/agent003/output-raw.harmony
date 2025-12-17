@@ -1,0 +1,6 @@
+<|channel|>final<|message|>Implemented token counting:
+- Imported `Path` and added a global `total_tokens` counter.
+- Created `_persist_token_counter` to store cumulative tokens in `token_counter.txt`.
+- Incremented `total_tokens` after each embed and rerank request.
+- Persisted token count on graceful shutdown.
+All changes are minimal and confined to the server script. Enjoy tracking those tokens, Wes!
