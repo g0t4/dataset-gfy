@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "seg_plot.segments = new_analysis.merged_segments; seg_plot.windows = new_analysis.windows",
+  "reasoning_content": "We need to fill seg_plot.<|fim_middle|> likely updating segments/windows after new_analysis. Probably seg_plot.segments = new_analysis.merged_segments and seg_plot.windows = new_analysis.windows then maybe call something. So line: seg_plot.segments = new_analysis.merged_segments? Actually SegmentPlotter expects segments list passed to constructor, but here we just update analysis. Probably need to update seg_plot.segments and windows. So: seg_plot.segments = new_analysis.merged_segments; seg_plot.windows = new_analysis.windows. Return nothing. Insert both lines? At placeholder single line? Could put both separated by newline but placeholder is one line. Could use semicolon. Write: seg_plot.segments = new_analysis.merged_segments; seg_plot.windows = new_analysis.windows."
+}
