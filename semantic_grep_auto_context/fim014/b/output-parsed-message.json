@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "        lua = \"lua\",\n        sh = \"sh\",\n        javascript = \"js\",\n        typescript = \"ts\",\n        yaml = \"yml\",\n        markdown = \"md\",\n        json = \"json\",\n        rust = \"rs\",\n        go = \"go\",\n        cpp = \"cpp\",\n        c = \"c\",\n        java = \"java\",\n        php = \"php\",\n        ruby = \"rb\",\n        perl = \"pl\",\n        swift = \"swift\",\n        kotlin = \"kt\",\n        html = \"html\",\n        css = \"css\",",
+  "reasoning_content": "We need to fill <|fim_middle|> inside get_language_for_current_buffer. Likely map other filetypes. Look at earlier mapping in get_filetypes_for_workspace. Provide common ones. Probably include lua, sh, etc. Minimal: add lua = \"lua\". Also maybe sh = \"sh\". Use snake_case. Provide entries.\n\nReturn code snippet: lua = \"lua\", sh = \"sh\", javascript = \"js\", typescript = \"ts\", etc. Enough.\n\nImplement as lines within table."
+}

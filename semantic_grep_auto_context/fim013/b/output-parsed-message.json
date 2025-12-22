@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "import math\nimport numpy as np\nimport sounddevice as sd\nimport rich\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult, DetectedSegment, SegmentLabel",
+  "reasoning_content": "We need to insert import statements likely. At top: import time then need imports used: math, rich, sd, np, AudioAnalysisResult, DetectedSegment, SegmentLabel. Provide them. Probably:\n\nimport math\nimport numpy as np\nimport sounddevice as sd\nimport rich\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult, DetectedSegment, SegmentLabel\n\nAdd after import time."
+}

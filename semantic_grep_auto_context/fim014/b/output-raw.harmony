@@ -1,0 +1,22 @@
+<|channel|>analysis<|message|>We need to fill <|fim_middle|> inside get_language_for_current_buffer. Likely map other filetypes. Look at earlier mapping in get_filetypes_for_workspace. Provide common ones. Probably include lua, sh, etc. Minimal: add lua = "lua". Also maybe sh = "sh". Use snake_case. Provide entries.
+Return code snippet: lua = "lua", sh = "sh", javascript = "js", typescript = "ts", etc. Enough.
+Implement as lines within table.
+<|end|><|start|>assistant<|channel|>final<|message|>        lua = "lua",
+        sh = "sh",
+        javascript = "js",
+        typescript = "ts",
+        yaml = "yml",
+        markdown = "md",
+        json = "json",
+        rust = "rs",
+        go = "go",
+        cpp = "cpp",
+        c = "c",
+        java = "java",
+        php = "php",
+        ruby = "rb",
+        perl = "pl",
+        swift = "swift",
+        kotlin = "kt",
+        html = "html",
+        css = "css",

@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "import math\nimport time\n\nimport numpy as np\nimport sounddevice as sd\nimport rich\n\nfrom typing import List\n\n# Assuming these classes are defined elsewhere in the project\nfrom .types import AudioAnalysisResult, DetectedSegment, SegmentLabel",
+  "reasoning_content": "We need to insert import statements? The <|fim_middle|> is at top of file. Likely need imports: import math, time, rich, numpy as np, sounddevice as sd, and type hints. Also definitions of AudioAnalysisResult, DetectedSegment, SegmentLabel. Probably just import statements. Provide code lines.\n\nReturn code to place at top. Include imports."
+}

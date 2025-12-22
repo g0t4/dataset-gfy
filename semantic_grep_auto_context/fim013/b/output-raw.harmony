@@ -1,0 +1,11 @@
+<|channel|>analysis<|message|>We need to insert import statements likely. At top: import time then need imports used: math, rich, sd, np, AudioAnalysisResult, DetectedSegment, SegmentLabel. Provide them. Probably:
+import math
+import numpy as np
+import sounddevice as sd
+import rich
+from auto_edit.new_silence.detects.segments import AudioAnalysisResult, DetectedSegment, SegmentLabel
+Add after import time.<|end|><|start|>assistant<|channel|>final<|message|>import math
+import numpy as np
+import sounddevice as sd
+import rich
+from auto_edit.new_silence.detects.segments import AudioAnalysisResult, DetectedSegment, SegmentLabel

@@ -1,0 +1,9 @@
+<|channel|>analysis<|message|>We need to insert import statements? The <|fim_middle|> is at top of file. Likely need imports: import math, time, rich, numpy as np, sounddevice as sd, and type hints. Also definitions of AudioAnalysisResult, DetectedSegment, SegmentLabel. Probably just import statements. Provide code lines.
+Return code to place at top. Include imports.<|end|><|start|>assistant<|channel|>final<|message|>import math
+import time
+import numpy as np
+import sounddevice as sd
+import rich
+from typing import List
+# Assuming these classes are defined elsewhere in the project
+from .types import AudioAnalysisResult, DetectedSegment, SegmentLabel
