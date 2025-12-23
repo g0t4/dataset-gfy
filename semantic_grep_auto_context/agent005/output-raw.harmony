@@ -1,0 +1,1 @@
+<|channel|>final<|message|>TL;DR: Added `zoom_to_window` method to `SegmentPlotter` that sets the x‑axis limits to a `GapWindow`’s start/end seconds, updates ticks, and redraws the plot.
