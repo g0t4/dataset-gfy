@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "    ensure_no_timing_offsets(path)  # raises if start time is non‑zero\n    audio_samples, sample_rate = librosa.load(str(path), mono=True, sr=None)\n    return LoadedAudio(samples=audio_samples, samples_per_second=sample_rate)",
+  "reasoning_content": "We need to fill load_audio check for non zero start. Likely use ensure_no_timing_offsets. Search earlier. There's ensure_no_timing_offsets function. So implement:\n\ndef load_audio(path):\n    # check for non zero start\n    ffprobe_data = _run_ffprobe(path)\n    if _has_nonzero_start(ffprobe_data):\n        raise ValueError...\n    then load with librosa.\n\nWe need imports? _run_ffprobe, _has_nonzero_start likely in same file? Not shown. Use ensure_no_timing_offsets? Simpler: call ensure_no_timing_offsets(path). So code:\n\nensure_no_timing_offsets(path)\naudio_samples, sample_rate = librosa.load...\n\nThus fill."
+}

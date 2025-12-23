@@ -1,0 +1,14 @@
+<|channel|>analysis<|message|>We need to fill load_audio check for non zero start. Likely use ensure_no_timing_offsets. Search earlier. There's ensure_no_timing_offsets function. So implement:
+def load_audio(path):
+    # check for non zero start
+    ffprobe_data = _run_ffprobe(path)
+    if _has_nonzero_start(ffprobe_data):
+        raise ValueError...
+    then load with librosa.
+We need imports? _run_ffprobe, _has_nonzero_start likely in same file? Not shown. Use ensure_no_timing_offsets? Simpler: call ensure_no_timing_offsets(path). So code:
+ensure_no_timing_offsets(path)
+audio_samples, sample_rate = librosa.load...
+Thus fill.
+<|end|><|start|>assistant<|channel|>final<|message|>    ensure_no_timing_offsets(path)  # raises if start time is non‑zero
+    audio_samples, sample_rate = librosa.load(str(path), mono=True, sr=None)
+    return LoadedAudio(samples=audio_samples, samples_per_second=sample_rate)
