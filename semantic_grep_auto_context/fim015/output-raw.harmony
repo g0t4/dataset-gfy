@@ -1,0 +1,13 @@
+<|channel|>analysis<|message|>We need to fill code to save mp4 clip. Likely call clip_gap_only. Use window and message. Probably:
+msg = explain
+clip_path = clip_gap_only(msg, self.analysis, window)
+if clip_path:
+    print(f"Saved clip to {clip_path}")
+Also import? Assume clip_gap_only imported. Write code accordingly.
+<|end|><|start|>assistant<|channel|>final<|message|>            clip_path = clip_gap_only(
+                explain,
+                self.analysis,
+                window,
+            )
+            if clip_path:
+                print(f"Saved clip to {clip_path}")
