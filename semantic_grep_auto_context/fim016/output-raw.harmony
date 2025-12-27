@@ -1,0 +1,19 @@
+<|channel|>analysis<|message|>We need to fill cycle_fixed_zoom. Likely cycle through FIXED_ZOOM_LEVELS_SECONDS, toggle. Need state maybe stored in plotter? Not present. Could store as attribute on plotter, e.g., plotter._fixed_zoom_index. Implement simple: get current xlim width, find next level larger than current? Cycle. Code: cur = plotter.ax.get_xlim(); width = cur[1]-cur[0]; find current level index where approx equals width else 0; next = (idx+1)%len; set new limits centered at midpoint. Use middle = sum(cur)/2. Then half = next_level/2. set xlim. toggle and draw. Return.<|end|><|start|>assistant<|channel|>final<|message|>        cur_xlim = plotter.ax.get_xlim()
+        cur_width = cur_xlim[1] - cur_xlim[0]
+        # Find the index of the current zoom level (or closest)
+        try:
+            current_index = next(
+                i
+                for i, lvl in enumerate(FIXED_ZOOM_LEVELS_SECONDS)
+                if abs(lvl - cur_width) < 0.1 * lvl
+            )
+        except StopIteration:
+            current_index = -1
+        # Cycle to the next zoom level
+        next_index = (current_index + 1) % len(FIXED_ZOOM_LEVELS_SECONDS)
+        new_width = FIXED_ZOOM_LEVELS_SECONDS[next_index]
+        middle = (cur_xlim[0] + cur_xlim[1]) / 2
+        half = new_width / 2
+        plotter.ax.set_xlim(middle - half, middle + half)
+        plotter.toggle_zoom_level_elements()
+        plotter.fig.canvas.draw_idle()
