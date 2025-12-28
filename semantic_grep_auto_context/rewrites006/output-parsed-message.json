@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "abbr ptw_ranges \"ptw_path auto_edit/new_silence/ranges_tests.py\"\nabbr ptw_gaps \"ptw_path auto_edit/new_silence/gaps_tests.py\"\nabbr ptw_detect \"ptw_path auto_edit/new_silence/detect_tests.py\"\nabbr ptw_humanize \"ptw_path auto_edit/new_silence/detects/humanize_tests.py\"\nabbr ptw_all_new \"ptw_path auto_edit/new_silence/**/*_tests.py\"\n\nabbr ptw_integration \"ptw_path auto_edit/new_silence/tests/integration_tests.py\"\nabbr ptw_integration_one \"ptw_path auto_edit/new_silence/tests/integration_tests.py::TestsIntegration::test_detect_split_breathing_into_two_silences\"",
+  "reasoning_content": "We need to replace abbr commands to use ptw_path function. Provide new lines."
+}
