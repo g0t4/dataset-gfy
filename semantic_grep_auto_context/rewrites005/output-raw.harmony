@@ -1,0 +1,9 @@
+<|channel|>analysis<|message|>We need to modify breathing.py to use humanize.seconds_to_timecode. Provide code snippet.<|end|><|start|>assistant<|channel|>final<|message|>```python
+# Assuming the import at the top of breathing.py
+from auto_edit.new_silence.detects.humanize import seconds_to_timecode
+# Replace the existing print line with a human‑readable timecode representation
+rich.print(
+    f"gap: {seconds_to_timecode(win.gap.start_seconds(), fps=30)} => "
+    f"{seconds_to_timecode(win.gap.end_seconds(), fps=30)}"
+)
+```
