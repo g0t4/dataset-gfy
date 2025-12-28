@@ -1,0 +1,7 @@
+<|channel|>analysis<|message|>Need to wrap paths in quotes. So modify each abbr line to have quotes around the path argument. Provide code only.<|end|><|start|>assistant<|channel|>final<|message|>abbr ptw_ranges (ptw_path "auto_edit/new_silence/ranges_tests.py")
+abbr ptw_gaps (ptw_path "auto_edit/new_silence/gaps_tests.py")
+abbr ptw_detect (ptw_path "auto_edit/new_silence/detect_tests.py")
+abbr ptw_humanize (ptw_path "auto_edit/new_silence/detects/humanize_tests.py")
+abbr ptw_all_new (ptw_path "auto_edit/new_silence/**/*_tests.py")
+abbr ptw_integration (ptw_path "auto_edit/new_silence/tests/integration_tests.py")
+abbr ptw_integration_one (ptw_path "auto_edit/new_silence/tests/integration_tests.py::TestsIntegration::test_detect_split_breathing_into_two_silences")
