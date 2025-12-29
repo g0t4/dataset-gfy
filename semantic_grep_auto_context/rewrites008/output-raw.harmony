@@ -1,0 +1,16 @@
+<|channel|>analysis<|message|>We need to output new subclass code. No markdown.<|end|><|start|>assistant<|channel|>final<|message|>from matplotlib.widgets import Cursor
+class ToggleableCursor(Cursor):
+    def __init__(self, ax, *, horizOn=True, vertOn=True, useblit=False, **lineprops):
+        super().__init__(ax, horizOn=horizOn, vertOn=vertOn, useblit=useblit, **lineprops)
+        self._enabled = True
+    def toggle(self) -> None:
+        self._enabled = not self._enabled
+        self.lineh.set_visible(self._enabled and self.horizOn)
+        self.linev.set_visible(self._enabled and self.vertOn)
+        if self.useblit and self._enabled:
+            self.background = self.canvas.copy_from_bbox(self.ax.bbox)
+        self.canvas.draw_idle()
+    def onmove(self, event):
+        if not self._enabled or self.ignore(event):
+            return
+        super().onmove(event)

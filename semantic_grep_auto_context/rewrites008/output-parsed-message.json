@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "from matplotlib.widgets import Cursor\n\nclass ToggleableCursor(Cursor):\n    def __init__(self, ax, *, horizOn=True, vertOn=True, useblit=False, **lineprops):\n        super().__init__(ax, horizOn=horizOn, vertOn=vertOn, useblit=useblit, **lineprops)\n        self._enabled = True\n\n    def toggle(self) -> None:\n        self._enabled = not self._enabled\n        self.lineh.set_visible(self._enabled and self.horizOn)\n        self.linev.set_visible(self._enabled and self.vertOn)\n        if self.useblit and self._enabled:\n            self.background = self.canvas.copy_from_bbox(self.ax.bbox)\n        self.canvas.draw_idle()\n\n    def onmove(self, event):\n        if not self._enabled or self.ignore(event):\n            return\n        super().onmove(event)",
+  "reasoning_content": "We need to output new subclass code. No markdown."
+}
