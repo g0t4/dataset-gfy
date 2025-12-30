@@ -1,0 +1,20 @@
+<|channel|>analysis<|message|>We need implement key_ctrl_left similar to right but previous gap. Look at earlier code for key_ctrl_right. Implement: get xlim center, find gaps before center, get previous (max) maybe using reversed generator. Could use list comprehension. Return previous window then shift_center_to_gap.
+Implementation:
+```
+xlim = plotter.ax.get_xlim()
+center = (xlim[0]+xlim[1])/2
+gaps_before = [win for win in plotter.windows if win.gap.end_seconds() < center]
+prev_window = gaps_before[-1] if gaps_before else None
+plotter.shift_center_to_gap(prev_window)
+```
+But need use same style as right: generator and next. For previous, we can reverse sorted windows. Assume windows sorted by start. So:
+```
+gaps_before_center = (win for win in reversed(plotter.windows) if win.gap.end_seconds() < center)
+prev_window = next(gaps_before_center, None)
+plotter.shift_center_to_gap(prev_window)
+```
+Implement.<|end|><|start|>assistant<|channel|>final<|message|>        xlim = plotter.ax.get_xlim()
+        center = (xlim[0] + xlim[1]) / 2
+        gaps_before_center = (win for win in reversed(plotter.windows) if win.gap.end_seconds() < center)
+        prev_window = next(gaps_before_center, None)
+        plotter.shift_center_to_gap(prev_window)
