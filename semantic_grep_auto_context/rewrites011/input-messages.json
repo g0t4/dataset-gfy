@@ -1,0 +1,36 @@
+{
+  "stream": true,
+  "model": "",
+  "max_tokens": 4096,
+  "top_p": 1,
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  },
+  "temperature": 1,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+    },
+    {
+      "role": "user",
+      "content": "## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n        rich.print(f'  {diff1_times[:8]=}')\n\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n        rich.print(f'  {diff1_times[:8]=}')\n\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n        rich.print(f'  {diff1_times[:8]=}')\n\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n        rich.print(f'  {gap_times[:8]=}')\n\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n{len(gap_rms)=} \n\n"
+    },
+    {
+      "role": "user",
+      "content": "## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+    },
+    {
+      "role": "user",
+      "content": "## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+    },
+    {
+      "role": "user",
+      "content": "# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/tests/aligned-tests.py:37-56\n            silence_threshold=-28,\n            silence_duration=0.15,\n        )\n        assert len(raw_silences) == 2\n\n        import rich\n        print()  # \\n\n        [rich.print(silence) for silence in raw_silences]\n        # Raw[0.794542➜0.963646)\n        # Raw[0.963667➜1.314271)\n\n        left = raw_silences[0]\n        right = raw_silences[1]\n\n        gap = right.start_seconds - left.end_seconds\n        # rich.print(f\"{gap=}\")\n        assert gap == pytest.approx(0.000021)\n\n        # WOW in this case it's a blip of 30us (micro seconds)\n        #   IMO best course of action is, if there's a non-silence for < 1 frame, surrounded by two silence ranges... then merge them\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:0-15\nfrom pathlib import Path\nimport numpy as np\nfrom rich.text import Text\nfrom rich.console import Console\nfrom numpy.typing import NDArray\nfrom io import StringIO\nfrom enum import Enum\nfrom dataclasses import dataclass, field\n\nfrom auto_edit.new_silence.detects.humanize import seconds_to_timecode\n\nMonoAudioSamplesArray = NDArray[np.float32]\nRMSValues = NDArray[np.float32]\nFloat32Array = NDArray[np.float32]\nSampleRate = int | float\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/prober.py:0-7\nimport json\nimport rich\nimport subprocess\nfrom pathlib import Path\nfrom typing import Any\n\nfrom auto_edit.new_silence.timer import DurationPrinter\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/generate_fcpxml_notebook.py:0-19\n#!/usr/bin/env python\n# use ipython API so magic commands don't break YAPF\n# * autoreload changed modules (both `import` and `from` style imports)\nget_ipython().extension_manager.load_extension(\"autoreload\")  # pyright: ignore\nget_ipython().run_line_magic('autoreload', 'complete --print')  # pyright: ignore\n\nfrom rich.traceback import install\n\nfrom auto_edit.new_silence.detects.breathing import mark_breathing\n\ninstall(show_locals=True)\n\nimport rich\nimport os\nimport sys\nimport numpy as np\nimport subprocess\nfrom pathlib import Path\nfrom auto_edit.new_silence.ranges import get_ranges\nfrom auto_edit.silences.align import align_silences_to_frame_boundaries_asymmetric_pad_WIP\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/silences/align.py:0-5\nimport math\nimport rich\n\nfrom auto_edit.silences.detect_raw import RawSilencePeriod\nfrom auto_edit.ranges import SilenceRange\n\n\n"
+    },
+    {
+      "role": "user",
+      "content": "add len to first 5 prints like in the last two\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/breathing.py:\n        rich.print(f'  {gap_times[:8]=}')\n        rich.print(f'  {_left_times[:8]=}')\n        rich.print(f'  {_right_times[:8]=}')\n        rich.print(f'  {diff1_times[:8]=}')\n        rich.print(f'  {diff1_times_midpoint[:8]=}')\n        print()\n        print(\"values\")\n        rich.print(f'  {len(gap_rms)=} {gap_rms[:8]=}')\n        rich.print(f'  {len(diff1)=} {diff1[:8]=}')\n"
+    }
+  ]
+}
