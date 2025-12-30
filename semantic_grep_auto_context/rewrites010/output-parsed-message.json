@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "change_values = np.stack([change_indicies, before, after, delta], axis=2).squeeze()\nprint(\"changes\")\ntable = rich.table.Table(show_header=True, header_style=\"bold magenta\")\ntable.add_column(\"Index\", justify=\"right\")\ntable.add_column(\"Before\", justify=\"right\")\ntable.add_column(\"After\", justify=\"right\")\ntable.add_column(\"Delta\", justify=\"right\")\nfor idx, before_val, after_val, delta_val in change_values:\n    table.add_row(str(idx), f\"{before_val:.2f}\", f\"{after_val:.2f}\", f\"{delta_val:.2f}\")\nrich.print(table)",
+  "reasoning_content": "Need to output a rich table of change_values. Provide code using rich.table."
+}

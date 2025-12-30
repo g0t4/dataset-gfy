@@ -1,0 +1,10 @@
+<|channel|>analysis<|message|>Need to output a rich table of change_values. Provide code using rich.table.<|end|><|start|>assistant<|channel|>final<|message|>change_values = np.stack([change_indicies, before, after, delta], axis=2).squeeze()
+print("changes")
+table = rich.table.Table(show_header=True, header_style="bold magenta")
+table.add_column("Index", justify="right")
+table.add_column("Before", justify="right")
+table.add_column("After", justify="right")
+table.add_column("Delta", justify="right")
+for idx, before_val, after_val, delta_val in change_values:
+    table.add_row(str(idx), f"{before_val:.2f}", f"{after_val:.2f}", f"{delta_val:.2f}")
+rich.print(table)
