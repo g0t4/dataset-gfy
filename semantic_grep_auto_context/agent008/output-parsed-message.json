@@ -1,0 +1,4 @@
+{
+  "role": "assistant",
+  "content": "TL;DR: Updated `on_motion_notify_event` to show gap/speech durations when the cursor isn’t over a line/artist, using the relevant `GapWindow` data."
+}
