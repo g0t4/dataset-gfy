@@ -1,0 +1,19 @@
+<|channel|>analysis<|message|>We need to extract common first part into a function. Probably create a helper returning current_index and maybe center. Implement in plot_helpers.py. Provide code modifications.<|end|><|start|>assistant<|channel|>final<|message|>def _current_gap_index(plotter) -> int | None:
+    xlim = plotter.ax.get_xlim()
+    center = (xlim[0] + xlim[1]) / 2
+    for i, win in enumerate(plotter.windows):
+        if win.gap.start_seconds() <= center <= win.gap.end_seconds():
+            return i
+    return None
+def key_ctrl_left(event):
+    current_index = _current_gap_index(plotter)
+    if current_index is None or current_index == 0:
+        return
+    prev_win = plotter.windows[current_index - 1]
+    plotter.center_on_gap_of(prev_win)
+def key_ctrl_right(event):
+    current_index = _current_gap_index(plotter)
+    if current_index is None or current_index >= len(plotter.windows) - 1:
+        return
+    next_win = plotter.windows[current_index + 1]
+    plotter.center_on_gap_of(next_win)

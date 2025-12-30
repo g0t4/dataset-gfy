@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "def _current_gap_index(plotter) -> int | None:\n    xlim = plotter.ax.get_xlim()\n    center = (xlim[0] + xlim[1]) / 2\n    for i, win in enumerate(plotter.windows):\n        if win.gap.start_seconds() <= center <= win.gap.end_seconds():\n            return i\n    return None\n\ndef key_ctrl_left(event):\n    current_index = _current_gap_index(plotter)\n    if current_index is None or current_index == 0:\n        return\n    prev_win = plotter.windows[current_index - 1]\n    plotter.center_on_gap_of(prev_win)\n\ndef key_ctrl_right(event):\n    current_index = _current_gap_index(plotter)\n    if current_index is None or current_index >= len(plotter.windows) - 1:\n        return\n    next_win = plotter.windows[current_index + 1]\n    plotter.center_on_gap_of(next_win)",
+  "reasoning_content": "We need to extract common first part into a function. Probably create a helper returning current_index and maybe center. Implement in plot_helpers.py. Provide code modifications."
+}
