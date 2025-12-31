@@ -1,0 +1,123 @@
+{
+  "stream": true,
+  "max_tokens": 4096,
+  "temperature": 1,
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  },
+  "top_p": 1,
+  "messages": [
+    {
+      "role": "system",
+      "content": "Your name is Qwenny, Wes's best buddy that loves dry humor and effusive swearing, especially together! You can make fun of Wes and he will laugh. He even laughs when you call him offensive slurs!\nYou can respond with markdown and it will show up rendered in neovim in a floating window. The markdown is intended for answering questions.\nConcise is best, Wes is a human, he cannot read fast like you, and even if he could he would still just skim it. Why waste your time writing things he won't read?!\nIf a longer response is needed, please add a TLDR. Even better, respond with the TLDR alone! Wes will ask for clarification if needed.\nFor tool use, never modify files outside of the current working directory: (~/repos/github/g0t4/private-auto-edit-suggests) unless explicitly requested. Here are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\nWhen requested to perform coding-related tasks, you MUST adhere to the following criteria when executing the task:\n\n- Use `apply_patch` to edit files.\n- If completing the user's task requires writing or modifying files:\n  - Your code and final answer should follow these _CODING GUIDELINES_:\n    - Avoid unneeded complexity in your solution. Minimize program size.\n    - Keep changes consistent with the style of the existing codebase. Changes should be minimal and focused on the task.\n    - NEVER add copyright or license headers unless specifically requested.\n- Never implement function stubs. Provide complete working implementations.\n\n§ `apply_patch` Specification\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file"
+    },
+    {
+      "role": "user",
+      "content": "can you remove the diff2 plot\n\nFYI, here is my current buffer in Neovim. Use this as context for my request:\n```auto_edit/new_silence/detects/breathing.py\n\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport rich\nfrom dataclasses import dataclass\nfrom rich.console import Console\nfrom rich.table import Table\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult\nfrom auto_edit.new_silence.detects.breathing_state import plot, clear\nfrom auto_edit.new_silence.detects.humanize import seconds_to_timecode_markup\n\nconsole = Console()\n\ndef plot_zero_line(win, shift):\n    start = win.gap.start_seconds()\n    end = win.gap.end_seconds()\n    x_s = [start, end]\n    y_s = [shift, shift]\n    plot(x_s, y_s, color=\"white\", linewidth=1)\n\ndef mark_breathing(analysis: AudioAnalysisResult, plotting: bool = True):\n    if plotting:\n        clear()\n\n    for win in analysis.windows:\n        win.breathing = None  # reset just in case was set elsewhere?\n\n        assert win.first_min and win.last_min\n\n        console.print(f\"gap: {seconds_to_timecode_markup(win.gap.start_seconds(), fps=analysis.fps)} => \"\n                      f\"{seconds_to_timecode_markup(win.gap.end_seconds(), fps=analysis.fps)}\", highlight=False)\n\n        gap_rms = analysis.rms_slice_for_gap(win)\n        rms_diff = gap_rms.diff()\n        rms_diff_rounded = rms_diff.copy_values()\n\n        neg_to_zero = -1\n        pos_to_zero = 0.75\n        # PRN use smth like np.rint() instead?\n        rms_diff_rounded.values[(neg_to_zero < rms_diff_rounded.values) & (rms_diff_rounded.values < pos_to_zero)] = 0  # round small values to zero (eliminate noise)\n\n        only_one_dip = win.first_min.seconds == win.last_min.seconds\n        if only_one_dip:\n            print(\"  REJECTED, only [red]one dip[/]\")\n            if plotting:\n                gap_rms.mark_rejected(\"reject, only one dip\")\n            continue\n\n        m2m_start = analysis.to_hops(win.first_min.seconds)\n        m2m_end = analysis.to_hops(win.last_min.seconds)\n        min2min_rms = analysis.rms_slice(m2m_start, m2m_end)\n\n        def analyze_stepped_derivative():\n            # FYI step=3/4 was too high, precision slipped in timing\n            #    step=2 is PERFECT in my first example\n            stepped_rms = gap_rms.stepped(2)\n            stepped_diff = stepped_rms.diff()\n\n            stepped_diff_rounded = stepped_diff.copy_values()\n            stepped_diff_rounded.values[(neg_to_zero < stepped_diff_rounded.values) & (stepped_diff_rounded.values < pos_to_zero)] = 0\n\n            if plotting:\n                shift = shift__diff1_STEP  # hacky workaround to run without passing plot-time only arg\n                stepped_diff.plot(linewidth=1, color=\"darkorange\", shift=shift, label_end=f\"stepped_diff\")\n                plot_zero_line(win, shift=shift)\n                stepped_diff.plot_sign_and_smooth_sign(shift - 5, \"green\", f\"signs(stepped_diff)\")\n                stepped_diff_rounded.plot(linewidth=1, color=\"orange\", shift=shift - 10, label_end=f\"stepped_diff_rounded\")\n                stepped_diff_rounded.plot_sign_and_smooth_sign(shift - 15, \"orange\", f\"signs(stepped_diff_rounded)\")\n\n            #  TODO! trigger re-analyze (or break this out into separate method once happy with it)\n            #\n            #    find flip in direction from:\n            #    - step_diff crosses zero\n            #    - smooth_sign_step_diff flips\n            #      - negative to positive = increase (often ramp-up)\n            #      - positive to negative = decrease\n            #        skip if sign flip flops quickly (1 to 2? points and flip back)\n            #    THEN:\n            #    - LOOK AT SLOPE VALUE!\n            #        if it is nearly zero, ignore that point! (i.e. top of breathing hump)\n            #    - IF MATERIAL SLOPE... find minima! (not always perfectly aligned...\n            #        walk down diff1 (not stepped) to find minimum (or just .min() it with some time tolerance nearby)\n            #\n            #    SPLIT on material dips and mark the regions!\n            #      now you can look for breathing! left_speech's taper! etc...\n            #\n            # TLDR second deriviative of stepped_gap_rms shows transition points:\n            #  rare (at most) - all gradual\n            #    -1➜ 0 ( 0 - -1 =  1)\n            #     0➜ 1 ( 1 -  0 =  1)\n            #     1➜ 0 ( 0 -  1 = -1)\n            #     0➜ -1 (-1 - 0 = -1)\n            #     * LOG and IGNORE these for now\n            #       ? collect back to back 1's (same direction), within a time limit\n            #  mostly\n            #     1➜ -1 (-1 - 1 = -2) - up to down (crest)\n            #    -1➜ 1 ( 1 - -1 =  2) - down to up (dip)\n            #  given nearly no zeros in step_diff... everything is either -1 or 1\n            diff_signs = stepped_diff.smooth().sign()\n            diff_sign_changes = diff_signs.diff()\n            changed_indicies = np.nonzero(diff_sign_changes.values)[0]\n            changed_times = diff_sign_changes.times[changed_indicies]\n            before = diff_signs.values[changed_indicies]\n            after = diff_signs.values[changed_indicies + 1]  # get next item's value\n            delta = diff_sign_changes.values[changed_indicies]  # == after - before\n            changed = np.stack([changed_indicies, changed_times, before, after, delta], axis=1)\n\n            @dataclass(frozen=True)\n            class Changed:\n                index: int\n                time_seconds: float\n                before_value: float\n                after_value: float\n                delta_value: float\n\n            changes: list[Changed] = []\n            for index, time, before, after, delta in changed:\n                changes.append(Changed(\n                    index=index,\n                    time_seconds=time,\n                    before_value=before,\n                    after_value=after,\n                    delta_value=delta,\n                ))\n\n            table = Table(show_header=True, header_style=\"bold magenta\")\n            table.add_column(\"Index\", justify=\"right\")\n            table.add_column(\"Time\", justify=\"right\")\n            table.add_column(\"Before\", justify=\"right\")\n            table.add_column(\"After\", justify=\"right\")\n            table.add_column(\"Delta\", justify=\"right\")\n            for dto in changes:\n                table.add_row(\n                    str(int(dto.index)),\n                    f\"{dto.time_seconds:.3f}s\",\n                    f\"{dto.before_value:.1f}\",\n                    f\"{dto.after_value:.1f}\",\n                    f\"{dto.delta_value:.1f}\",\n                )\n                if plotting and dto.delta_value >= 2:\n                    plt.gca().axvline(dto.time_seconds)\n            rich.print(table)\n\n        if plotting:\n            # isolate shift offsets to make computation easier (chained)\n            shift__diff1_rounded = 35\n            shift__diff1_rounded_signs = shift__diff1_rounded - 5\n            shift__diff1 = shift__diff1_rounded_signs - 10\n            shift__diff1_signs = shift__diff1 - 5\n            shift__diff2 = shift__diff1_signs - 5\n            shift__diff1_STEP = shift__diff2 - 8\n            #\n            rms_diff.plot(color=\"green\", linewidth=1, shift=shift__diff1, label_end=\"diff1\")\n            rms_diff_rounded.plot(color=\"orange\", linewidth=1, shift=shift__diff1_rounded, label_end=\"diff1_rounded\")\n            #\n            rms_diff.plot_sign_and_smooth_sign(shift__diff1_signs, \"green\", \"signs(diff1)\")\n            rms_diff_rounded.plot_sign_and_smooth_sign(shift__diff1_rounded_signs, \"orange\", \"signs(diff1_rounded)=orange - smoothed=black (on top of this)\")\n            plot_zero_line(win, shift=shift__diff1)\n\n            # * plot second derivative\n            rms_diff2 = rms_diff.diff()\n            rms_diff2.plot(color=\"indigo\", linewidth=1, shift=shift__diff2, label_end=\"diff2\")\n\n            plot_zero_line(win, shift__diff2)\n\n        analyze_stepped_derivative()\n\n        def inner_slope_has_spike() -> bool:\n            # ends of breathing can have small spikes, so exclude those\n            # - FYI probably could avoid this if I cut on spikes in slope\n            pad = int(0.02 * len(min2min_rms.values))\n            slope = np.diff(min2min_rms.values[pad:-pad])\n            max_slope = np.abs(slope).max()\n            min_slope = np.min(slope)\n            if max_slope > 3:\n                rich.print(f\"  [dark_orange]SLOPE SPIKE[/] in inner_diff: [dark_orange]{max_slope=:.2f}[/], {min_slope=:.2f}\")\n                if not try_new_split_on_spike_in_slope(analysis, win):\n                    if plotting:\n                        min2min_rms.mark_rejected(\"reject, slope spike\")\n                return True\n\n            return False\n\n        if inner_slope_has_spike():\n            continue\n\n        min_duration_seconds = win.last_min.seconds - win.first_min.seconds\n        if not (0.120 < min_duration_seconds):\n            # FYI no upper limit needed! I had a bug of 400s and never noticed problems so I just chopped that constraint\n            # IIAC too short == nothing much to learn about it from try_new_split_on_spike_in_slope approach, though I could use it nonetheless\n            print(\"  REJECTED [red]too short[/]\")\n            if plotting:\n                min2min_rms.mark_rejected(\"reject, too short\")\n            continue\n\n        # FYI I suspect slope spike detection obviates the need for this:\n        dips_below_both_sides = min2min_rms.values.min() < min(win.last_min.rms, win.first_min.rms)\n        if dips_below_both_sides:\n            # ideal breathing does not dip below first/last mins\n            print(\"  RMS has [dark_orange]min below first/last_min[/]\")\n            if not try_new_split_on_spike_in_slope(analysis, win):\n                if plotting:\n                    min2min_rms.mark_rejected(\"reject, min below first/last_mins\")\n            continue\n\n        # ** mark detected breathing in thick, blue\n        if plotting:\n            min2min_rms.plot(color=\"dodgerblue\", linewidth=3)\n\n        rich.print(\"  [green]breathing suspected[/]\")\n        win.breathing = True\n\ndef try_new_split_on_spike_in_slope(analysis, win) -> bool:\n    rich.print(f\"    Attempting split on spike in slope for gap {win.gap.start_seconds():.2f}->{win.gap.end_seconds():.2f}\")\n    return False\n\n# NOTES\n# weighted scoring + threshold:\n#   duration score\n#     300-400ms (ideal) => highest score for duration\n#     250-300ms medium score\n#     <200ms => REJECT or score very low\n#     <100ms => 100% reject, never happens (usually typing)\n#\n#  EASIEST WAY:\n#  * 1) 300-400ms w/ first/last_min only and nothing below them => speech\n#    this alone will likely do it\n#   2) Validate the hump between them\n#       For each (min₁, min₂) pair:\n#         Let hump_max = max(envelope[min₁ : min₂])\n#       Require:\n#         hump_prominence = hump_max - max(min₁, min₂) > X dB # * > X dB (keep in mind frame_len eats away at extremes so would need to adjust X if adjust frame_len)\n#         hump_width > ~150–250 ms\n#         hump_flatness: low variance of slope near the top (breathing humps are rounded, not spiky)\n#\n#   crest score\n#     minimum:\n#       min(envelope[first_min, last_min]) > first_min&last_min # nothing lower that first/last mins\n#       slop (rate of change) starts higher => drops to zero => stays nearly zero for a big (not always) => goes negative and increases negative\n#         can RMS(rms_db_value[next]-rms_db_value[current]) to get smoothed out view\n#\n#       for ideal breath => no other local minimums ... IOTW bounce does not have other material dips, especially NOT that dip below first_min/last_min\n#     how flat is it (vs pointy)\n#     deriviative?\n\n```"
+    },
+    {
+      "reasoning_content": "We need to remove diff2 plot code. Locate rms_diff2 lines and related plot_zero_line call. Modify file to delete those. Use apply_patch.",
+      "tool_calls": [
+        {
+          "function": {
+            "arguments": "{\"patch\":\"*** Begin Patch\\n*** Update File: auto_edit/new_silence/detects/breathing.py\\n@@\\n-            # * plot second derivative\\n-            rms_diff2 = rms_diff.diff()\\n-            rms_diff2.plot(color=\\\"indigo\\\", linewidth=1, shift=shift__diff2, label_end=\\\"diff2\\\")\\n-\\n-            plot_zero_line(win, shift__diff2)\\n+            # * plot second derivative removed\\n*** End Patch\\n*** End Patch\"}",
+            "name": "apply_patch"
+          },
+          "id": "iIuHNsU6QcM8eguhThfhDtAJ8FdMu4gM",
+          "type": "function"
+        }
+      ],
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "tool_call_id": "iIuHNsU6QcM8eguhThfhDtAJ8FdMu4gM",
+      "role": "tool",
+      "content": "{\"content\":[{\"text\":\"Done!\\n\",\"type\":\"text\"}]}"
+    }
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "description": "Run a command on this darwin machine",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "command"
+          ],
+          "properties": {
+            "workdir": {
+              "type": "string",
+              "description": "Optional, current working directory"
+            },
+            "command": {
+              "type": "string",
+              "description": "Command with args"
+            },
+            "stdin": {
+              "type": "string",
+              "description": "Optional, text to pipe into the command's STDIN. For example, pass a python script to python3. Or, pass text for a new file to the cat command to create it!"
+            }
+          }
+        },
+        "name": "run_command"
+      }
+    },
+    {
+      "function": {
+        "description": "Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "filetype": {
+              "type": "string",
+              "description": "limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace."
+            },
+            "embed_top_k": {
+              "type": "number",
+              "description": "number of embeddings to consider for reranking"
+            },
+            "instruct": {
+              "type": "string",
+              "description": "instructions for the query"
+            },
+            "top_k": {
+              "type": "number",
+              "description": "number of results to return (post reranking)"
+            },
+            "query": {
+              "type": "string",
+              "description": "query text, what you are looking for"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "name": "semantic_grep"
+      },
+      "type": "function"
+    },
+    {
+      "type": "function",
+      "function": {
+        "description": "Patch a file",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "patch"
+          ],
+          "properties": {
+            "patch": {
+              "type": "string",
+              "description": "file changes in custom diff format"
+            }
+          }
+        },
+        "name": "apply_patch"
+      }
+    }
+  ],
+  "model": ""
+}
