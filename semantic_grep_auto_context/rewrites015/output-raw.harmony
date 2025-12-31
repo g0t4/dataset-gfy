@@ -1,0 +1,21 @@
+<|channel|>analysis<|message|>We need to rewrite with two loops: first create list of Changed DTOs, then second build table and plot. Use snake_case, type hints, no comments.<|end|><|start|>assistant<|channel|>final<|message|>            @dataclass(frozen=True)
+            class Changed:
+                index: int
+                time_seconds: float
+                before_value: float
+                after_value: float
+                delta_value: float
+            changed_dtos: list[Changed] = []
+            for idx, time_val, before_val, after_val, delta_val in changed:
+                changed_dtos.append(Changed(index=idx, time_seconds=time_val, before_value=before_val, after_value=after_val, delta_value=delta_val))
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Index", justify="right")
+            table.add_column("Time", justify="right")
+            table.add_column("Before", justify="right")
+            table.add_column("After", justify="right")
+            table.add_column("Delta", justify="right")
+            for dto in changed_dtos:
+                table.add_row(str(int(dto.index)), f"{dto.time_seconds:.3f}s", f"{dto.before_value:.1f}", f"{dto.after_value:.1f}", f"{dto.delta_value:.1f}")
+                if plotting and dto.delta_value >= 2:
+                    plt.gca().axvline(dto.time_seconds)
+            rich.print(table)
