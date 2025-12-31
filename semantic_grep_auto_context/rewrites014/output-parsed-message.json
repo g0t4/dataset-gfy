@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "from auto_edit.new_silence.detects.time_series import TimeSeriesDTO",
+  "reasoning_content": "We need to modify import to absolute import. Provide code change."
+}

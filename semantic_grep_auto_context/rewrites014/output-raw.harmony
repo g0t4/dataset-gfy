@@ -1,0 +1,1 @@
+<|channel|>analysis<|message|>We need to modify import to absolute import. Provide code change.<|end|><|start|>assistant<|channel|>final<|message|>from auto_edit.new_silence.detects.time_series import TimeSeriesDTO
