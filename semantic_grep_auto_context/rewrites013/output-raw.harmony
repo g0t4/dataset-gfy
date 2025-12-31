@@ -1,0 +1,7 @@
+<|channel|>analysis<|message|>Need to modify to use DTO and step_diff from it. Provide updated code snippet.<|end|><|start|>assistant<|channel|>final<|message|>```python
+# assuming TimeSeriesDTO is imported
+rms_series: TimeSeriesDTO = TimeSeriesDTO(values=gap_rms[::step], times=gap_times[::step])
+step_diff_series = rms_series.diff()
+step_diff = step_diff_series.values
+step_diff_times = step_diff_series.times
+```
