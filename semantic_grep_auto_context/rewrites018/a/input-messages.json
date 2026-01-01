@@ -1,0 +1,28 @@
+{
+  "max_tokens": 4096,
+  "model": "",
+  "stream": true,
+  "top_p": 1,
+  "chat_template_kwargs": {
+    "reasoning_effort": "low"
+  },
+  "temperature": 1,
+  "messages": [
+    {
+      "content": "You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+      "role": "system"
+    },
+    {
+      "content": "## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+      "role": "user"
+    },
+    {
+      "content": "## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n\n",
+      "role": "user"
+    },
+    {
+      "content": "use nvim's state dir => ask dir => created integer as dir => request.json (etc) files ... mkdir -p along the way\nHere is code I selected (with carefully preserved indentation) from lua/ask-openai/logs/completion_logger.lua:\n    -- let's do it by time so I can easily find a specific request based on timeframe\n    --   and purge them too that way\n    local created = sse_parsed.created\n    log:error(\"created\", created)\n\n    log:error(\"final SSE\", vim.inspect(sse_parsed))\n    log:error(\"request.json\", vim.inspect(request)) -- for reasoning+ content (parsed output message) + body (input-messages)\n    log:error(\"input-messages.json\", vim.inspect(request.body)) -- keep this to reproduce issues with template rendering\n    log:error(\"input-prompt.json\", vim.inspect(sse_parsed.__verbose.prompt)) -- this is the raw prompt into the model\n",
+      "role": "user"
+    }
+  ]
+}

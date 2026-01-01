@@ -1,0 +1,27 @@
+<|channel|>analysis<|message|>Need to produce revised code using nvim state dir, ask dir, created integer as dir, mkdir -p. Provide code. No markdown.<|end|><|start|>assistant<|channel|>final<|message|>local nvim_state_dir = vim.fn.stdpath("state")
+local ask_dir = nvim_state_dir .. "/ask-openai"
+local request_dir = ask_dir .. "/" .. tostring(created)
+vim.fn.mkdir(request_dir, "p")
+local request_json_path = request_dir .. "/request.json"
+local input_messages_path = request_dir .. "/input-messages.json"
+local input_prompt_path = request_dir .. "/input-prompt.json"
+local request_file = io.open(request_json_path, "w")
+if request_file then
+    request_file:write(vim.inspect(request))
+    request_file:close()
+end
+local input_messages_file = io.open(input_messages_path, "w")
+if input_messages_file then
+    input_messages_file:write(vim.inspect(request.body))
+    input_messages_file:close()
+end
+local input_prompt_file = io.open(input_prompt_path, "w")
+if input_prompt_file then
+    input_prompt_file:write(vim.inspect(sse_parsed.__verbose.prompt))
+    input_prompt_file:close()
+end
+log:error("created", created)
+log:error("final SSE", vim.inspect(sse_parsed))
+log:error("request.json", vim.inspect(request))
+log:error("input-messages.json", vim.inspect(request.body))
+log:error("input-prompt.json", vim.inspect(sse_parsed.__verbose.prompt))
