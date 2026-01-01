@@ -1,0 +1,1 @@
+<|channel|>final<|message|>The y‑axis now stops at **-100 dB** instead of stretching down to the data’s minimum. This caps the lower bound while keeping the current upper limit unchanged.
