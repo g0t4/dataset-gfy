@@ -1,0 +1,27 @@
+<|channel|>analysis<|message|>We need to fill code handling delta accumulation. Likely update accum and log. Look at repo? Assume we append delta content or role. Implement:
+if delta.role then accum.role = delta.role end
+if delta.content then
+   accum.content = (accum.content or "") .. delta.content
+end
+if delta.reasoning_content then
+   accum.reasoning = (accum.reasoning or "") .. delta.reasoning_content
+end
+request.accum = accum
+maybe log.
+Return.
+Write code accordingly.<|end|><|start|>assistant<|channel|>final<|message|>        -- accumulate role if present
+        if delta.role then
+            accum.role = delta.role
+        end
+        -- accumulate reasoning content if present
+        if delta.reasoning_content then
+            accum.reasoning_content = (accum.reasoning_content or "") .. delta.reasoning_content
+        end
+        -- accumulate normal content if present
+        if delta.content then
+            accum.content = (accum.content or "") .. delta.content
+        end
+        -- store back on the request
+        request.accum = accum
+        -- optional logging for debugging
+        log:debug("accumulated delta", vim.inspect(accum))
