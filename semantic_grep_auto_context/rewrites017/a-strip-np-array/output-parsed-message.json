@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "def test_zero_crossing_no_crossing():\n    y = [1, 2, 3]\n    expected = []\n    indices = zero_crossing_indices(y)\n    np.testing.assert_array_equal(indices, expected)\n\ndef test_zero_crossing_multiple_noise():\n    y = [0.01, -0.01, 0.02, -0.02, 0.03, -0.03, 0.04]\n    expected = [1, 2, 3, 4, 5, 6]\n    indices = zero_crossing_indices(y)\n    np.testing.assert_array_equal(indices, expected)\n\ndef test_zero_crossing_at_eps():\n    y = [0.0, 0.0, 1.0, -1.0]\n    expected = [3]\n    indices = zero_crossing_indices(y)\n    np.testing.assert_array_equal(indices, expected)",
+  "reasoning_content": "We need to modify tests to drop np.array calls. So replace y = np.array([...]) with just list, expected similarly but keep dtype? Use list. Provide updated code."
+}

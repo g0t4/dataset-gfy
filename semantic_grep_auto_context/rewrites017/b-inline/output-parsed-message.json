@@ -1,0 +1,5 @@
+{
+  "role": "assistant",
+  "content": "def test_zero_crossing_no_crossing():\n    indices = zero_crossing_indices([1, 2, 3])\n    np.testing.assert_array_equal(indices, [])\n\ndef test_zero_crossing_multiple_noise():\n    indices = zero_crossing_indices([0.01, -0.01, 0.02, -0.02, 0.03, -0.03, 0.04])\n    np.testing.assert_array_equal(indices, [1, 2, 3, 4, 5, 6])\n\ndef test_zero_crossing_at_eps():\n    indices = zero_crossing_indices([0.0, 0.0, 1.0, -1.0])\n    np.testing.assert_array_equal(indices, [3])",
+  "reasoning_content": "We need to inline y and expected into tests. So replace y and expected with literals? Probably expand variables. Provide updated code."
+}

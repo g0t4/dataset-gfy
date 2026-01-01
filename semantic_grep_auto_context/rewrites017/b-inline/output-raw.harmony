@@ -1,0 +1,9 @@
+<|channel|>analysis<|message|>We need to inline y and expected into tests. So replace y and expected with literals? Probably expand variables. Provide updated code.<|end|><|start|>assistant<|channel|>final<|message|>def test_zero_crossing_no_crossing():
+    indices = zero_crossing_indices([1, 2, 3])
+    np.testing.assert_array_equal(indices, [])
+def test_zero_crossing_multiple_noise():
+    indices = zero_crossing_indices([0.01, -0.01, 0.02, -0.02, 0.03, -0.03, 0.04])
+    np.testing.assert_array_equal(indices, [1, 2, 3, 4, 5, 6])
+def test_zero_crossing_at_eps():
+    indices = zero_crossing_indices([0.0, 0.0, 1.0, -1.0])
+    np.testing.assert_array_equal(indices, [3])

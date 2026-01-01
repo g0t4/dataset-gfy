@@ -1,0 +1,15 @@
+<|channel|>analysis<|message|>We need to modify tests to drop np.array calls. So replace y = np.array([...]) with just list, expected similarly but keep dtype? Use list. Provide updated code.<|end|><|start|>assistant<|channel|>final<|message|>def test_zero_crossing_no_crossing():
+    y = [1, 2, 3]
+    expected = []
+    indices = zero_crossing_indices(y)
+    np.testing.assert_array_equal(indices, expected)
+def test_zero_crossing_multiple_noise():
+    y = [0.01, -0.01, 0.02, -0.02, 0.03, -0.03, 0.04]
+    expected = [1, 2, 3, 4, 5, 6]
+    indices = zero_crossing_indices(y)
+    np.testing.assert_array_equal(indices, expected)
+def test_zero_crossing_at_eps():
+    y = [0.0, 0.0, 1.0, -1.0]
+    expected = [3]
+    indices = zero_crossing_indices(y)
+    np.testing.assert_array_equal(indices, expected)
