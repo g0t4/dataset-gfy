@@ -1,0 +1,1 @@
+{"role":"assistant","content":"TL;DR: Added a `Crossover` dataclass for named fields, updated `zero_crossing_indices` to return `list[Crossover]`, and adjusted all consumers (e.g., breathing detection) to use the new `.after` attribute. All references now import and use the DTO.","finish_reason":"stop"}
