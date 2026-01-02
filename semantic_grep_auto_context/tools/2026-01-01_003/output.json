@@ -1,0 +1,1 @@
+{"role":"assistant","content":"TL;DR: Updated tests to import the new `Crossover` DTO and assert against `Crossover(before, after)` instances instead of raw tuples. All test expectations now match the refactored code.","finish_reason":"stop"}
