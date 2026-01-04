@@ -1,0 +1,1 @@
+{"role":"assistant","finish_reason":"stop","content":"**TL;DR** Updated `_pan_y_by_factor` to match `_pan_x_by_factor`’s signature (takes only a factor), renamed internal variable for clarity, and adjusted `pan_up`/`pan_down` to call it without the unused `event` argument. All changes are in `auto_edit/new_silence/player/plot_helpers.py`."}
