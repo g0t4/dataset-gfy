@@ -1,0 +1,1 @@
+good example of needing to edit multiple spots, but the nature of my AskRewrite tool is to just dump all changes in one spot, inline assist... so gptoss120b gives me hints about where to make each set of changes! Thanks to RAG it has a good understanding of what else needs changed too!
