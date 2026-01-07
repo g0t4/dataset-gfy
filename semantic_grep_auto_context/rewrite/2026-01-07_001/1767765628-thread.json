@@ -1,0 +1,51 @@
+{
+  "last_sse":{
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "created":1767765628,
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_n":251,
+      "predicted_per_second":173.72447298584,
+      "cache_n":69,
+      "prompt_ms":91.141,
+      "prompt_per_token_ms":0.36311155378486,
+      "predicted_ms":667.724,
+      "predicted_per_token_ms":5.7562413793103,
+      "predicted_n":116,
+      "prompt_per_second":2753.9746107679
+    },
+    "id":"chatcmpl-aap2ywqb9xGXBo0p0svJBkgJ8MAsgnBa",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"You could replace **“modality”** with **“approach”**:\n\n> “this **approach** of asking for help on small changes w/o pointing to the code to change, is as important as inline predictions (FIM) and inline assist (AskRewrite)”",
+    "reasoning_content":"User asks \"what word do I want here instead of modality?\" They show a sentence: \"this modality of asking for help on small changes w/o...\" They want a better word. Probably \"approach\" or \"method\". Provide suggestion."
+  },
+  "request_body":{
+    "temperature":1,
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"what word do I want here instead of modality?\nHere is code I selected (with carefully preserved indentation) from README.md:\ntool use => so darn satisifying to see this working!!\n- this is the same feeling I got when my predictions (copilot) plugin to neovim was up and running and working!\n- this modality of asking for help on small changes w/o pointing to the code to change, is as important as inline predictions (FIM) and inline assist (AskRewrite)"
+      }],
+    "stream":true,
+    "max_tokens":4096,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "top_p":1,
+    "model":""
+  }
+}
