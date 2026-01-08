@@ -1,1 +1,6 @@
-pass analysis to a ctor and compute some extra fields and replace downstream usages, saves me 5 minutes easily!
+## refactorings
+
+I am a huge fan of refactoring code, even new code...
+- when I need to change code, I prefer to rewrite it (or at least touch up)...
+- gotta know code well to meaningfully rewrite it!
+- best way to make sure I am ready for material changes too
