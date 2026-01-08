@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "timings":{
+      "prompt_per_second":3995.3014058373,
+      "cache_n":408,
+      "prompt_n":1602,
+      "predicted_per_second":175.26772144451,
+      "predicted_n":350,
+      "predicted_per_token_ms":5.7055571428571,
+      "prompt_ms":400.971,
+      "prompt_per_token_ms":0.25029400749064,
+      "predicted_ms":1996.945
+    },
+    "created":1767892907,
+    "system_fingerprint":"b7616-18ddaea2a",
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-7bJd7Jngb94V7nlPJoxVuC5SpDJvBFQy"
+  },
+  "request_body":{
+    "max_tokens":4096,
+    "messages":[{
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:121-122\ndef middle_seconds(self) -> float:\n        return (self.start_seconds() + self.end_seconds()) / 2\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:99-132\n@dataclass\nclass NonSpeechGap:\n    segments: list[DetectedSegment]\n\n    def __len__(self) -> int:\n        return len(self.segments)\n\n    def __iter__(self):\n        return iter(self.segments)\n\n    # TODO unify interface for segments\n    #   (add @property to start/end_seconds and change usages...\n    #   duration_seconds could be a property too, OR maybe a method to indicate read only\n    #     if go method route, update other property based duration_seconds to be methods\n    #      the same properties/method should exist on all my segement types... i.e. NonSpeechGap, DetectedSegment (left/right_speech), CombinedSegments, etc... maybe even GapWindow\n    #      that way I always know where to go to get the value regardless what segment it is\n    def start_seconds(self) -> float:\n        return self.segments[0].start_seconds\n\n    def end_seconds(self) -> float:\n        return self.segments[-1].end_seconds\n\n    def middle_seconds(self) -> float:\n        return (self.start_seconds() + self.end_seconds()) / 2\n\n    def duration_seconds(self) -> float:\n        return self.end_seconds() - self.start_seconds()\n\n    def contains(self, seconds) -> bool:\n        return self.start_seconds() <= seconds < self.end_seconds()\n\n    def __repr__(self) -> str:\n        segs = \", \".join(str(s.id) for s in self.segments)\n        return f\"NonSpeechGap(segments=[{segs}])\"\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:199-260\n@dataclass\nclass AudioAnalysisResult:\n    audio: LoadedAudio\n\n    rms_db: Float32Array\n    time_stamps: Float32Array\n    thresholds: DetectThresholds\n    merged_segments: list[DetectedSegment] = field(default_factory=list)\n    windows: list[GapWindow] = field(default_factory=list)\n\n    path: Path | None = None\n    fps: int = 30  # PRN read off of video file when loading?\n    hop_length: int = 25\n    frame_length: int = 2048\n    up_db: int = 2\n\n    max_gap_ms: int = 170\n\n    def title_addon(self):\n        thresh = f\"breath@{self.thresholds.breath:.1f}dB,silence@{self.thresholds.silence:.1f}dB\"\n        return f\"rms(frame_len={self.frame_length},\" \\\n                + f\"hop_len={self.hop_length},\" \\\n                + f\"audio_sr={self.audio.samples_per_second},\"\\\n                + f\"video_fps={self.fps},\" \\\n                + f\"max_gap_ms={self.max_gap_ms},\" \\\n                + thresh \\\n                + \")\"\n\n    @property\n    def sample_rate(self) -> int | float:\n        # FYI this property is a stop gap to updating all usages of the old analysis.sample_rate (after moving it to .audio.samples_per_second)\n        # TODO inline in consumers?\n        return self.audio.samples_per_second\n\n    # PRN @property\n    def hops_per_second(self):\n        # i.e. 22050/25 = 882\n        return self.sample_rate / self.hop_length\n\n    # PRN @property\n    def hops_per_frame(self) -> float:\n        # i.e. 30 frames/sec and 882 hops/sec => 882/30 = 29.4 hops/frame\n        return self.hops_per_second() / self.fps\n\n    def window_at_seconds(self, seconds: float) -> GapWindow | None:\n        for window in self.windows:\n            if window.start_seconds() <= seconds <= window.end_seconds():\n                return window\n\n    def rms_slice_for_gap(self, window: GapWindow) -> TimeSeries:\n        start_hop = self.to_hops(window.gap.start_seconds())\n        end_hop = self.to_hops(window.gap.end_seconds())\n        return self.rms_slice(start_hop, end_hop)\n\n    def rms_slice(self, start_hop: int, end_hop: int) -> TimeSeries:\n        # PRN could pass analysis to initial TimeSeries! and then copy ref to it when creating derivative series!\n        # PRN also could pass plotter|None to avoid hacks with TimeSeries.plot() calls\n        return TimeSeries(values=self.rms_db[start_hop:end_hop], times=self.time_stamps[start_hop:end_hop])\n\n    def to_hops(self, seconds: float) -> int:\n        hops = seconds * self.hops_per_second()\n        return int(round(hops, 8))\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/segment_plotter.py:38-40\n@property\n    def middle(self) -> float:\n        return (self.start + self.end) / 2\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/segment_plotter.py:24-44\n@dataclass(frozen=True)\nclass XLimits:\n    start: float\n    end: float\n\n    @property\n    def width(self) -> float:\n        return self.end - self.start\n\n    @property\n    def seconds_wide(self) -> float:\n        \"\"\"alias for width, use this when the calling code makes more sense to use this than the generic 'width'\"\"\"\n        return self.width\n\n    @property\n    def middle(self) -> float:\n        return (self.start + self.end) / 2\n\n    @property\n    def half(self) -> float:\n        return self.width / 2\n",
+        "role":"user"
+      },{
+        "content":"create the middle field in teh ctor instead of as property\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/breathing.py:\n            @dataclass\n            class CrossoverData:\n                crossover: Crossover\n                after_time: float\n                before_time: float\n                after_diff: float\n                _analysis: \"AudioAnalysisResult\"\n\n                def __init__(self, *, crossover: Crossover, after_time: float, before_time: float, after_diff: float, analysis):\n                    self.crossover = crossover\n                    self.after_time = after_time\n                    self.before_time = before_time\n                    self.after_diff = after_diff\n                    self._analysis = analysis\n\n                def is_upward(self) -> bool:\n                    return self.after_diff > 0\n\n                @property\n                def before_hops(self) -> int:\n                    return self._analysis.to_hops(self.before_time)\n\n                @property\n                def after_hops(self) -> int:\n                    return self._analysis.to_hops(self.after_time)\n\n                @property\n                def middle(self):\n                    # FYI only a few crossover points per gap, so NBD to have overhead of nested class wrappers\n\n                    class _Time:\n                        __slots__ = (\"seconds\", \"hops\", \"frames\")\n\n                        def __init__(self, seconds: float, analysis: \"AudioAnalysisResult\"):\n                            self.seconds = seconds\n                            self.hops = int(round(seconds * analysis.hops_per_second(), 8))\n                            self.frames = self.hops / analysis.hops_per_frame()\n\n                    return _Time(\n                        (self.before_time + self.after_time) / 2,\n                        self._analysis,\n                    )\n",
+        "role":"user"
+      }],
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "model":"",
+    "top_p":1,
+    "temperature":1
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "content":"            @dataclass\n            class CrossoverData:\n                crossover: Crossover\n                after_time: float\n                before_time: float\n                after_diff: float\n                _analysis: \"AudioAnalysisResult\"\n                middle: object  # holds _Time instance\n\n                def __init__(self, *, crossover: Crossover, after_time: float, before_time: float, after_diff: float, analysis):\n                    self.crossover = crossover\n                    self.after_time = after_time\n                    self.before_time = before_time\n                    self.after_diff = after_diff\n                    self._analysis = analysis\n\n                    class _Time:\n                        __slots__ = (\"seconds\", \"hops\", \"frames\")\n\n                        def __init__(self, seconds: float, analysis: \"AudioAnalysisResult\"):\n                            self.seconds = seconds\n                            self.hops = int(round(seconds * analysis.hops_per_second(), 8))\n                            self.frames = self.hops / analysis.hops_per_frame()\n\n                    self.middle = _Time(\n                        (self.before_time + self.after_time) / 2,\n                        self._analysis,\n                    )\n\n                def is_upward(self) -> bool:\n                    return self.after_diff > 0\n\n                @property\n                def before_hops(self) -> int:\n                    return self._analysis.to_hops(self.before_time)\n\n                @property\n                def after_hops(self) -> int:\n                    return self._analysis.to_hops(self.after_time)",
+    "reasoning_content":"We need to replace property middle with a field set in __init__. Compute middle as _Time instance. So add attribute middle in __init__ after setting others. Remove @property middle method. Provide code.",
+    "role":"assistant"
+  }
+}

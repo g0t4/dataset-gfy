@@ -1,0 +1,57 @@
+{
+  "request_body":{
+    "messages":[{
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:121-122\ndef middle_seconds(self) -> float:\n        return (self.start_seconds() + self.end_seconds()) / 2\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/segment_plotter.py:38-40\n@property\n    def middle(self) -> float:\n        return (self.start + self.end) / 2\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/segment_plotter.py:55-57\n@property\n    def middle(self) -> float:\n        return (self.bottom + self.top) / 2\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:199-260\n@dataclass\nclass AudioAnalysisResult:\n    audio: LoadedAudio\n\n    rms_db: Float32Array\n    time_stamps: Float32Array\n    thresholds: DetectThresholds\n    merged_segments: list[DetectedSegment] = field(default_factory=list)\n    windows: list[GapWindow] = field(default_factory=list)\n\n    path: Path | None = None\n    fps: int = 30  # PRN read off of video file when loading?\n    hop_length: int = 25\n    frame_length: int = 2048\n    up_db: int = 2\n\n    max_gap_ms: int = 170\n\n    def title_addon(self):\n        thresh = f\"breath@{self.thresholds.breath:.1f}dB,silence@{self.thresholds.silence:.1f}dB\"\n        return f\"rms(frame_len={self.frame_length},\" \\\n                + f\"hop_len={self.hop_length},\" \\\n                + f\"audio_sr={self.audio.samples_per_second},\"\\\n                + f\"video_fps={self.fps},\" \\\n                + f\"max_gap_ms={self.max_gap_ms},\" \\\n                + thresh \\\n                + \")\"\n\n    @property\n    def sample_rate(self) -> int | float:\n        # FYI this property is a stop gap to updating all usages of the old analysis.sample_rate (after moving it to .audio.samples_per_second)\n        # TODO inline in consumers?\n        return self.audio.samples_per_second\n\n    # PRN @property\n    def hops_per_second(self):\n        # i.e. 22050/25 = 882\n        return self.sample_rate / self.hop_length\n\n    # PRN @property\n    def hops_per_frame(self) -> float:\n        # i.e. 30 frames/sec and 882 hops/sec => 882/30 = 29.4 hops/frame\n        return self.hops_per_second() / self.fps\n\n    def window_at_seconds(self, seconds: float) -> GapWindow | None:\n        for window in self.windows:\n            if window.start_seconds() <= seconds <= window.end_seconds():\n                return window\n\n    def rms_slice_for_gap(self, window: GapWindow) -> TimeSeries:\n        start_hop = self.to_hops(window.gap.start_seconds())\n        end_hop = self.to_hops(window.gap.end_seconds())\n        return self.rms_slice(start_hop, end_hop)\n\n    def rms_slice(self, start_hop: int, end_hop: int) -> TimeSeries:\n        # PRN could pass analysis to initial TimeSeries! and then copy ref to it when creating derivative series!\n        # PRN also could pass plotter|None to avoid hacks with TimeSeries.plot() calls\n        return TimeSeries(values=self.rms_db[start_hop:end_hop], times=self.time_stamps[start_hop:end_hop])\n\n    def to_hops(self, seconds: float) -> int:\n        hops = seconds * self.hops_per_second()\n        return int(round(hops, 8))\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps_tests.py:262-281\n\n    def test_mark_all_nearest_frames(self):\n        # BTW\n        # 25 samples/hop (hop_len)\n        # 22050 samples/sec (audio sample_rate)\n        # (22050 samples/sec) / (25 samples/hop)\n        #    => 882 hops/sec\n        # 30 frames/sec (video sample_rate)\n        # (882 hops/sec) / (30 frames/sec)\n        #   => 882/30\n        #   => 29.4 hops/frame\n\n        analysis = compute_speech_boundaries( \\\n           left_speech = ONE_SECOND_at_MINUS20(),\n           gap = start(-20)\n                .flat(40)\n                .down(1) # frame_min => 41 hops / 29.4 hops per frame =  1.39455782 frames (past start of segment which is @1sec/30frames)\n                .up(5).down(10) # breathing bounce\n                # at this point => 56 hops (41 to first_min + 5+10 == 56) => 56 / 29.4 = 1.9047619047619048\n                .flat(100) # go along ways to cross into many frames later\n\n",
+        "role":"user"
+      },{
+        "content":"rework Middle so ctor takes not the parent (get rid of parent in it)... instead it takes middle_seconds:float + hops_per_second and hops_per_frame and the ctor computes and stores hops:int and frames:float ... so it doesnt need properties anymore\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/breathing.py:\n                @property\n                def middle(self):\n                    # FYI only a few crossover points per gap, so NBD to have overhead of nested class wrappers\n\n                    class _Middle:\n                        __slots__ = (\"_parent\", )\n\n                        def __init__(self, parent: \"CrossoverData\"):\n                            self._parent = parent\n\n                        @property\n                        def seconds(self) -> float:\n                            return (self._parent.before_time + self._parent.after_time) / 2\n\n                        @property\n                        def hops(self) -> int:\n                            return self._parent._analysis.to_hops(self.seconds)\n\n                        @property\n                        def frames(self) -> float:\n                            # FYI not nearest frame, so this will have partial value\n                            # (hops is the discrete minimum unit)\n                            return self.hops / self._parent._analysis.hops_per_frame()\n\n                    return _Middle(self)",
+        "role":"user"
+      }],
+    "max_tokens":4096,
+    "stream":true,
+    "top_p":1,
+    "temperature":1,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    }
+  },
+  "last_sse":{
+    "system_fingerprint":"b7616-18ddaea2a",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "timings":{
+      "predicted_per_second":174.53953813803,
+      "cache_n":415,
+      "prompt_per_second":4043.8788300199,
+      "prompt_ms":327.903,
+      "prompt_per_token_ms":0.24728733031674,
+      "predicted_ms":1317.753,
+      "prompt_n":1326,
+      "predicted_n":230,
+      "predicted_per_token_ms":5.7293608695652
+    },
+    "object":"chat.completion.chunk",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-t9FfgU9U4LA30Eo5EcbGzIuwAj9Jsxqm",
+    "created":1767892588
+  },
+  "response_message":{
+    "content":"                @property\n                def middle(self):\n                    # FYI only a few crossover points per gap, so NBD to have overhead of nested class wrappers\n\n                    class _Middle:\n                        __slots__ = (\"seconds\", \"hops\", \"frames\")\n\n                        def __init__(self, middle_seconds: float, hops_per_second: float, hops_per_frame: float):\n                            self.seconds = middle_seconds\n                            self.hops = int(round(middle_seconds * hops_per_second, 8))\n                            self.frames = self.hops / hops_per_frame\n\n                    middle_seconds = (self._parent.before_time + self._parent.after_time) / 2\n                    hops_per_second = self._parent._analysis.hops_per_second()\n                    hops_per_frame = self._parent._analysis.hops_per_frame()\n                    return _Middle(middle_seconds, hops_per_second, hops_per_frame)",
+    "finish_reason":"stop",
+    "reasoning_content":"We need to rewrite Middle class: ctor takes middle_seconds, hops_per_second, hops_per_frame, computes hops=int(round(...)) and frames float. Remove parent reference and properties. Provide code accordingly.",
+    "role":"assistant"
+  }
+}
