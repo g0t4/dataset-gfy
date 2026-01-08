@@ -1,0 +1,54 @@
+{
+  "request_body":{
+    "top_p":1,
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/diff-specific.fish:114-118\nfunction _convert_current_command_to_diff_two_commands\n    # use to compare w/ add and remove from current command\n    set user_input (_current_command_or_previous)\n    commandline --replace \"diff_two_commands '$user_input' '$user_input' \"\nend\n\n## ~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/diff-specific.fish:56-69\nfunction diff_two_commands --wraps icdiff\n    # usage:\n    #   diff_two_commands \"ls -al\" \"ls -al | sort -h\"\n    #   don't really need -- support here b/c there are only ever two args (commands to diff) and so any other options are clearly for icdiff (thus far)\n\n    set command_a $argv[1]\n    set command_b $argv[2]\n    set icdiff_argv $argv[3..]\n\n    icdiff $icdiff_argv \\\n        -L \"'$command_a'\" (eval $command_a | psub) \\\n        -L \"'$command_b'\" (eval $command_b | psub)\n\nend\n\n## ~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/misc-specific.fish:3015-3034\nabbr --position=anywhere -- psse \"| $sse_jq\"\nabbr --position=anywhere -- pssec \"| $sse_jq --compact-output\"\n# pbpaste then pipe\nabbr -- pbsse \"pbpaste | $sse_jq\"\nabbr -- pbssec \"pbpaste | $sse_jq --compact-output\"\n# grab __verbose.prompt (llama-server uses this)\nabbr -- pbsse_verbose_prompt \"pbpaste | $sse_jq '.__verbose.prompt' -r\"\n# TODO I really need to write my own script (python?) and have this do detection on the prompt value and just auto suggest adding treesitter on the end\n#    and add support for other formats and coloring them\nabbr -- pbsse_verbose_prompt_harmony \"pbpaste | $sse_jq '.__verbose.prompt' -r | tree-sitter highlight --scope source.harmony\"\nabbr -- pbsse_verbose_content \"pbpaste | $sse_jq '.__verbose.content' -r\" # this is the RAW RESPONSE from the model\nabbr -- pbsse_verbose_raw_response \"pbpaste | $sse_jq '.__verbose.content' -r\" # this is the RAW RESPONSE from the model\nabbr -- pbsse1 \"pbpaste | $sse_jq > input-messages.json\"\nabbr -- pbsse2 \"pbpaste | $sse_jq > input-rendered-prompt.json\"\nabbr -- pbsse3 \"pbpaste | $sse_jq > output-parsed-message.json\"\nabbr -- pbssethread 'ask_thread_reviewer (pbpaste | string replace --regex \"[^{]*\" \"\" | psub)'\n\n#\n# * pbsse4 (raw prompt)\n# FYI sse4 is not an sse but the naming convention helps me quickly remember each of these! (first 3 are SSEs)\n\n\n## ~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/diff-specific.fish:36-43\nfunction _abbr_expand_diff_last_two_commands_sorted\n    set last_two_commands (history | head -n 2)\n    set -l command_a $last_two_commands[2] \"| sort -h\"\n    set -l command_b $last_two_commands[1] \"| sort -h\"\n    set command_a (string replace --all -- \"'\" \"\\\\'\" $command_a)\n    set command_b (string replace --all -- \"'\" \"\\\\'\" $command_b)\n    echo diff_two_commands \"'$command_a'\" \"'$command_b'\"\nend\n\n## ~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/diff-specific.fish:17-28\nfunction _abbr_expand_diff_last_two_commands\n    set last_two_commands (history | head -n 2)\n    set -l command_a $last_two_commands[2]\n    set -l command_b $last_two_commands[1]\n    # test case:\n    #    echo 'foo'\n    #    echo 'foo\\nbar'\n    #    trigger diff_last_two_commands => needs escaped\n    set command_a (string replace --all -- \"'\" \"\\\\'\" $command_a)\n    set command_b (string replace --all -- \"'\" \"\\\\'\" $command_b)\n    echo diff_two_commands \"'$command_a'\" \"'$command_b'\"\nend\n"
+      },{
+        "role":"user",
+        "content":"if argv is set, use that for the *-thread.json in both commands... otherwise default it to as-is\nHere is code I selected (with carefully preserved indentation) from fish/load_last_interactive_only/always/always.fish:\nfunction ask_rewrite_diff_reviewer\n    # PRN pass thread file\n    # use this to diff a thread.json file, to grab the response_message's content and diff that vs the original selection in the last user message(request_body.messages[-1].content)\n    #  the bulk of the input and output are likely the selected code to rewrite, especially for large selections...\n    #  also shows user request too\n    #  model wise the model should only return rewritten code so it shouldn't have anything extra, unless it derps up markdown w/ explanations of its changes\n    diff_two_commands 'jq .request_body.messages[-1].content -r *-thread.json' 'jq .response_message.content -r *-thread.json'\nend\n"
+      }],
+    "stream":true,
+    "max_tokens":4096,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "model":""
+  },
+  "response_message":{
+    "role":"assistant",
+    "content":"function ask_rewrite_diff_reviewer\n    if set -q argv[1]\n        set thread_file $argv[1]\n    else\n        set thread_file \"*-thread.json\"\n    end\n    diff_two_commands \"jq .request_body.messages[-1].content -r $thread_file\" \"jq .response_message.content -r $thread_file\"\nend",
+    "finish_reason":"stop",
+    "reasoning_content":"We need to modify function to use argv if set for *-thread.json else default. Provide code only."
+  },
+  "last_sse":{
+    "created":1767891137,
+    "system_fingerprint":"b7616-18ddaea2a",
+    "id":"chatcmpl-iGooUXtDYKylMVSh6jVSWSuKOPnUKYE6",
+    "object":"chat.completion.chunk",
+    "timings":{
+      "cache_n":242,
+      "prompt_per_second":8983.4377011763,
+      "prompt_n":1228,
+      "predicted_per_second":241.1436579218,
+      "prompt_ms":136.696,
+      "predicted_n":106,
+      "prompt_per_token_ms":0.11131596091205,
+      "predicted_ms":439.572,
+      "predicted_per_token_ms":4.1469056603774
+    },
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  }
+}
