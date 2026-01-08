@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_n":1746,
+      "prompt_ms":206.172,
+      "prompt_per_token_ms":0.1180824742268,
+      "predicted_ms":3126.39,
+      "predicted_per_token_ms":5.715521023766,
+      "predicted_per_second":174.96217682375,
+      "predicted_n":547,
+      "prompt_per_second":8468.6572376462,
+      "cache_n":0
+    },
+    "id":"chatcmpl-i7U8pn6lBVxTYQ15GLVmq9u2Ju46auT0",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "created":1767895090,
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }]
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to add function for single cross, then loop over crossovers__0_2 and call it. Provide code modifications.",
+    "role":"assistant",
+    "content":"```python\ndef _add_cross_patch(cross: CrossoverData, plotter, y_middle: float) -> None:\n    \"\"\"Add a rectangle patch for a single crossover.\"\"\"\n    color = \"mediumaquamarine\" if cross.after_diff > 0 else \"lightcoral\"\n    box_width = cross.after.seconds - cross.before.seconds\n    box_height = 2\n    lower_left_y = y_middle - 1\n    rect = plt.Rectangle(\n        (cross.before.seconds, lower_left_y),\n        box_width,\n        box_height,\n        edgecolor=color,\n        facecolor=color,\n        linewidth=1,\n        alpha=0.3,\n    )\n    plotter.ax.add_patch(rect)\n\n\n# existing code in breathing.py\nupward_crossings = []\ncrossovers = build_crossovers(diff_stride2_gated, diff_stride2.values, analysis)\ncrossovers__0_2 = build_crossovers(\n    diff_stride2.gate(lower=-0.2, upper=0.2).sign(),\n    diff_stride2.values,\n    analysis,\n)\n\nfor cross in crossovers:\n    table.add_row(\n        str(int(cross.crossover.before_index)),\n        str(int(cross.crossover.after_index)),\n        f\"{cross.before.seconds:.3f}s\",\n        f\"{cross.middle.seconds:.3f}s\",\n        f\"{cross.after.seconds:.3f}s\",\n        f\"{cross.after_diff:.2f}\",\n        f\"{cross.before.hops:,}\",\n        f\"{cross.middle.hops:,}\",\n        f\"{cross.after.hops:,}\",\n    )\n    if plotting:\n        _add_cross_patch(cross, plotter, offset_gated)\n\n    if cross.after_diff > 0:\n        upward_crossings.append(cross.crossover)\n        if plotting:\n            minima_line = {\"linewidth\": 1, \"alpha\": 0.4, \"zorder\": 0}\n            plotter.ax.axvline(cross.before.seconds, color=\"teal\", **minima_line).pps = PPS.HOPS_USEFUL\n            plotter.ax.axvline(cross.middle.seconds, color=\"crimson\", **minima_line)\n            plotter.ax.axvline(cross.after.seconds, color=\"orangered\", **minima_line).pps = PPS.HOPS_USEFUL\n\n# Plot patches for the second set of crossovers\nfor cross in crossovers__0_2:\n    if plotting:\n        _add_cross_patch(cross, plotter, offset_gated)\n```"
+  },
+  "request_body":{
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/detects/breathing.py:\n            crossovers = build_crossovers(diff_stride2_gated, diff_stride2.values, analysis)\n\n.. yanked from auto_edit/new_silence/detects/breathing.py:\ndiff_stride2.gate(lower=-0.2, upper=0.2).sign()\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:44-53\ndef __init__(self, *, crossover: Crossover, after_time: float, before_time: float, after_diff: float, analysis):\n        self.crossover = crossover\n        self.after = _Time(after_time, analysis)\n        self.before = _Time(before_time, analysis)\n        self.after_diff = after_diff\n\n        self.middle = _Time(\n            (self.before.seconds + self.after.seconds) / 2,\n            analysis,\n        )\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:36-56\n@dataclass\nclass CrossoverData:\n    crossover: Crossover\n    after: _Time\n    before: _Time\n    after_diff: float\n    middle: _Time\n\n    def __init__(self, *, crossover: Crossover, after_time: float, before_time: float, after_diff: float, analysis):\n        self.crossover = crossover\n        self.after = _Time(after_time, analysis)\n        self.before = _Time(before_time, analysis)\n        self.after_diff = after_diff\n\n        self.middle = _Time(\n            (self.before.seconds + self.after.seconds) / 2,\n            analysis,\n        )\n\n    def is_upward(self) -> bool:\n        return self.after_diff > 0\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:58-71\ndef build_crossovers(series: \"TimeSeries\", values, analysis: \"AudioAnalysisResult\"):\n\n    def _generator():\n        for crossover in zero_crossings(series.values):\n            data = CrossoverData(\n                crossover=crossover,\n                before_time=series.times[crossover.before_index],\n                after_time=series.times[crossover.after_index],\n                after_diff=values[crossover.after_index],\n                analysis=analysis,\n            )\n            yield data\n\n    return list(_generator())\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:34-44\n\n\n@dataclass\nclass CrossoverData:\n    crossover: Crossover\n    after: _Time\n    before: _Time\n    after_diff: float\n    middle: _Time\n\n    \n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:0-12\nfrom __future__ import annotations\nfrom dataclasses import dataclass\nimport numpy as np\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult\nfrom auto_edit.new_silence.detects.time_series import TimeSeries\n\n#   IDEA => look for zero crossovers to find minima\n#   *** works BETTER!! (no delays)\n#   - removes noise near zero slope\n#   - better fit for exactly when the plot turns upward! unlike uniform_filter1d\n#     - uniform_filter1d (moving average) results in premature (shifted) crossovers\n#       b/c spike (i.e. rampup) pulls up points way ahead of it\n\n\n"
+      },{
+        "role":"user",
+        "content":"exract middle logic for the patch boxes... write a function to take a cross instance and add the patch for it (one cross instance only, not a loop)... then loop oer crossovers__0_2 below all this code too and call that new plotter as well... so I am plotting both patch sets\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/breathing.py:\n            upward_crossings = []\n            crossovers = build_crossovers(diff_stride2_gated, diff_stride2.values, analysis)\n            crossovers__0_2 = build_crossovers(diff_stride2.gate(lower=-0.2, upper=0.2).sign(), diff_stride2.values, analysis)\n            for cross in crossovers:\n                # at before/after idx => diff == diff_gated... b/c must be non-zero after gating (IOTW not gated to zero)\n                table.add_row(\n                    str(int(cross.crossover.before_index)),\n                    str(int(cross.crossover.after_index)),\n                    f\"{cross.before.seconds:.3f}s\",\n                    f\"{cross.middle.seconds:.3f}s\",\n                    f\"{cross.after.seconds:.3f}s\",\n                    f\"{cross.after_diff:.2f}\",\n                    f\"{cross.before.hops:,}\",\n                    f\"{cross.middle.hops:,}\",\n                    f\"{cross.after.hops:,}\",\n                )\n                if plotting:\n                    color = \"mediumaquamarine\" if cross.after_diff > 0 else \"lightcoral\"\n                    y_middle = offset_gated\n                    # plot([after_time, after_time], [y_middle - 2, y_middle + 2], color=color, linewidth=1)\n                    # * box around full time to transition signs\n                    box_width = cross.after.seconds - cross.before.seconds\n                    box_height = 2\n                    lower_left_y = y_middle - 1\n                    # box_height = 100; lower_left_y = -100 # full height of plot (like avxspan)\n                    rect = plt.Rectangle(\n                        (cross.before.seconds, lower_left_y),\n                        box_width,\n                        box_height,\n                        edgecolor=color,\n                        facecolor=color,\n                        linewidth=1,\n                        alpha=0.3,\n                    )\n                    plotter.ax.add_patch(rect)\n                is_upward_crossover = cross.after_diff > 0\n                if is_upward_crossover:\n                    upward_crossings.append(cross.crossover)\n                    if plotting:\n                        minima_line = {\"linewidth\": 1, \"alpha\": 0.4, \"zorder\": 0}\n                        plotter.ax.axvline(cross.before.seconds, color=\"teal\", **minima_line).pps = PPS.HOPS_USEFUL\n                        plotter.ax.axvline(cross.middle.seconds, color=\"crimson\", **minima_line)\n                        plotter.ax.axvline(cross.after.seconds, color=\"orangered\", **minima_line).pps = PPS.HOPS_USEFUL\n"
+      }],
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "max_tokens":4096,
+    "top_p":1,
+    "model":"",
+    "temperature":1
+  }
+}
