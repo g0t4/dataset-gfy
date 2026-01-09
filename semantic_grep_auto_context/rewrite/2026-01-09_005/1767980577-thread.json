@@ -1,0 +1,57 @@
+{
+  "request_body":{
+    "max_tokens":4096,
+    "top_p":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1,
+    "model":"",
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:246-249\ndef window_at_seconds(self, seconds: float) -> GapWindow | None:\n        for window in self.windows:\n            if window.start_seconds() <= seconds <= window.end_seconds():\n                return window\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps.py:49-68\n\n\n    HOPS_PER_SECOND = analysis.hops_per_second()\n    gap_starts_at_seconds = window.gap.segments[0].start_seconds\n    FPS = analysis.fps\n\n    def find_best_frame_to_cut_at(min_is_at_hops_relative):\n\n        min_is_at_seconds_globally = gap_starts_at_seconds + min_is_at_hops_relative / HOPS_PER_SECOND\n        # global as in across entire video (not gap relative like min_is_at_hops_relative)\n        _gap_starts_at_hops = round(gap_starts_at_seconds * HOPS_PER_SECOND)\n        min_is_at_hops_globally = _gap_starts_at_hops + min_is_at_hops_relative\n\n        # * compute frame number before and after, EXACT frame (not partial)\n        min_is_at_frame = min_is_at_seconds_globally * FPS\n        frame_num_before = math.floor(min_is_at_seconds_globally * FPS)\n        frame_num_after = math.ceil(min_is_at_seconds_globally * FPS)\n\n        # * if on a frame, then STOP and return!\n        if frame_num_before == frame_num_after:\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:100-134\n@dataclass\nclass NonSpeechGap:\n    segments: list[DetectedSegment]\n    crossovers: list[CrossoverData] = field(default_factory=list)\n\n    def __len__(self) -> int:\n        return len(self.segments)\n\n    def __iter__(self):\n        return iter(self.segments)\n\n    # TODO unify interface for segments\n    #   (add @property to start/end_seconds and change usages...\n    #   duration_seconds could be a property too, OR maybe a method to indicate read only\n    #     if go method route, update other property based duration_seconds to be methods\n    #      the same properties/method should exist on all my segement types... i.e. NonSpeechGap, DetectedSegment (left/right_speech), CombinedSegments, etc... maybe even GapWindow\n    #      that way I always know where to go to get the value regardless what segment it is\n    def start_seconds(self) -> float:\n        return self.segments[0].start_seconds\n\n    def end_seconds(self) -> float:\n        return self.segments[-1].end_seconds\n\n    def middle_seconds(self) -> float:\n        return (self.start_seconds() + self.end_seconds()) / 2\n\n    def duration_seconds(self) -> float:\n        return self.end_seconds() - self.start_seconds()\n\n    def contains(self, seconds) -> bool:\n        return self.start_seconds() <= seconds < self.end_seconds()\n\n    def __repr__(self) -> str:\n        segs = \", \".join(str(s.id) for s in self.segments)\n        return f\"NonSpeechGap(segments=[{segs}])\"\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:146-178\n@dataclass\nclass GapWindow:\n    left_speech: DetectedSegment | None\n    gap: NonSpeechGap\n    right_speech: DetectedSegment | None\n\n    # ?? remove these and/or repurpose them for left_speech taper_end, right_speech rampup_begin?\n    first_min: MinMeasures | None = None\n    last_min: MinMeasures | None = None\n\n    # might want breathing_ranges at some point... use bool for now\n    #  this will decide when muting (or not) in FCPXML generation\n    #  FYI this might not belong here too...\n    breathing: bool | None = None\n\n    def all_segments(self) -> list[DetectedSegment]:\n        segments: list[DetectedSegment] = []\n        if self.left_speech:\n            segments.append(self.left_speech)\n        segments.extend(self.gap.segments)\n        if self.right_speech:\n            segments.append(self.right_speech)\n        return segments\n\n    def start_seconds(self) -> float:\n        if self.left_speech:\n            return self.left_speech.start_seconds\n        return self.gap.segments[0].start_seconds\n\n    def end_seconds(self) -> float:\n        if self.right_speech:\n            return self.right_speech.end_seconds\n        return self.gap.segments[-1].end_seconds\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:102-135\ndef zero_crossings(signal) -> list[Crossover]:\n    \"\"\"Detect zero‑crossings in *signal*.\n\n    Returns a list of :class:`Crossover` objects where ``before`` is the index\n    of the last sample with the previous sign and ``after`` is the index of the\n    first sample with the new sign.\n    \"\"\"\n    signs = np.sign(signal)  # -1, 0, +1\n\n    crossing_indices: list[Crossover] = []\n    previous_nonzero_sign = 0\n    previous_nonzero_sign_index = 0\n\n    for index, current_sign in enumerate(signs):\n        # skip zeros\n        if current_sign == 0:\n            continue\n\n        # initialise on first non‑zero sign\n        if previous_nonzero_sign == 0:\n            previous_nonzero_sign = current_sign\n            previous_nonzero_sign_index = index\n            continue\n\n        if current_sign != previous_nonzero_sign:\n            # sign change detected\n            crossing_indices.append(Crossover(previous_nonzero_sign_index, index))\n            previous_nonzero_sign = current_sign\n            previous_nonzero_sign_index = index\n        else:\n            # same sign (plateau), move the \"before\" pointer forward\n            previous_nonzero_sign_index = index\n\n    return crossing_indices\n"
+      },{
+        "role":"user",
+        "content":"simplify the loop w/ numpy operations\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/player/segment_plotter.py:\n            critical_secs = np.array([cp.seconds for cp in (c.critical_point for c in gap.crossovers)], dtype=float)\n            critical_secs = np.insert(critical_secs, 0, gap.start_seconds())\n            critical_secs = np.append(critical_secs, gap.end_seconds())\n            prior_sec = None\n            next_sec = None\n            for sec in critical_secs:\n                if sec <= clicked_at_seconds:\n                    prior_sec = sec\n                elif sec > clicked_at_seconds and next_sec is None:\n                    next_sec = sec\n                    break\n"
+      }]
+  },
+  "last_sse":{
+    "created":1767980577,
+    "timings":{
+      "cache_n":424,
+      "prompt_n":1394,
+      "predicted_per_second":229.09818469387,
+      "predicted_n":135,
+      "prompt_per_token_ms":0.25770157819225,
+      "predicted_ms":589.267,
+      "predicted_per_token_ms":4.3649407407407,
+      "prompt_per_second":3880.4574151811,
+      "prompt_ms":359.236
+    },
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "object":"chat.completion.chunk",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "id":"chatcmpl-xXtyWMP9DuszRQD40LXtOw0H69F98dPQ"
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to simplify loop using numpy. Replace for loop with searchsorted. Provide code.",
+    "role":"assistant",
+    "content":"critical_secs = np.array([cp.seconds for cp in (c.critical_point for c in gap.crossovers)], dtype=float)\ncritical_secs = np.insert(critical_secs, 0, gap.start_seconds())\ncritical_secs = np.append(critical_secs, gap.end_seconds())\n\nidx = np.searchsorted(critical_secs, clicked_at_seconds, side='right')\nprior_sec = critical_secs[idx - 1] if idx > 0 else None\nnext_sec = critical_secs[idx] if idx < len(critical_secs) else None"
+  }
+}
