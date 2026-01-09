@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "choices":[{
+        "delta":[],
+        "index":0,
+        "finish_reason":"stop"
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_per_token_ms":0.12322759973839,
+      "predicted_ms":394.644,
+      "predicted_per_token_ms":4.93305,
+      "predicted_per_second":202.71434508063,
+      "predicted_n":80,
+      "cache_n":0,
+      "prompt_n":1529,
+      "prompt_per_second":8115.0651487408,
+      "prompt_ms":188.415
+    },
+    "created":1767954339,
+    "id":"chatcmpl-YbbUqcs3Yc8dgYsOv8KO8FyeGppHtUB3",
+    "system_fingerprint":"b7616-18ddaea2a"
+  },
+  "response_message":{
+    "content":"@dataclass\nclass GapWindow:\n    left_speech: DetectedSegment | None\n    gap: NonSpeechGap\n    right_speech: DetectedSegment | None\n    crosses: list[CrossoverData] = field(default_factory=list)",
+    "reasoning_content":"We need to change default to avoid mutable default. Use field(default_factory=list). Provide code snippet.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  },
+  "request_body":{
+    "stream":true,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/detector_notebook.py:\nplotter.zoom_to_gap_at_seconds(7)\n\n.. yanked from auto_edit/new_silence/detector_notebook.py:\nplotter.zoom_to_gap_at_seconds(2) # double hop\n\n.. yanked from auto_edit/new_silence/detector_notebook.py:\nplotter.zoom_to_gap_at_seconds(11.9) # one minima => speech\n\n.. yanked from auto_edit/new_silence/detector_notebook.py:\nplotter.zoom_to_gap_at_seconds(43.9)  # double hop => speech \"at\" (second isn't like breathing => shorter duration)\n\n.. yanked from generate_fcpxml_notebook.py:\n    # plotter.set_x_limits(2.23, 2.27)\n\n.. yanked from auto_edit/new_silence/tests/integration_tests.py:\n        # BREATHING\n\n.. yanked from auto_edit/new_silence/player/plot_helpers.py:\nfrom typing import TYPE_CHECKING\nif TYPE_CHECKING:\n\n.. yanked from auto_edit/new_silence/player/plot_helpers.py:\nfrom typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from .segment_plotter import SegmentPlotter\n\n.. yanked from auto_edit/new_silence/detects/segments.py:\n@dataclass\nclass GapWindow:\n    left_speech: DetectedSegment | None\n    gap: NonSpeechGap\n    right_speech: DetectedSegment | None\n    crosses: list[CrossoverData] = []\n\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps.py:0-9\nfrom dataclasses import dataclass\nfrom itertools import groupby\nimport math\nfrom types import SimpleNamespace\nfrom more_itertools import windowed\nfrom typing import Iterable\nimport numpy as np\nimport rich\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult, DetectedSegment, MinMeasures, SegmentLabel, GapWindow, NonSpeechGap\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps.py:15-34\ndef create_gap(windowed: list[_TempSegmentGroup], analysis: AudioAnalysisResult):\n\n    left_speech = None\n    if windowed[0] and windowed[0].is_speech:\n        left_speech = windowed[0].segments[0]\n        assert len(windowed[0].segments) == 1, \"Expected only one left speech segment\"\n\n    right_speech = None\n    if windowed[2] and windowed[2].is_speech:\n        right_speech = windowed[2].segments[0]\n        assert len(windowed[2].segments) == 1, \"Expected only one right speech segment\"\n\n    gap_window = GapWindow(\n        left_speech=left_speech,\n        gap=NonSpeechGap(segments=windowed[1].segments),\n        right_speech=right_speech,\n    )\n\n    mark_safe_speech_boundaries(gap_window, analysis)\n    return gap_window\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:38-57\n\n\n@dataclass\nclass CrossoverData:\n    crossover: Crossover\n\n    after: Point\n    middle: Point\n    before: Point\n\n    min: Point\n    max: Point\n\n    after_diff_value: float\n    min_rms_value: float\n    max_rms_value: float\n\n    def __init__(self, crossover: Crossover, diff_stride2_gated: TimeSeries, analysis: \"AudioAnalysisResult\"):\n        self.crossover = crossover\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/ranges_tests.py:166-185\ndef test_window_without_left_speech(self):\n        win = GapWindow(\n            left_speech=None,\n            gap=NonSpeechGap(segments=[silence_seg(0, 1)]),\n            right_speech=speech_seg(1, 2),\n            first_min=SimpleNamespace(frame_aligned_at_seconds=0),\n            last_min=SimpleNamespace(frame_aligned_at_seconds=1),\n        )\n        analysis = fake_analysis_for([win])\n\n        ranges = get_ranges(analysis)\n\n        # silence at the start\n        assert ranges[0].start_frame == 0\n        assert ranges[0].end_frame == 30\n        assert type(ranges[0]) == SilenceRange\n        # following speech segment\n        assert ranges[1].start_frame == 30\n        assert ranges[1].end_frame == 60\n        assert type(ranges[1]) == ContentRange\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps.py:34-39\n\n\ndef mark_safe_speech_boundaries(window: GapWindow, analysis: AudioAnalysisResult):\n    rms_values_in_gap = np.concatenate([v.rms_values for v in window.gap.segments])\n\n    \n"
+      },{
+        "role":"user",
+        "content":"how do I make the crosses default safe (empty) w/o sharing the array on every instance\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/segments.py:\n@dataclass\nclass GapWindow:\n    left_speech: DetectedSegment | None\n    gap: NonSpeechGap\n    right_speech: DetectedSegment | None\n    crosses: list[CrossoverData] = []\n"
+      }],
+    "top_p":1,
+    "max_tokens":4096,
+    "temperature":1
+  }
+}
