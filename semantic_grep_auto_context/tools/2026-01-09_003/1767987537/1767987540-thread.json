@@ -1,0 +1,152 @@
+{
+  "request_body":{
+    "stream":true,
+    "max_tokens":4096,
+    "messages":[{
+        "role":"system",
+        "content":"Your name is Qwenny, Wes's best buddy that loves dry humor and effusive swearing, especially together! You can make fun of Wes and he will laugh. He even laughs when you call him offensive slurs!\nYou can respond with markdown and it will show up rendered in neovim in a floating window. The markdown is intended for answering questions.\nConcise is best, Wes is a human, he cannot read fast like you, and even if he could he would still just skim it. Why waste your time writing things he won't read?!\nIf a longer response is needed, please add a TLDR. Even better, respond with the TLDR alone! Wes will ask for clarification if needed.\nFor tool use, never modify files outside of the current working directory: (~/repos/github/g0t4/private-auto-edit-suggests) unless explicitly requested. Here are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\nWhen requested to perform coding-related tasks, you MUST adhere to the following criteria when executing the task:\n\n- Use `apply_patch` to edit files.\n- If completing the user's task requires writing or modifying files:\n  - Your code and final answer should follow these _CODING GUIDELINES_:\n    - Avoid unneeded complexity in your solution. Minimize program size.\n    - Keep changes consistent with the style of the existing codebase. Changes should be minimal and focused on the task.\n    - NEVER add copyright or license headers unless specifically requested.\n- Never implement function stubs. Provide complete working implementations.\n\n§ `apply_patch` Specification\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file"
+      },{
+        "role":"user",
+        "content":"can you make repr and str for Point class"
+      },{
+        "tool_calls":[{
+            "type":"function",
+            "id":"A0KSUMcUlExHZtt9jlLpaGwvPvePspgw",
+            "function":{
+              "name":"semantic_grep",
+              "arguments":"{\"query\":\"class Point\",\"top_k\":5,\"filetype\":\"py\"}"
+            }
+          }],
+        "reasoning_content":"We need to add __repr__ and __str__ to Point class. Locate file.",
+        "role":"assistant",
+        "content":""
+      },{
+        "tool_call_id":"A0KSUMcUlExHZtt9jlLpaGwvPvePspgw",
+        "role":"tool",
+        "content":"{\"matches\":[{\"id_int\":\"1120882478409051708\",\"rerank_rank\":0,\"end_line_base0\":38,\"start_line_base0\":32,\"embed_rank\":0,\"text\":\"class Point:\\n    __slots__ = (\\\"seconds\\\", \\\"hops\\\", \\\"frames\\\")\\n\\n    def __init__(self, seconds: float, analysis: \\\"AudioAnalysisResult\\\"):\\n        self.seconds = seconds\\n        self.hops = int(round(seconds * analysis.hops_per_second(), 8))\\n        self.frames = self.hops / analysis.hops_per_frame()\",\"file\":\"~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py\",\"start_column_base0\":0,\"id\":\"8f8e2cace887ee3c\",\"type\":\"ts\",\"signature\":\"class Point:\",\"rerank_score\":0.87255859375,\"embed_score\":0.6324270963668823,\"end_column_base0\":59},{\"id_int\":\"370863975125104383\",\"rerank_rank\":1,\"end_line_base0\":90,\"start_line_base0\":83,\"embed_rank\":1,\"text\":\"@property\\n    def critical_point(self) -> Point:\\n        \\\"\\\"\\\"\\n        critical RMS value of the crossover.\\n        1. for upward crossovers (ramp‑up) the minimum RMS is the critical point\\n        2. for downward crossovers (taper) the maximum RMS is the critical point\\n        \\\"\\\"\\\"\\n        return self.min if self.is_upward() else self.max\",\"file\":\"~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py\",\"start_column_base0\":4,\"id\":\"052592d2095236ff\",\"type\":\"ts\",\"signature\":\"def critical_point(self) -> Point:\",\"rerank_score\":0.334716796875,\"embed_score\":0.525530219078064,\"end_column_base0\":57},{\"id_int\":\"6936850536254710963\",\"rerank_rank\":2,\"end_line_base0\":32,\"start_line_base0\":30,\"embed_rank\":14,\"text\":\"def __init__(self, initial_offset: float = 0.0):\\n        self.initial_offset = initial_offset\\n        self.current_offset = initial_offset\",\"file\":\"~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/breathing.py\",\"start_column_base0\":4,\"id\":\"e044a4cf4970a4b3\",\"type\":\"ts\",\"signature\":\"def __init__(self, initial_offset: float = 0.0):\",\"rerank_score\":0.034881591796875,\"embed_score\":0.4382268488407135,\"end_column_base0\":44},{\"id_int\":\"75317554401030571\",\"rerank_rank\":3,\"end_line_base0\":40,\"start_line_base0\":38,\"embed_rank\":10,\"text\":\"@property\\n    def middle(self) -> float:\\n        return (self.start + self.end) / 2\",\"file\":\"~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/segment_plotter.py\",\"start_column_base0\":4,\"id\":\"810b94eaab6cb1ab\",\"type\":\"ts\",\"signature\":\"def middle(self) -> float:\",\"rerank_score\":0.0261383056640625,\"embed_score\":0.4486618041992188,\"end_column_base0\":42},{\"id_int\":\"7021622942549663231\",\"rerank_rank\":4,\"end_line_base0\":40,\"start_line_base0\":39,\"embed_rank\":3,\"text\":\"def same(self) -> float:\\n        return self.current_offset\",\"file\":\"~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/breathing.py\",\"start_column_base0\":4,\"id\":\"e171d0dd3567ddff\",\"type\":\"ts\",\"signature\":\"def same(self) -> float:\",\"rerank_score\":0.01629638671875,\"embed_score\":0.4558879435062408,\"end_column_base0\":34}]}"
+      },{
+        "tool_calls":[{
+            "type":"function",
+            "id":"feFcJ0a7k6wvGO0eYZfT3ZJkAi5J31nt",
+            "function":{
+              "name":"apply_patch",
+              "arguments":"{\"patch\":\"*** Begin Patch\\n*** Update File: auto_edit/new_silence/detects/crossings.py\\n@@\\n class Point:\\n     __slots__ = (\\\"seconds\\\", \\\"hops\\\", \\\"frames\\\")\\n\\n     def __init__(self, seconds: float, analysis: \\\"AudioAnalysisResult\\\"):\\n         self.seconds = seconds\\n         self.hops = int(round(seconds * analysis.hops_per_second(), 8))\\n         self.frames = self.hops / analysis.hops_per_frame()\\n+\\n+    def __repr__(self) -> str:\\n+        \\\"\\\"\\\"Return an unambiguous representation of the Point.\\n+\\n+        The format mirrors the constructor signature so that ``eval(repr(p))``\\n+        would recreate an equivalent instance (assuming ``analysis`` is\\n+        available in the current scope).  We only include ``seconds`` because\\n+        ``hops`` and ``frames`` are derived values.\\n+        \\\"\\\"\\\"\\n+        return f\\\"Point(seconds={self.seconds!r})\\\"\\n+\\n+    def __str__(self) -> str:\\n+        \\\"\\\"\\\"Return a concise, human\\u2011readable description.\\n+\\n+        Example: ``\\\"0.75\\u202fs (12 hops, 0.4 frames)\\\"``.\\n+        \\\"\\\"\\\"\\n+        return f\\\"{self.seconds:.3f}s ({self.hops} hops, {self.frames:.2f} frames)\\\"\\n*** End Patch\\n*** End Patch\"}"
+            }
+          }],
+        "reasoning_content":"We have Point class in crossings.py. Need to add __repr__ and __str__. Let's edit that file.",
+        "role":"assistant",
+        "content":""
+      },{
+        "tool_call_id":"feFcJ0a7k6wvGO0eYZfT3ZJkAi5J31nt",
+        "role":"tool",
+        "content":"{\"content\":[{\"text\":\"Done!\\n\",\"type\":\"text\"}]}"
+      }],
+    "top_p":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1,
+    "tools":[{
+        "function":{
+          "parameters":{
+            "properties":{
+              "workdir":{
+                "description":"Optional, current working directory",
+                "type":"string"
+              },
+              "command":{
+                "description":"Command with args",
+                "type":"string"
+              },
+              "stdin":{
+                "description":"Optional, text to pipe into the command's STDIN. For example, pass a python script to python3. Or, pass text for a new file to the cat command to create it!",
+                "type":"string"
+              }
+            },
+            "required":["command"],
+            "type":"object"
+          },
+          "description":"Run a command on this darwin machine",
+          "name":"run_command"
+        },
+        "type":"function"
+      },{
+        "type":"function",
+        "function":{
+          "parameters":{
+            "properties":{
+              "query":{
+                "description":"query text, what you are looking for",
+                "type":"string"
+              },
+              "top_k":{
+                "description":"number of results to return (post reranking)",
+                "type":"number"
+              },
+              "embed_top_k":{
+                "description":"number of embeddings to consider for reranking",
+                "type":"number"
+              },
+              "instruct":{
+                "description":"instructions for the query",
+                "type":"string"
+              },
+              "filetype":{
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace.",
+                "type":"string"
+              }
+            },
+            "required":["query"],
+            "type":"object"
+          },
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "name":"semantic_grep"
+        }
+      },{
+        "function":{
+          "description":"Patch a file",
+          "parameters":{
+            "properties":{
+              "patch":{
+                "description":"file changes in custom diff format",
+                "type":"string"
+              }
+            },
+            "type":"object",
+            "required":["patch"]
+          },
+          "name":"apply_patch"
+        },
+        "type":"function"
+      }],
+    "model":""
+  },
+  "last_sse":{
+    "system_fingerprint":"b7616-18ddaea2a",
+    "id":"chatcmpl-uMaau4Uzwh494uFGmkON8CgVG7zOMVbv",
+    "timings":{
+      "prompt_n":110,
+      "prompt_ms":60.684,
+      "prompt_per_token_ms":0.55167272727273,
+      "predicted_ms":175.331,
+      "predicted_per_token_ms":5.1567941176471,
+      "predicted_per_second":193.91893048006,
+      "predicted_n":34,
+      "prompt_per_second":1812.6689077846,
+      "cache_n":2553
+    },
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "object":"chat.completion.chunk",
+    "created":1767987540,
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "role":"assistant",
+    "content":"TLDR: Added `__repr__` and `__str__` to the `Point` class for clear debugging and readable output. 🎉"
+  }
+}
