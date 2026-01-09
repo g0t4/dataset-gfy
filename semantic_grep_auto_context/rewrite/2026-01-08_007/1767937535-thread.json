@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "id":"chatcmpl-YgDLDt5liUef0NWG3shmgz1e4pJHQhBy",
+    "created":1767937535,
+    "object":"chat.completion.chunk",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "timings":{
+      "prompt_n":1150,
+      "cache_n":0,
+      "predicted_per_second":234.64831195426,
+      "predicted_n":66,
+      "prompt_per_token_ms":0.17376782608696,
+      "predicted_ms":281.272,
+      "predicted_per_token_ms":4.261696969697,
+      "prompt_per_second":5754.8052623941,
+      "prompt_ms":199.833
+    },
+    "choices":[{
+        "delta":[],
+        "index":0,
+        "finish_reason":"stop"
+      }],
+    "system_fingerprint":"b7616-18ddaea2a"
+  },
+  "response_message":{
+    "content":"def build_crossovers(series: \"TimeSeries\", values, analysis: \"AudioAnalysisResult\"):\n    return [CrossoverData(cross, series, values, analysis) for cross in zero_crossings(series.values)]",
+    "reasoning_content":"We need to rewrite using list comprehension. Provide code without markdown.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "model":"",
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:4-16\nclass TestDirectCrossings:\n\n    def test_postive_to_negative(self):\n        indices = zero_crossings([1, 0.5, -0.5, -1])\n        np.testing.assert_array_equal(indices, [Crossover(1, 2)])\n        # FYI ignore warnings about list/ArrayLike\n        # DO NOT REMOVE np.testing.assert_array_equal...\n        # b/c when one nubmer is off it shows the actual numbers\n        #   even in my custom Crossover type!\n\n    def test_negative_to_positive(self):\n        indices = zero_crossings([-1, -0.5, 0.5, 1])\n        np.testing.assert_array_equal(indices, [Crossover(1, 2)])\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:18-26\nclass TestZeroPlateaus:\n\n    def test_positive_to_zero_plateau_to_negative(self):\n        indices = zero_crossings([1, 0, 0, -1, -0.5])\n        np.testing.assert_array_equal(indices, [Crossover(0, 3)])\n\n    def test_negative_to_zero_plateau_to_positive(self):\n        indices = zero_crossings([-1, 0, 0, 1, 0.5])\n        np.testing.assert_array_equal(indices, [Crossover(0, 3)])\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:56-72\nclass TestNoCrossings:\n\n    def test_no_crossings_positive(self):\n        indices = zero_crossings([1, 2, 3])\n        np.testing.assert_array_equal(indices, [])\n\n    def test_no_crossings_negative(self):\n        indices = zero_crossings([-1, -2, -3])\n        np.testing.assert_array_equal(indices, [])\n\n    def test_no_crossings_negative_to_zero(self):\n        indices = zero_crossings([-1, -2, 0])\n        np.testing.assert_array_equal(indices, [])\n\n    def test_no_crossings_positive_to_zero(self):\n        indices = zero_crossings([1, 2, 0])\n        np.testing.assert_array_equal(indices, [])\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:70-72\ndef test_no_crossings_positive_to_zero(self):\n        indices = zero_crossings([1, 2, 0])\n        np.testing.assert_array_equal(indices, [])\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:6-12\ndef test_postive_to_negative(self):\n        indices = zero_crossings([1, 0.5, -0.5, -1])\n        np.testing.assert_array_equal(indices, [Crossover(1, 2)])\n        # FYI ignore warnings about list/ArrayLike\n        # DO NOT REMOVE np.testing.assert_array_equal...\n        # b/c when one nubmer is off it shows the actual numbers\n        #   even in my custom Crossover type!\n"
+      },{
+        "role":"user",
+        "content":"make this a list comprehension now\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/detects/crossings.py:\ndef build_crossovers(series: \"TimeSeries\", values, analysis: \"AudioAnalysisResult\"):\n\n    def _generator():\n        for cross in zero_crossings(series.values):\n            data = CrossoverData(cross, series, values, analysis)\n            yield data\n\n    return list(_generator())\n"
+      }],
+    "top_p":1,
+    "max_tokens":4096,
+    "temperature":1,
+    "stream":true
+  }
+}
