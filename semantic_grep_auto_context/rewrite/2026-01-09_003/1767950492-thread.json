@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "timings":{
+      "prompt_n":1480,
+      "predicted_per_second":209.1865432621,
+      "prompt_ms":183.94,
+      "prompt_per_token_ms":0.12428378378378,
+      "predicted_n":135,
+      "predicted_per_token_ms":4.7804222222222,
+      "cache_n":0,
+      "predicted_ms":645.357,
+      "prompt_per_second":8046.1019897793
+    },
+    "id":"chatcmpl-vKVizAmbKw2AsECMmj1cu4XxTOoJbTiW",
+    "object":"chat.completion.chunk",
+    "created":1767950492,
+    "system_fingerprint":"b7616-18ddaea2a"
+  },
+  "request_body":{
+    "max_tokens":4096,
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "model":"",
+    "top_p":1,
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. "
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/ranges_tests.py:144-163\n            first_min=SimpleNamespace(\n                frame_aligned_at_seconds=1.6,\n                rms=0.5,  # PRN tests of different levels (if it plays a part with say range type)\n            ),\n            last_min=SimpleNamespace(\n                frame_aligned_at_seconds=2.0,\n                rms=0.5,\n            ),\n        )\n        analysis = fake_analysis_for([win])\n\n        ranges = get_ranges(analysis)\n\n        assert ranges[0].start_frame == 0\n        assert ranges[0].end_frame == 48\n\n        assert ranges[1].start_frame == 48\n        assert ranges[1].end_frame == 60\n\n        assert ranges[2].start_frame == 60\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/breathing.py:132-148\ndef plot_min_max(cross: CrossoverData, plotter, y_middle: float) -> None:\n                if cross.is_upward():\n                    plotter.ax.scatter(\n                        cross.min.seconds,\n                        cross.min_rms_value,\n                        color=\"yellow\",\n                        edgecolor=\"black\",\n                        zorder=5,\n                    )\n                if cross.is_downward():\n                    plotter.ax.scatter(\n                        cross.max.seconds,\n                        cross.max_rms_value,\n                        color=\"cyan\",\n                        edgecolor=\"black\",\n                        zorder=5,\n                    )\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/tests/integration_tests.py:157-176\n        assert win43s.last_min.seconds == pytest.approx(43.83, 0.1)\n        #\n        # * typing, etc\n        # TODO this is a CLUSTER F! reject this one! (already rejected but I should add logic for this to flag it as no way)\n        win46s = self.analysis.windows[16]\n        assert not win46s.breathing\n        # TODO the first/last minima are not really important here though...\n        assert win46s.first_min.seconds == pytest.approx(46.32, 0.1)\n        assert win46s.last_min.seconds == pytest.approx(48.56, 0.1)\n        #\n        # * breathing again\n        win52s = self.analysis.windows[17]\n        assert win52s.breathing\n        assert win52s.first_min.seconds == pytest.approx(52.99, 0.1)\n        assert win52s.last_min.seconds == pytest.approx(53.33, 0.1)\n        #\n        # * breathing again\n        win55s = self.analysis.windows[18]\n        assert win55s.breathing\n        assert win55s.first_min.seconds == pytest.approx(55.20, 0.1)\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/gaps_tests.py:403-427\ndef test__spike_before__last_min__flat_after__picks_frame_after(self):\n        analysis = compute_speech_boundaries( \\\n           left_speech = ONE_SECOND_at_MINUS20(),\n           gap = start(-20)\n                .add(np.array([-10]))\n                # first_min\n                .up(10)\n                .flat(100)\n                .down(10) # last_min \n                .flat(5) # visually gives a bit of separation\n                .up(1)\n                .flat(30),\n                # .plot(),\n           right_speech = ONE_SECOND_at_MINUS20(),\n        )\n        window = analysis.windows[0]\n\n        # -22,-21 before_max\n        # -29 after_max\n        assert window.last_min\n        assert window.last_min.seconds == pytest.approx(1.0 + 126 / 882)\n        assert window.last_min._testing_frame_before == 34\n        assert window.last_min._testing_frame_after == 35\n\n        assert window.last_min.frame_aligned_at_seconds == pytest.approx(35 / 30)\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:134-142\n@dataclass\nclass MinMeasures:\n    seconds: float\n    rms: float\n    frame_aligned_at_seconds: float\n    # FYI these are ONLY intended for testing (to help verify intermediate calculations before frame_aligned is computed)\n    # also they've been very helpful with troubleshooting bugs\n    _testing_frame_before: int\n    _testing_frame_after: int\n"
+      },{
+        "role":"user",
+        "content":"extract a show_legacy_min function and pass the first/last_min once each\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/player/segment_plotter.py:\n                f = win.first_min\n                if f:\n                    self.add_annotation_arrow(f.seconds, f.rms)\n                    self.mark_aligned_frame(f.frame_aligned_at_seconds, f.rms)\n                    # rms is for _min.seconds, not min.frame_aligned_at_seconds, but, use it for both\n                l = win.last_min\n                if l:\n                    self.add_annotation_arrow(l.seconds, l.rms)\n                    self.mark_aligned_frame(l.frame_aligned_at_seconds, l.rms)\n"
+      }],
+    "temperature":1
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to create function show_legacy_min that handles both first and last min, extracting repeated code. Provide code insertion. Probably define method in class. Use type hints. No comments.",
+    "role":"assistant",
+    "content":"                def show_legacy_min(min_data: SimpleNamespace | None) -> None:\n                    if not min_data:\n                        return\n                    self.add_annotation_arrow(min_data.seconds, min_data.rms)\n                    self.mark_aligned_frame(min_data.frame_aligned_at_seconds, min_data.rms)\n\n                f = win.first_min\n                show_legacy_min(f)\n                l = win.last_min\n                show_legacy_min(l)"
+  }
+}

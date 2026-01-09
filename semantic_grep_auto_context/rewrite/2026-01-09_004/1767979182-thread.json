@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_per_second":234.58066534027,
+      "predicted_n":189,
+      "prompt_per_second":8976.1460464489,
+      "prompt_ms":177.916,
+      "prompt_per_token_ms":0.11140638697558,
+      "predicted_ms":805.693,
+      "predicted_per_token_ms":4.2629259259259,
+      "prompt_n":1597,
+      "cache_n":0
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "created":1767979182,
+    "id":"chatcmpl-Xb70WtcUh6SEcxz6fzBYzk71kW18KkZU",
+    "system_fingerprint":"b7616-18ddaea2a"
+  },
+  "response_message":{
+    "reasoning_content":"We need replace .after with .critical_point where appropriate. In this snippet use critical_point instead of .after. So start_sec = prior_cx.critical_point.seconds etc. Also next_cx.critical_point. Ensure imports unchanged. Provide modified code snippet.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"            # Determine surrounding crossovers\n            prior_cx = None\n            next_cx = None\n            for cx in gap.crossovers:\n                if cx.critical_point.seconds <= clicked_at_seconds:\n                    prior_cx = cx\n                elif cx.critical_point.seconds > clicked_at_seconds and next_cx is None:\n                    next_cx = cx\n                    break\n            # Fallback to gap boundaries when missing\n            start_sec = prior_cx.critical_point.seconds if prior_cx else gap.start_seconds()\n            end_sec = next_cx.critical_point.seconds if next_cx else gap.end_seconds()\n"
+  },
+  "request_body":{
+    "top_p":1,
+    "max_tokens":4096,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "model":"",
+    "stream":true,
+    "messages":[{
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- Never add comments to the end of a line. \n- Never add comments.\n- Preserve indentation. \n- If rewriting code, preserve unrelated code. \n- Prefer readable code over of comments. ",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:100-134\n@dataclass\nclass NonSpeechGap:\n    segments: list[DetectedSegment]\n    crossovers: list[CrossoverData] = field(default_factory=list)\n\n    def __len__(self) -> int:\n        return len(self.segments)\n\n    def __iter__(self):\n        return iter(self.segments)\n\n    # TODO unify interface for segments\n    #   (add @property to start/end_seconds and change usages...\n    #   duration_seconds could be a property too, OR maybe a method to indicate read only\n    #     if go method route, update other property based duration_seconds to be methods\n    #      the same properties/method should exist on all my segement types... i.e. NonSpeechGap, DetectedSegment (left/right_speech), CombinedSegments, etc... maybe even GapWindow\n    #      that way I always know where to go to get the value regardless what segment it is\n    def start_seconds(self) -> float:\n        return self.segments[0].start_seconds\n\n    def end_seconds(self) -> float:\n        return self.segments[-1].end_seconds\n\n    def middle_seconds(self) -> float:\n        return (self.start_seconds() + self.end_seconds()) / 2\n\n    def duration_seconds(self) -> float:\n        return self.end_seconds() - self.start_seconds()\n\n    def contains(self, seconds) -> bool:\n        return self.start_seconds() <= seconds < self.end_seconds()\n\n    def __repr__(self) -> str:\n        segs = \", \".join(str(s.id) for s in self.segments)\n        return f\"NonSpeechGap(segments=[{segs}])\"\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:17-30\n@dataclass(frozen=True, slots=True)\nclass Crossover:\n    \"\"\"Represent a zero‑crossing event.\n\n    Attributes\n    ----------\n    before_index: int\n        Index of the sample just before the sign change.\n    after_index: int\n        Index of the sample just after the sign change.\n    \"\"\"\n\n    before_index: int\n    after_index: int\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:98-105\n\n\n@dataclass\nclass NonSpeechGap:\n    segments: list[DetectedSegment]\n    crossovers: list[CrossoverData] = field(default_factory=list)\n\n    \n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/breathing.py:181-183\nclass VirtualGapSegment(DetectedSegment):\n                left_cross: CrossoverData | None\n                right_cross: CrossoverData | None\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:40-96\n@dataclass\nclass CrossoverData:\n    crossover: Crossover\n\n    after: Point\n    middle: Point\n    before: Point\n\n    min: Point\n    max: Point\n\n    after_diff_value: float\n    min_rms_value: float\n    max_rms_value: float\n\n    def __init__(self, crossover: Crossover, diff_stride2_gated: TimeSeries, analysis: \"AudioAnalysisResult\"):\n        self.crossover = crossover\n\n        self.after = Point(diff_stride2_gated.times[crossover.after_index], analysis)\n        self.before = Point(diff_stride2_gated.times[crossover.before_index], analysis)\n        self.after_diff_value = diff_stride2_gated.values[crossover.after_index]\n\n        self.middle = Point(\n            (self.before.seconds + self.after.seconds) / 2,\n            analysis,\n        )\n\n        # get rms values (not stride 2 btw, so make sure to map via time/hops, not array offsets)\n        rms_segment = analysis.rms_slice(\n            analysis.to_hops(self.before.seconds),\n            analysis.to_hops(self.after.seconds),\n        )\n\n        # min makes most sense for upward crossover (rampup)\n        min_idx = np.argmin(rms_segment.values)\n        self.min_rms_value = rms_segment.values[min_idx]\n        self.min = Point(rms_segment.times[min_idx], analysis)\n\n        # max makes most sense for downward crossover (taper)\n        max_idx = np.argmax(rms_segment.values)\n        self.max_rms_value = rms_segment.values[max_idx]\n        self.max = Point(rms_segment.times[max_idx], analysis)\n\n    @property\n    def critical_point(self) -> Point:\n        \"\"\"\n        critical RMS value of the crossover.\n        1. for upward crossovers (ramp‑up) the minimum RMS is the critical point\n        2. for downward crossovers (taper) the maximum RMS is the critical point\n        \"\"\"\n        return self.min if self.is_upward() else self.max\n\n    def is_upward(self) -> bool:\n        return self.after_diff_value > 0\n\n    def is_downward(self) -> bool:\n        return self.after_diff_value < 0\n",
+        "role":"user"
+      },{
+        "content":"use critical point instead of .after\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/player/segment_plotter.py:\n            # Determine surrounding crossovers\n            prior_cx = None\n            next_cx = None\n            for cx in gap.crossovers:\n                if cx.after.seconds <= clicked_at_seconds:\n                    prior_cx = cx\n                elif cx.after.seconds > clicked_at_seconds and next_cx is None:\n                    next_cx = cx\n                    break\n            # Fallback to gap boundaries when missing\n            start_sec = prior_cx.after.seconds if prior_cx else gap.start_seconds()\n            end_sec = next_cx.after.seconds if next_cx else gap.end_seconds()",
+        "role":"user"
+      }]
+  }
+}
