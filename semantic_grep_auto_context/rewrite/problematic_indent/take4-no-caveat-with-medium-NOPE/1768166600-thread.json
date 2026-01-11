@@ -1,0 +1,57 @@
+{
+  "request_body":{
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/plot_helpers.py:0-17\nfrom pathlib import Path\nimport subprocess\nimport rich\nimport sounddevice as sd\nfrom matplotlib.axes import Axes\nfrom matplotlib.backend_bases import CloseEvent, KeyEvent, MouseEvent\nfrom matplotlib.collections import PathCollection\nfrom matplotlib.figure import Figure\nfrom matplotlib.lines import Line2D\n\nfrom auto_edit.new_silence.detect import AnalysisParams, create_analysis\nfrom auto_edit.new_silence.detects.humanize import seconds_to_timecode\nfrom auto_edit.new_silence.detects.segments import GapWindow\n\nfrom typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from .segment_plotter import SegmentPlotter\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/breathing_state.py:27-30\ndef set_plotter(plotter: \"SegmentPlotter\"):\n    # pass this instead of using plt.gca()... that helps avoid creating a new axes if called in wrong order\n    global _plotter\n    _plotter = plotter\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:80-137\n@dataclass\nclass DetectedSegment:\n    id: int\n    start_seconds: float  # PRN start: AVTime\n    end_seconds: float  # PRN end: AVTime\n    label: SegmentLabel\n    rms_values: RMSValues\n\n    @property\n    def duration_seconds(self) -> float:\n        return self.end_seconds - self.start_seconds\n\n    @property\n    def rms_summary(self) -> str:\n        rms = self.rms_values\n        min_val = float(rms.min())\n        mean_val = float(rms.mean())\n        max_val = float(rms.max())\n        # 5.1 ==> b/c one digit for - sign, two for tens/ones before decimal, one for decimal and one after decimal == 5 chars padding (notably to left pad single digit dB values so columns line up across segments when list is printed)\n        return f\"min={round(min_val, 1):5.1f} mean={round(mean_val, 1):5.1f} max={round(max_val, 1):5.1f} len={len(rms)}\"\n\n    def contains(self, seconds) -> bool:\n        return self.start_seconds <= seconds < self.end_seconds\n\n    def __repr__(self) -> str:\n        return self.__str__()\n\n    def __str__(self, no_color=False) -> str:\n\n        label = self.label.value.lower()\n        if not no_color:\n            label = colorize(self.label.value.lower(), self.plot_color())\n\n        # 4 for left padding id\n        return f\"{self.id:4} {label}: [{self.start_seconds:.3f}->{self.end_seconds:.3f}) {self.duration_seconds:.3f}s {self.rms_summary}\"\n\n    def get_plot_message(self, fps: int) -> str:\n\n        start = seconds_to_timecode(self.start_seconds, fps)\n        end = seconds_to_timecode(self.end_seconds, fps)\n\n        rms = self.rms_values\n        min_val = float(rms.min())\n        mean_val = float(rms.mean())\n        max_val = float(rms.max())\n        rms_repr = f\"min={round(min_val, 1):5.1f} mean={round(mean_val, 1):5.1f} max={round(max_val, 1):5.1f}\"\n\n        return f\"{self.id:4} \" \\\n                f\"[{start}➜{end}) \" \\\n                f\"{self.label.value.lower():6} {self.duration_seconds:.3f}s \" \\\n                + rms_repr\n\n    def plot_color(self) -> str:\n        return {\n            SegmentLabel.SILENCE: \"cornflowerblue\",\n            SegmentLabel.BREATH: \"magenta\",\n            SegmentLabel.SPEECH: \"red\",\n        }.get(self.label, \"green\")\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/plot_helpers.py:25-31\n\n\nvisible_grid = False\n\ndef setup_events(plotter: \"SegmentPlotter\"):\n\n    \n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/tests/integration_tests.py:0-13\nimport subprocess\nimport pytest\nimport os\nimport rich\nfrom pathlib import Path\nfrom types import SimpleNamespace\nfrom auto_edit.new_silence.detects.breathing import mark_breathing\nfrom auto_edit.new_silence.player.segment_plotter import SegmentPlotter\nfrom auto_edit.silences.align import AlignedSilencePeriod, align_silences_to_frame_boundaries_asymmetric_pad_WIP\nfrom auto_edit.new_silence.detect import full_analysis\nfrom auto_edit.silences.detect_raw import ffmpeg_detect_silence_raw\nfrom auto_edit.tests.test_files import gptoss_fim_video, gptoss_fim_examples\nfrom auto_edit.new_silence.detects.detectors.ideas import GapContext, LeftSpeechTaper_WithOptionalBreathe_Locator\n\n\n"
+      },{
+        "role":"user",
+        "content":"only join if it is a list, not if string\n\nHere is the code I selected:\n```auto_edit/new_silence/player/segment_plotter.py\n    def set_message(self, lines):\n        text = \"\\n\".join(lines)\n        self.message_text.set_text(text)\n        self.fig.canvas.draw_idle()\n\n```"
+      }],
+    "max_tokens":8192,
+    "top_p":1,
+    "model":"",
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    }
+  },
+  "last_sse":{
+    "system_fingerprint":"b7616-18ddaea2a",
+    "timings":{
+      "predicted_per_second":211.46874411657,
+      "predicted_n":237,
+      "prompt_per_token_ms":0.12810981912145,
+      "prompt_n":1548,
+      "cache_n":0,
+      "prompt_ms":198.314,
+      "prompt_per_second":7805.8029186038,
+      "predicted_ms":1120.733,
+      "predicted_per_token_ms":4.7288312236287
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "created":1768166600,
+    "id":"chatcmpl-OOagmcZlRtuvGEMoMsLVkSUDtGdEZzja",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }]
+  },
+  "response_message":{
+    "content":"def set_message(self, lines):\n    if isinstance(lines, (list, tuple)):\n        text = \"\\n\".join(lines)\n    else:\n        text = str(lines)\n    self.message_text.set_text(text)\n    self.fig.canvas.draw_idle()",
+    "reasoning_content":"The user says: \"only join if it is a list, not if string\". They show code where set_message takes lines and joins them with \"\\n\". If lines is a string, joining will iterate characters. They want to only join if lines is a list, otherwise treat as string directly. So modify set_message to check isinstance(lines, list) or (list, tuple). If it's a list, join; else assume it's a string, use as is. Should preserve other code/comments. Provide the updated code snippet. Ensure no markdown formatting. Also follow developer instructions: no code fences, no comments at end of line, but internal comments are okay. Avoid trivial comments. Provide just the code modifications.\n\nWe need to edit function in segment_plotter.py. Show the function with modifications. Probably we should import typing for Union? Not needed.\n\nReturn final code without markdown.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  }
+}
