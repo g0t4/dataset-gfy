@@ -23,4 +23,8 @@ BTW... it is VERY important to verify what it fills in is legit... in the contex
 
 Also, this can be useful to avoid typing out long repo names.
 
+## recall-org-and-repo-plus-config-thread.json
 
+example of recalling both: org/repo
+
+plus in this case it gave me a config example
