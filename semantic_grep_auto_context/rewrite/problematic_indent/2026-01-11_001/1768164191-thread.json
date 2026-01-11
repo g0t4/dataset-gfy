@@ -1,0 +1,60 @@
+{
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"def set_message(self, lines):\n    if isinstance(lines, list):\n        text = \"\\n\".join(lines)\n    else:\n        text = str(lines)\n    self.message_text.set_text(text)\n    self.fig.canvas.draw_idle",
+    "reasoning_content":"Need to modify set_message to only join if lines is list, not string. So check isinstance(lines, list). If not, treat as string."
+  },
+  "request_body":{
+    "max_tokens":4096,
+    "model":"",
+    "messages":[{
+        "role":"system",
+        "content":"You are an expert coder. Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/tests/integration_tests.py:\n    def test_detect_first_taper_at_2s(self):\n\n.. yanked from auto_edit/new_silence/tests/integration_tests.py:\n    def test_detect_first_taper_at_2s(self):\n        # minute7@gap2.24s-2.69s\n        mark_breathing(self.analysis)\n        # TODO taper + breathe => double bounce rule\n        #  first bounce ~90ms\n        #  second is 320ms (breathing)\n        win2 = self.analysis.windows[0]\n        # assert win2s.breathing # TODO sub asserts on taper + breathing\n        first_min = pytest.approx(2.25625, 0.001)\n        assert win2.first_min.seconds == first_min\n        # TODO!!! middle minima assertion! ~ 2.33s\n        assert win2.last_min.seconds == pytest.approx(2.65, 0.1)\n\n        ctx = GapContext(win2, self.analysis.rms_slice_for_gap(win2), self.analysis)\n        LeftSpeechTaper_WithOptionalBreathe_Locator().locate(ctx)\n\n        assert len(win2.gap.crossovers) == 5\n        assert win2.gap.left_taper_end\n\n        end_of_taper_hump = pytest.approx(2.334, 0.001)\n        assert win2.gap.left_taper_end.time.seconds == end_of_taper_hump\n        # TODO now extend left_taper_end to go to the part past the first hump\n\n.. yanked from auto_edit/new_silence/tests/integration_tests.py:\n\n    def test_detect_first_taper_at_end(self):\n        # minute7@g\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/plot_helpers.py:293-341\ndef on_motion_notify_event(event: MouseEvent):\n        # PRN throttle this and cancel previous, would that help with timing?\n        messages = []\n        if event.inaxes is not None:\n            if event.xdata is not None and event.ydata is not None:\n\n                # * mouse coords\n                cursor_seconds = event.xdata\n                cursor_timecode = seconds_to_timecode(cursor_seconds, plotter.analysis.fps)\n                cursor_hops = plotter.analysis.to_hops(cursor_seconds)\n                cursor_db = event.ydata\n                cursor_frames = cursor_seconds * plotter.analysis.fps\n                x_width_seconds = plotter.get_x_limits().width\n                messages += [\n                    f\"x-axis width: {x_width_seconds:.4f}s\",  # ideally this would go elsewhere... fine for now\n                    # FYI try to put almost/always present messages at bottom\n                    f\"cursor: {cursor_timecode} | {cursor_seconds:.2f}s | {cursor_hops:,} hops | {cursor_frames:,.2f} frames\",\n                    f\"              {cursor_db:.1f}dB\",\n                ]\n\n                # * primary window segment\n                window = plotter.analysis.window_at_seconds(cursor_seconds)\n                if window:\n                    l = window.left_speech\n                    r = window.right_speech\n                    g = window.gap\n\n                    def show_relative(seg_start_sec, seg_end_sec):\n                        # show offset relative to primary window segment (i.e. to start/end of gap)\n                        from_sec = cursor_seconds - seg_start_sec\n                        to_sec = cursor_seconds - seg_end_sec\n                        from_hops = from_sec * plotter.analysis.hops_per_second()\n                        to_hops = to_sec * plotter.analysis.hops_per_second()\n                        messages.append(f\"     from start: {from_sec:.4f}s | {from_hops:,.1f} hops\")\n                        messages.append(f\"          to end: {to_sec:.4f}s | {to_hops:,.1f} hops\")\n\n                    if l and l.contains(cursor_seconds):\n                        # TODO standardize on function/property for start_seconds()/end_seconds()/duration_seconds() and cleanup duplication\n                        messages.append(f\"  [speech dur={l.duration_seconds:.2f}s ({l.start_seconds:.2f}s➜{l.end_seconds:.2f}s)]\")\n                        show_relative(l.start_seconds, l.end_seconds)\n                    elif r and r.contains(cursor_seconds):\n                        messages.append(f\"  [speech dur={r.duration_seconds:.2f}s ({r.start_seconds:.2f}s➜{r.end_seconds:.2f}s)]\")\n                        show_relative(r.start_seconds, r.end_seconds)\n                    elif g and g.contains(cursor_seconds):\n                        messages.append(f\"  [gap dur={g.duration_seconds():.2f}s ({g.start_seconds():.2f}s➜{g.end_seconds():.2f}s)]\")\n                        show_relative(g.start_seconds(), g.end_seconds())\n\n        plotter.set_message(messages)\n        event.canvas.draw_idle()\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/plot_helpers.py:0-17\nfrom pathlib import Path\nimport subprocess\nimport rich\nimport sounddevice as sd\nfrom matplotlib.axes import Axes\nfrom matplotlib.backend_bases import CloseEvent, KeyEvent, MouseEvent\nfrom matplotlib.collections import PathCollection\nfrom matplotlib.figure import Figure\nfrom matplotlib.lines import Line2D\n\nfrom auto_edit.new_silence.detect import AnalysisParams, create_analysis\nfrom auto_edit.new_silence.detects.humanize import seconds_to_timecode\nfrom auto_edit.new_silence.detects.segments import GapWindow\n\nfrom typing import TYPE_CHECKING\nif TYPE_CHECKING:\n    from .segment_plotter import SegmentPlotter\n\n\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/player/plot_helpers.py:25-31\n\n\nvisible_grid = False\n\ndef setup_events(plotter: \"SegmentPlotter\"):\n\n    \n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:116-130\ndef get_plot_message(self, fps: int) -> str:\n\n        start = seconds_to_timecode(self.start_seconds, fps)\n        end = seconds_to_timecode(self.end_seconds, fps)\n\n        rms = self.rms_values\n        min_val = float(rms.min())\n        mean_val = float(rms.mean())\n        max_val = float(rms.max())\n        rms_repr = f\"min={round(min_val, 1):5.1f} mean={round(mean_val, 1):5.1f} max={round(max_val, 1):5.1f}\"\n\n        return f\"{self.id:4} \" \\\n                f\"[{start}➜{end}) \" \\\n                f\"{self.label.value.lower():6} {self.duration_seconds:.3f}s \" \\\n                + rms_repr\n\n## ~/repos/github/g0t4/private-auto-edit-suggests/auto_edit/new_silence/detects/segments.py:80-137\n@dataclass\nclass DetectedSegment:\n    id: int\n    start_seconds: float  # PRN start: AVTime\n    end_seconds: float  # PRN end: AVTime\n    label: SegmentLabel\n    rms_values: RMSValues\n\n    @property\n    def duration_seconds(self) -> float:\n        return self.end_seconds - self.start_seconds\n\n    @property\n    def rms_summary(self) -> str:\n        rms = self.rms_values\n        min_val = float(rms.min())\n        mean_val = float(rms.mean())\n        max_val = float(rms.max())\n        # 5.1 ==> b/c one digit for - sign, two for tens/ones before decimal, one for decimal and one after decimal == 5 chars padding (notably to left pad single digit dB values so columns line up across segments when list is printed)\n        return f\"min={round(min_val, 1):5.1f} mean={round(mean_val, 1):5.1f} max={round(max_val, 1):5.1f} len={len(rms)}\"\n\n    def contains(self, seconds) -> bool:\n        return self.start_seconds <= seconds < self.end_seconds\n\n    def __repr__(self) -> str:\n        return self.__str__()\n\n    def __str__(self, no_color=False) -> str:\n\n        label = self.label.value.lower()\n        if not no_color:\n            label = colorize(self.label.value.lower(), self.plot_color())\n\n        # 4 for left padding id\n        return f\"{self.id:4} {label}: [{self.start_seconds:.3f}->{self.end_seconds:.3f}) {self.duration_seconds:.3f}s {self.rms_summary}\"\n\n    def get_plot_message(self, fps: int) -> str:\n\n        start = seconds_to_timecode(self.start_seconds, fps)\n        end = seconds_to_timecode(self.end_seconds, fps)\n\n        rms = self.rms_values\n        min_val = float(rms.min())\n        mean_val = float(rms.mean())\n        max_val = float(rms.max())\n        rms_repr = f\"min={round(min_val, 1):5.1f} mean={round(mean_val, 1):5.1f} max={round(max_val, 1):5.1f}\"\n\n        return f\"{self.id:4} \" \\\n                f\"[{start}➜{end}) \" \\\n                f\"{self.label.value.lower():6} {self.duration_seconds:.3f}s \" \\\n                + rms_repr\n\n    def plot_color(self) -> str:\n        return {\n            SegmentLabel.SILENCE: \"cornflowerblue\",\n            SegmentLabel.BREATH: \"magenta\",\n            SegmentLabel.SPEECH: \"red\",\n        }.get(self.label, \"green\")\n"
+      },{
+        "role":"user",
+        "content":"only join if it is a list, not if string\n\nHere is code I selected (with carefully preserved indentation) from auto_edit/new_silence/player/segment_plotter.py:\n    def set_message(self, lines):\n        text = \"\\n\".join(lines)\n        self.message_text.set_text(text)\n        self.fig.canvas.draw_idle()\n"
+      }],
+    "stream":true,
+    "top_p":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1
+  },
+  "last_sse":{
+    "created":1768164191,
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_per_token_ms":4.1746976744186,
+      "cache_n":2517,
+      "prompt_per_second":313.67628607277,
+      "prompt_n":1,
+      "predicted_per_second":239.53830384598,
+      "predicted_n":86,
+      "prompt_ms":3.188,
+      "prompt_per_token_ms":3.188,
+      "predicted_ms":359.024
+    },
+    "id":"chatcmpl-DWodSNQkSNuE5ylvYeokNaZtj1L08xqa",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  }
+}
