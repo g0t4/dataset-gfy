@@ -1,0 +1,53 @@
+{
+  "response_message":{
+    "reasoning_content":"We need to fill code under if win.gap.left_taper_end: likely similar to else block but using left_end_frame = round(...). Probably left_end_frame = round(win.gap.left_taper_end.frame_aligned_at_seconds * fps). So insert that line.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"                left_end_frame = round(win.gap.left_taper_end.frame_aligned_at_seconds * fps) "
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1,
+    "max_tokens":4096,
+    "stream":true,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position marked with: <|fim_middle|>\nThe surrounding code is limited to X lines above/below the cursor, so it may not be the full file. Focus on the code near <|fim_middle|>Do NOT explain your decisions. Do NOT return markdown blocks ```\nDo NOT repeat surrounding code (suffix/prefix)\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace.\nYOU ARE ONLY INSERTING CODE, DO NOT REPEAT PREFIX/SUFFIX. Think about overlap before finishing your thoughts.\n\nFor example, if you see this in a python file:\ndef adder(a, b):\n    return <|fim_middle|> + b\n\nThe correct completion is:\na\n\nNOT:\na + b\n\nand NOT:\n    return a + b\n\nMake sure to practice the code change before you return a suggestion. Take the cursor line (at least) and type it out with the new code and make sure it is valid, correct code.\n",
+        "role":"developer"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: private-auto-edit-suggests\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+        "role":"user"
+      },{
+        "content":"Please complete <|fim_middle|> in the following code (which has carefully preserved indentation):\nimport numpy as np\nimport rich\nfrom auto_edit.new_silence.detects.segments import AudioAnalysisResult, GapWindow, SegmentLabel\nfrom auto_edit.ranges import ContentRange, FrameRange, SilenceRange\n\ndef get_ranges(analysis: AudioAnalysisResult) -> list[FrameRange]:\n    all: list[FrameRange] = []\n\n    fps = analysis.fps\n    last_win = analysis.windows[-1]\n    prev_win = None\n    for win in analysis.windows:\n        # TODO! adjust for new crossover minima and subsequent sub-segmentation\n        #  i.e. first_min/last_min => left speech taper_end (gap's first minima)\n        #    right speech rampup_begin (gap's last minima)... but, no issues with noise gate on rampup so this isn't necessary\n\n        left = win.left_speech\n        left_end_frame = None\n        if left:\n            if prev_win and prev_win.last_min:\n                assert prev_win.right_speech == win.left_speech\n                left_start_frame = round(prev_win.last_min.frame_aligned_at_seconds * fps)  # round b/c this is an exact frame\n                # if I use int() instead of round... then 23.9999 becomes 23 when it s/b 24 for aligned frames b/c aligned is always off only by tiny sliver\n            else:\n                left_start_frame = round(left.start_seconds * fps)\n            if win.gap.left_taper_end:\n                <|fim_middle|>\n            else:\n                left_end_frame = round(win.first_min.frame_aligned_at_seconds * fps)  # round b/c this is an exact frame\n            left_content = ContentRange(left_start_frame, left_end_frame)\n            all.append(left_content)\n\n        right = win.right_speech\n        right_start_frame = None\n        if right:\n            right_start_frame = round(win.last_min.frame_aligned_at_seconds * fps)  # round b/c this is an exact frame\n            right_end_frame = round(right.end_seconds * fps)\n            right_content = ContentRange(right_start_frame, right_end_frame)\n\n        silence_start_frame = left_end_frame or round(win.gap.segments[0].start_seconds * fps)\n        silence_end_frame = right_start_frame or round(win.gap.segments[-1].end_seconds * fps)\n\n        silence = SilenceRange(silence_start_frame, silence_end_frame)\n\n        # for now, only mute if detected breathing... if unknown or flagged as not breathing (False) then don't mute it\n        silence.dampen = win.breathing == True\n\n        all.append(silence)\n        if right and win == last_win:\n            all.append(right_content)\n\n        prev_win = win\n\n    return all",
+        "role":"user"
+      }],
+    "raw":false,
+    "model":"gpt-oss:120b",
+    "options":[],
+    "top_p":1
+  },
+  "last_sse":{
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "system_fingerprint":"b7616-18ddaea2a",
+    "timings":{
+      "predicted_per_second":235.14339693016,
+      "predicted_n":87,
+      "prompt_per_second":3279.2586887934,
+      "prompt_per_token_ms":0.30494696969697,
+      "prompt_n":264,
+      "prompt_ms":80.506,
+      "cache_n":810,
+      "predicted_ms":369.987,
+      "predicted_per_token_ms":4.252724137931
+    },
+    "created":1768190468,
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-vJgcSwHCqTmDZzhYqEEp4dTzw1EyxyHe"
+  }
+}
