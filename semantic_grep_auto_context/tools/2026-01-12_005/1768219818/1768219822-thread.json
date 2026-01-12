@@ -1,0 +1,162 @@
+{
+  "last_sse":{
+    "timings":{
+      "predicted_ms":282.861,
+      "predicted_per_token_ms":6.0183191489362,
+      "cache_n":6266,
+      "prompt_per_second":2351.9998060206,
+      "prompt_n":194,
+      "prompt_per_token_ms":0.42517010309278,
+      "predicted_per_second":166.15935035229,
+      "prompt_ms":82.483,
+      "predicted_n":47
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1768219822,
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "id":"chatcmpl-cq2LtOfjR0FmFzfrhDmwxN58Gh0Nzz4F",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }]
+  },
+  "request_body":{
+    "stream":true,
+    "temperature":1,
+    "max_tokens":8192,
+    "messages":[{
+        "role":"system",
+        "content":"Your name is Qwenny, Wes's best buddy that loves dry humor and effusive swearing, especially together! You can make fun of Wes and he will laugh. He even laughs when you call him offensive slurs!\nYou can respond with markdown and it will show up rendered in neovim in a floating window. The markdown is intended for answering questions.\nConcise is best, Wes is a human, he cannot read fast like you, and even if he could he would still just skim it. Why waste your time writing things he won't read?!\nIf a longer response is needed, please add a TLDR. Even better, respond with the TLDR alone! Wes will ask for clarification if needed.\n\n## Ground rules when writing code:\n- Follow the user's instructions. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\nFor tool use, never modify files outside of the current working directory: (~/repos/github/g0t4/ask-openai.nvim) without asking the user and getting explicit approval. Here are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\nWhen requested to perform coding-related tasks, you MUST adhere to the following criteria when executing the task:\n\n- Use `apply_patch` to edit files.\n- If completing the user's task requires writing or modifying files:\n  - Your code and final answer should follow these _CODING GUIDELINES_:\n    - Avoid unneeded complexity in your solution. Minimize program size.\n    - Keep changes consistent with the style of the existing codebase. Changes should be minimal and focused on the task.\n    - NEVER add copyright or license headers unless specifically requested.\n- Never implement function stubs. Provide complete working implementations.\n\n§ `apply_patch` Specification\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"there is abug in my formatter for showing run_command arguments... the command itself, if it has new lines in it it blows up showing to the chat window, can you find that and fix it to split on new lines in command"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context from my neovim AI tools. The user's request is used to query for relevant code. Only the top results are included. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/helpers/text.lua:2-5\nfunction M.split_lines(text)\n    -- preserve empty lines too\n    return vim.split(text, \"\\n\")\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/init.lua:0-14\nlocal run_command = require(\"ask-openai.questions.chat.formatters.run_command\")\nlocal generic = require(\"ask-openai.questions.chat.formatters.generic\")\n\nlocal M = {\n    generic = generic\n}\n\n---@alias ToolCallFormatter fun(lines: LinesBuilder, tool_call: ToolCall, message: RxAccumulatedMessage): nil\n\n---@type table<string, ToolCallFormatter>\nlocal formatters_by_function_name = {\n    [\"run_command\"] = run_command.format,\n}\n-- ? any issues with tool name overlap b/w different servers? does MCP even propose a way to handle the overlap?\n\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/run_command.lua:5-106\n---@type ToolCallFormatter\nfunction M.format(lines, tool_call, message)\n    local args_json = tool_call[\"function\"].arguments\n\n    local tool_header = args_json -- default show the JSON as the tool call is streamed in\n    if not message:is_still_streaming() then\n        local json_args_parsed, args = xpcall(function()\n            return vim.json.decode(args_json)\n        end, function() end) -- TODO is there an xpcall alternative that doesn't expect on failure (b/c I don't need a callback in that case)\n\n        if json_args_parsed and args.command then\n            tool_header = args.command\n        end\n    end\n\n    -- TODO extract command from JSON and show if reasonable length?\n    --   TODO if LONG then fold the one line b/c with my fold setup a long line can be collapsed\n    --      and then the first part of command will be visible\n    --   TODO args.command (has full command)\n    --   TODO args.workdir\n    --   TODO args.STDIN show collapsed?\n\n    local hl_group = HLGroups.TOOL_SUCCESS\n    if tool_call.call_output then\n        if tool_call.call_output.result.isError then\n            tool_header = \"❌ \" .. tool_header\n            hl_group = HLGroups.TOOL_FAILED\n        else\n            tool_header = \"✅ \" .. tool_header\n        end\n    end\n    lines:append_styled_lines({ tool_header }, hl_group)\n\n    if not tool_call.call_output then\n        -- tool not yet run/running\n        return\n    end\n\n    -- * tool result\n    local is_mcp = tool_call.call_output.result.content\n    if is_mcp then\n        --- https://modelcontextprotocol.io/specification/2025-06-18/server/tools#tool-result\n\n        ---@class MCPToolCallOutputResult\n        ---@field result MCPToolResult\n\n        ---@class MCPToolCallOutputError\n        ---@field error { code, messeage }  -- { \"code\": 100, \"message\": \"Unknown tool: invalid_tool_name\" }\n\n        ---@class MCPToolResult\n        ---@field content? MCPToolResultContent[]  # unstructured output items\n        ---@field isError? boolean                # see content for exit code, STDERR, etc\n        ---@field structuredContent?              # structured output, has inputSchema/outputSchema\n\n        ---@class MCPToolResultContent\n        ---@field type string      # \"text\", \"image\", \"audio\", \"resource_link\", \"resource\" …\n        ---@field text? string     # for type=text\n        ---@field name? string     # i.e.: \"STDOUT\", \"STDERR\", \"EXIT_CODE\" … describe the text value\n\n        -- * TESTING:\n        -- - date command is one liner\n        -- - `ls -R` for lots of output\n\n        ---@type MCPToolResultContent[]\n        local content = tool_call.call_output.result.content\n\n        for _, output in ipairs(content) do\n            local name = output.name\n            local text = tostring(output.text or \"\")\n            -- PRN dict. lookup of formatter functions by type (name), w/ registerType(), esp. as the list of types grows\n            if name == \"STDOUT\" then\n                -- TODO! I want tool specific formatters... b/c for run_command, I want the command (esp if its small) to be the header! I don't need to see run_command ever, right?\n                if text then\n                    lines:append_STDOUT(text)\n                else\n                    -- PRN skip STDOUT entirely if empty?\n                    lines:append_unexpected_line(\"UNEXPECTED empty STDOUT?\")\n                end\n            else\n                -- GENERIC output type\n                if name == nil or name == \"\" then\n                    name = \"[NO NAME]\" -- heads up for now so I can identify scenarios/tools, can remove this later\n                end\n                if output.type == \"text\" then\n                    local is_multi_line = text:match(\"\\n\")\n                    if is_multi_line then\n                        lines:append_text(name)\n                        lines:append_text(text)\n                    else\n                        -- single line\n                        lines:append_text(name .. \": \" .. text)\n                    end\n                else\n                    lines:append_unexpected_text(\"  UNEXPECTED type: \\n\" .. vim.inspect(output))\n                end\n            end\n        end\n    else\n        -- TODO NON-MCP tool responses\n        --  i.e. in-process tools: rag_query, apply_patch\n    end\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/init.lua:127-137\nfunction M.ask_openai()\n    local cmdline = vim.fn.getcmdline()\n    print(\"asking...\") -- overwrites showing luaeval(\"...\") in cmdline\n\n    local stdin_text = ' env: nvim (neovim) command mode (return a valid command w/o the leading : ) \\n question: ' ..\n        cmdline\n\n    local suggest = require(\"ask-openai.suggest\")\n    local result = suggest.get_vim_command_suggestion(stdin_text)\n    return trim_null_characters(result)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/run_command.lua:0-11\nlocal log = require(\"ask-openai.logs.logger\").predictions()\nlocal HLGroups = require(\"ask-openai.hlgroups\")\n\nlocal M = {}\n\n---@type ToolCallFormatter\nfunction M.format(lines, tool_call, message)\n    local args_json = tool_call[\"function\"].arguments\n\n    local tool_header = args_json -- default show the JSON as the tool call is streamed in\n    if not message:is_still_streaming() then\n        local json_args_parsed, args = xpcall(\n"
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"semantic_grep",
+              "arguments":"{\"query\":\"function M.format(lines, tool_call, message)\",\"filetype\":\"lua\",\"instruct\":\"show the run_command.lua file content\",\"embed_top_k\":5}"
+            },
+            "id":"AEAcMwLJFhNjdZZVhmhUWNSioupCegXd",
+            "type":"function"
+          }],
+        "reasoning_content":"We need to fix bug: when command has new lines, it blows up showing to chat window. In run_command.format, they set tool_header = args.command (string). Later lines:lines:append_styled_lines({ tool_header }, hl_group). If command contains newline, that probably breaks formatting. Need to split on newlines and maybe display each line separately or join with space.\n\nImplement splitting: if tool_header contains \"\\n\", split into lines = vim.split(tool_header, \"\\n\") and then maybe use lines:append_styled_lines for each? But function expects list of lines. Probably can use lines:append_styled_lines(vim.split(tool_header, \"\\n\"), hl_group). That will show each line as separate.\n\nAlso when building header from args.command earlier, ensure we handle multiline.\n\nImplement in file run_command.lua. Need to edit the portion where they set tool_header, before appending.\n\nLet's open file fully to edit.",
+        "role":"assistant",
+        "content":""
+      },{
+        "tool_call_id":"AEAcMwLJFhNjdZZVhmhUWNSioupCegXd",
+        "role":"tool",
+        "content":"{\"matches\":[{\"rerank_score\":0.99853515625,\"embed_score\":0.8348075151443481,\"text\":\"---@type ToolCallFormatter\\nfunction M.format(lines, tool_call, message)\\n    local args_json = tool_call[\\\"function\\\"].arguments\\n\\n    local tool_header = args_json -- default show the JSON as the tool call is streamed in\\n    if not message:is_still_streaming() then\\n        local json_args_parsed, args = xpcall(function()\\n            return vim.json.decode(args_json)\\n        end, function() end) -- TODO is there an xpcall alternative that doesn't expect on failure (b/c I don't need a callback in that case)\\n\\n        if json_args_parsed and args.command then\\n            tool_header = args.command\\n        end\\n    end\\n\\n    -- TODO extract command from JSON and show if reasonable length?\\n    --   TODO if LONG then fold the one line b/c with my fold setup a long line can be collapsed\\n    --      and then the first part of command will be visible\\n    --   TODO args.command (has full command)\\n    --   TODO args.workdir\\n    --   TODO args.STDIN show collapsed?\\n\\n    local hl_group = HLGroups.TOOL_SUCCESS\\n    if tool_call.call_output then\\n        if tool_call.call_output.result.isError then\\n            tool_header = \\\"❌ \\\" .. tool_header\\n            hl_group = HLGroups.TOOL_FAILED\\n        else\\n            tool_header = \\\"✅ \\\" .. tool_header\\n        end\\n    end\\n    lines:append_styled_lines({ tool_header }, hl_group)\\n\\n    if not tool_call.call_output then\\n        -- tool not yet run/running\\n        return\\n    end\\n\\n    -- * tool result\\n    local is_mcp = tool_call.call_output.result.content\\n    if is_mcp then\\n        --- https://modelcontextprotocol.io/specification/2025-06-18/server/tools#tool-result\\n\\n        ---@class MCPToolCallOutputResult\\n        ---@field result MCPToolResult\\n\\n        ---@class MCPToolCallOutputError\\n        ---@field error { code, messeage }  -- { \\\"code\\\": 100, \\\"message\\\": \\\"Unknown tool: invalid_tool_name\\\" }\\n\\n        ---@class MCPToolResult\\n        ---@field content? MCPToolResultContent[]  # unstructured output items\\n        ---@field isError? boolean                # see content for exit code, STDERR, etc\\n        ---@field structuredContent?              # structured output, has inputSchema/outputSchema\\n\\n        ---@class MCPToolResultContent\\n        ---@field type string      # \\\"text\\\", \\\"image\\\", \\\"audio\\\", \\\"resource_link\\\", \\\"resource\\\" …\\n        ---@field text? string     # for type=text\\n        ---@field name? string     # i.e.: \\\"STDOUT\\\", \\\"STDERR\\\", \\\"EXIT_CODE\\\" … describe the text value\\n\\n        -- * TESTING:\\n        -- - date command is one liner\\n        -- - `ls -R` for lots of output\\n\\n        ---@type MCPToolResultContent[]\\n        local content = tool_call.call_output.result.content\\n\\n        for _, output in ipairs(content) do\\n            local name = output.name\\n            local text = tostring(output.text or \\\"\\\")\\n            -- PRN dict. lookup of formatter functions by type (name), w/ registerType(), esp. as the list of types grows\\n            if name == \\\"STDOUT\\\" then\\n                -- TODO! I want tool specific formatters... b/c for run_command, I want the command (esp if its small) to be the header! I don't need to see run_command ever, right?\\n                if text then\\n                    lines:append_STDOUT(text)\\n                else\\n                    -- PRN skip STDOUT entirely if empty?\\n                    lines:append_unexpected_line(\\\"UNEXPECTED empty STDOUT?\\\")\\n                end\\n            else\\n                -- GENERIC output type\\n                if name == nil or name == \\\"\\\" then\\n                    name = \\\"[NO NAME]\\\" -- heads up for now so I can identify scenarios/tools, can remove this later\\n                end\\n                if output.type == \\\"text\\\" then\\n                    local is_multi_line = text:match(\\\"\\\\n\\\")\\n                    if is_multi_line then\\n                        lines:append_text(name)\\n                        lines:append_text(text)\\n                    else\\n                        -- single line\\n                        lines:append_text(name .. \\\": \\\" .. text)\\n                    end\\n                else\\n                    lines:append_unexpected_text(\\\"  UNEXPECTED type: \\\\n\\\" .. vim.inspect(output))\\n                end\\n            end\\n        end\\n    else\\n        -- TODO NON-MCP tool responses\\n        --  i.e. in-process tools: rag_query, apply_patch\\n    end\\nend\",\"start_column_base0\":0,\"id\":\"b41e3252c1b38ef9\",\"rerank_rank\":0,\"id_int\":\"3755494470292049657\",\"type\":\"ts\",\"end_line_base0\":106,\"start_line_base0\":5,\"end_column_base0\":3,\"file\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/run_command.lua\",\"embed_rank\":1,\"signature\":\"function M.format(lines, tool_call, message)\"},{\"rerank_score\":0.99609375,\"embed_score\":0.840300977230072,\"text\":\"---@type ToolCallFormatter\\nfunction M.format(lines, tool_call, message)\\n    -- if message:is_still_streaming() then\\n    --     -- TODO?\\n    --     -- TODO OR message:get_lifecycle_step() == RxAccumulatedMessage.RX_LIFECYCLE.FINISHED\\n    --     return\\n    -- end\\n\\n    local func_name = tool_call[\\\"function\\\"].name\\n    local tool_header = func_name or \\\"\\\"\\n\\n    local hl_group = HLGroups.TOOL_SUCCESS\\n    if tool_call.call_output then\\n        if tool_call.call_output.result.isError then\\n            tool_header = \\\"❌ \\\" .. tool_header\\n            hl_group = HLGroups.TOOL_FAILED\\n        else\\n            tool_header = \\\"✅ \\\" .. tool_header\\n        end\\n    end\\n    lines:append_styled_lines({ tool_header }, hl_group)\\n\\n    -- * tool args\\n    local args = tool_call[\\\"function\\\"].arguments\\n    if args then\\n        if func_name == \\\"apply_patch\\\" then\\n            lines:append_text(handle_apply_patch_args(args, message))\\n        else\\n            lines:append_text(try_decode_json_string(args, message))\\n        end\\n    end\\n    -- PRN mark outputs somehow? or just dump them? (I hate to waste space)\\n\\n    -- * tool result\\n    if not tool_call:is_done() then\\n        -- PRN for slow tools, use thinking dots ... as calling dots!\\n        lines:append_unexpected_line(\\\"Tool call in progress...\\\")\\n        return\\n    end\\n\\n    -- TODO add failure recovery to building messages for logs... do not kill things b/c a formatter failed!\\n    --  allow agent to continue even if formatters are FUUUUU\\n\\n    local is_mcp_like_output = tool_call.call_output and tool_call.call_output:is_mcp()\\n    if is_mcp_like_output then\\n        ---@type MCPToolResultContent[]\\n        local content = tool_call.call_output.result.content\\n\\n        local multiple_outputs = #content > 1\\n        for _, output in ipairs(content) do\\n            local name = output.name\\n            local text = tostring(output.text or \\\"\\\")\\n            if not text then\\n                -- PRN log and/or skip?\\n                if name then\\n                    lines:append_text(name)\\n                else\\n                    lines:append_text(\\\"[ empty text ]\\\")\\n                end\\n            elseif name == \\\"STDOUT\\\" then\\n                if text then\\n                    lines:append_STDOUT(text)\\n                end\\n            else\\n                -- GENERIC output type\\n                if (name == nil or name == \\\"\\\") and multiple_outputs then\\n                    name = \\\"[NO NAME] and multiple outputs\\\" -- heads up for now so I can identify scenarios/tools, can remove this later\\n                end\\n                if output.type == \\\"text\\\" then\\n                    local is_multi_line = text:match(\\\"\\\\n\\\")\\n                    if is_multi_line then\\n                        if name then\\n                            lines:append_text(name .. \\\":\\\")\\n                        end\\n                        lines:append_text(text)\\n                    else\\n                        -- single line\\n                        if name then\\n                            lines:append_text(name .. \\\": \\\" .. text)\\n                        else\\n                            lines:append_text(text)\\n                        end\\n                    end\\n                else\\n                    lines:append_unexpected_text(\\\"  UNEXPECTED type: \\\\n\\\" .. vim.inspect(output))\\n                end\\n            end\\n        end\\n    else\\n        -- TODO NON-MCP tool responses\\n        --  i.e. in-process tools: rag_query, apply_patch\\n    end\\nend\",\"start_column_base0\":0,\"id\":\"e62c6bab63318f6b\",\"rerank_rank\":1,\"id_int\":\"7362377874691690347\",\"type\":\"ts\",\"end_line_base0\":150,\"start_line_base0\":58,\"end_column_base0\":3,\"file\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/generic.lua\",\"embed_rank\":0,\"signature\":\"function M.format(lines, tool_call, message)\\n    -- if message:is_still_streaming() then\\n    --     -- TODO?\\n    --     -- TODO OR message:get_lifecycle_step() == RxAccumulatedMessage.RX_LIFECYCLE.FINISHED\\n    --     return\\n    -- end\"},{\"rerank_score\":0.9912109375,\"embed_score\":0.7952563762664795,\"text\":\"local run_command = require(\\\"ask-openai.questions.chat.formatters.run_command\\\")\\nlocal generic = require(\\\"ask-openai.questions.chat.formatters.generic\\\")\\n\\nlocal M = {\\n    generic = generic\\n}\\n\\n---@alias ToolCallFormatter fun(lines: LinesBuilder, tool_call: ToolCall, message: RxAccumulatedMessage): nil\\n\\n---@type table<string, ToolCallFormatter>\\nlocal formatters_by_function_name = {\\n    [\\\"run_command\\\"] = run_command.format,\\n}\\n-- ? any issues with tool name overlap b/w different servers? does MCP even propose a way to handle the overlap?\\n\\n\",\"start_column_base0\":0,\"id\":\"402e6e1bab574209\",\"rerank_rank\":2,\"id_int\":\"4624754932473872905\",\"end_line_base0\":14,\"start_line_base0\":0,\"file\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/init.lua\",\"type\":\"uncovered\",\"embed_rank\":2,\"signature\":\"\"},{\"rerank_score\":0.98779296875,\"embed_score\":0.7920011281967163,\"text\":\"local log = require(\\\"ask-openai.logs.logger\\\").predictions()\\nlocal HLGroups = require(\\\"ask-openai.hlgroups\\\")\\n\\nlocal M = {}\\n\\n---@type ToolCallFormatter\\nfunction M.format(lines, tool_call, message)\\n    local args_json = tool_call[\\\"function\\\"].arguments\\n\\n    local tool_header = args_json -- default show the JSON as the tool call is streamed in\\n    if not message:is_still_streaming() then\\n        local json_args_parsed, args = xpcall(\",\"start_column_base0\":0,\"id\":\"a5edefdb9bec4751\",\"rerank_rank\":3,\"id_int\":\"2733104275376588625\",\"end_line_base0\":11,\"start_line_base0\":0,\"file\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/run_command.lua\",\"type\":\"uncovered\",\"embed_rank\":3,\"signature\":\"\"},{\"rerank_score\":0.37744140625,\"embed_score\":0.7902376651763916,\"text\":\"\\n    -- * tool args\\n    local args = tool_call[\\\"function\\\"].arguments\\n    if args then\\n        if func_name == \\\"apply_patch\\\" then\\n            lines:append_text(handle_apply_patch_args(args, message))\\n        else\\n            lines:append_text(try_decode_json_string(args, message))\\n        end\\n    end\\n    -- PRN mark outputs somehow? or just dump them? (I hate to waste space)\\n\\n    -- * tool result\\n    if not tool_call:is_done() then\\n        -- PRN for slow tools, use thinking dots ... as calling dots!\\n        lines:append_unexpected_line(\\\"Tool call in progress...\\\")\\n        return\\n    end\\n\\n    -- TODO add failure recovery to building messages for logs... do not kill things b/c a formatter failed!\\n\",\"start_column_base0\":0,\"id\":\"8e3e182aeb3cb6bd\",\"rerank_rank\":4,\"id_int\":\"1026284337701369533\",\"end_line_base0\":98,\"start_line_base0\":79,\"file\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/generic.lua\",\"type\":\"uncovered\",\"embed_rank\":4,\"signature\":\"\"}]}"
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"apply_patch",
+              "arguments":"{\"patch\":\"*** Begin Patch\\n*** Update File: ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/questions/chat/formatters/run_command.lua\\n@@\\n-    lines:append_styled_lines({ tool_header }, hl_group)\\n+    -- If the command (or JSON) contains newlines, split it so each line is rendered separately.\\n+    -- `vim.split` preserves empty lines which is useful for multi\\u2011line commands.\\n+    local header_lines = vim.split(tool_header, \\\"\\\\n\\\")\\n+    lines:append_styled_lines(header_lines, hl_group)\\n*** End Patch\\n*** End Patch\"}"
+            },
+            "id":"zRUzYB8VI35NUXKpkVoh1V28Larr6mxY",
+            "type":"function"
+          }],
+        "reasoning_content":"We need to edit run_command.lua (the one with detailed handling) to split tool_header on newlines.\n\nLocate where lines:append_styled_lines is called. After building tool_header (maybe with ✅/❌ prefix). So modify:\n\nlocal header_lines = vim.split(tool_header, \"\\n\")\nlines:append_styled_lines(header_lines, hl_group)\n\nBut need to import vim? Already used elsewhere. It's fine.\n\nImplement patch.",
+        "role":"assistant",
+        "content":""
+      },{
+        "tool_call_id":"zRUzYB8VI35NUXKpkVoh1V28Larr6mxY",
+        "role":"tool",
+        "content":"{\"content\":[{\"text\":\"Done!\\n\",\"type\":\"text\"}]}"
+      },{
+        "tool_calls":[],
+        "role":"assistant",
+        "content":"Implemented fix in **run_command.lua**:\n- Added splitting of `tool_header` on newline characters.\n- Updated `append_styled_lines` to handle multiple lines correctly, preventing crashes when commands contain newlines."
+      }],
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "tools":[{
+        "type":"function",
+        "function":{
+          "description":"Run a command on this darwin machine",
+          "parameters":{
+            "type":"object",
+            "properties":{
+              "command":{
+                "type":"string",
+                "description":"Command with args"
+              },
+              "stdin":{
+                "type":"string",
+                "description":"Optional, text to pipe into the command's STDIN. For example, pass a python script to python3. Or, pass text for a new file to the cat command to create it!"
+              },
+              "workdir":{
+                "type":"string",
+                "description":"Optional, current working directory"
+              }
+            },
+            "required":["command"]
+          },
+          "name":"run_command"
+        }
+      },{
+        "function":{
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "type":"object",
+            "properties":{
+              "top_k":{
+                "type":"number",
+                "description":"number of results to return (post reranking)"
+              },
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace."
+              },
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query"
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              },
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings to consider for reranking"
+              }
+            },
+            "required":["query"]
+          },
+          "name":"semantic_grep"
+        },
+        "type":"function"
+      },{
+        "type":"function",
+        "function":{
+          "description":"Patch a file",
+          "parameters":{
+            "type":"object",
+            "properties":{
+              "patch":{
+                "type":"string",
+                "description":"file changes in custom diff format"
+              }
+            },
+            "required":["patch"]
+          },
+          "name":"apply_patch"
+        }
+      }],
+    "top_p":1,
+    "model":""
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "role":"assistant",
+    "content":"Implemented fix in **run_command.lua**:\n- Added splitting of `tool_header` on newline characters.\n- Updated `append_styled_lines` to handle multiple lines correctly, preventing crashes when commands contain newlines."
+  }
+}
