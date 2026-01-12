@@ -1,0 +1,51 @@
+{
+  "request_body":{
+    "temperature":1,
+    "stream":true,
+    "max_tokens":8192,
+    "model":"",
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"these are my lua code preferences, I need to make a new file with fish shell code preferences, can you think of the same ideas but how I would want them in fish shell scripts isntead?\n\nHere is the code I selected:\n```.config/ask-openai/context/filetypes/fish.md\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "top_p":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    }
+  },
+  "last_sse":{
+    "id":"chatcmpl-JUEdVZSDIZHzgrrhdZXMm1LzxmmlPsqk",
+    "created":1768190889,
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_per_token_ms":0.21376363636364,
+      "predicted_ms":2748.904,
+      "predicted_per_token_ms":4.0967272727273,
+      "predicted_per_second":244.09728386295,
+      "predicted_n":671,
+      "prompt_per_second":4678.0641320065,
+      "cache_n":0,
+      "prompt_ms":94.056,
+      "prompt_n":440
+    }
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "content":"```fish\n# .config/ask-openai/context/filetypes/fish.md\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for custom commands or modules.\n\nCondition extraction\n- When a condition is ambiguous, assign it to a well‑named variable before the `if`.\n\nExamples\n\n# Documentation style (similar to EmmyLua annotations)\n# @param names string[]   List of names\n# @param checker function Function that receives a name and returns a boolean\n# @return table<string, integer>\nfunction process_names --argument-names names checker\n    # Example of extracting an ambiguous condition\n    set -l is_blank_line (string match -r '^\\s*$' \"$line\")\n    if test $is_blank_line\n        # ...\n    end\n    # Function body goes here\nend\n\n# Example of a PascalCase module/command\nfunction MyUtilityCommand\n    # ...\nend\n```",
+    "reasoning_content":"We need to produce fish shell code preferences analogous to the Lua preferences described. Should follow the user's request: \"think of the same ideas but how I would want them in fish shell scripts\". Provide a new file with fish shell code preferences. Should preserve indentation (though it's a new file). Should not add extra comments at end of lines, no stupid comments. Provide code only (no explanations). So we output a markdown code block with file path maybe? The user gave a path .config/ask-openai/context/filetypes/fish.md. We should produce fish preferences similar to naming, type hints (fish doesn't have types, but maybe we can talk about documentation/comments). Provide guidelines: snake_case for functions/variables, PascalCase for classes? fish doesn't have classes, but maybe we can talk about using capitalized for custom commands? Provide example of function definitions and usage, comment style. Use functions with `function name` and `end`. Use meaningful variable names, extract ambiguous conditions into variables. Provide example of extracting condition variable. Provide example of documentation with fish's `#` comments, maybe use docstring style.\n\nWe should not add explanations outside code. Just provide the preferences in fish markdown file. The user wants code, not prose. So we produce a fish.md file content with bullet points, code examples. That's acceptable as code? It's a markdown file with comments? Probably okay. Provide as a code block with the file path as heading.\n\nLet's craft:\n\n```.config/ask-openai/context/filetypes/fish.md\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for custom commands or modules.\n\nCondition extraction\n- When a condition is ambiguous, assign it to a well‑named variable before the `if`.\n\nExamples:\nfunction process_names --argument-names names checker\n    # ambiguous condition\n    set -l is_blank_line (string match -r '^\\s*$' \"$line\")\n    if test $is_blank_line\n        # ...\n    end\nend\n\n# Documentation style\n# @param names string[] - list of names\n# @param checker function - takes a name and returns boolean\n# @return table<string, integer>\nfunction process_names --argument-names names checker\n    # implementation\nend\n```\n\nMake sure indentation preserved. Provide code block only.",
+    "role":"assistant"
+  }
+}
