@@ -1,0 +1,53 @@
+{
+  "last_sse":{
+    "timings":{
+      "prompt_n":1379,
+      "cache_n":569,
+      "prompt_ms":401.737,
+      "prompt_per_token_ms":0.29132487309645,
+      "predicted_ms":594.455,
+      "predicted_per_token_ms":5.4537155963303,
+      "prompt_per_second":3432.5939607255,
+      "predicted_per_second":183.36123003423,
+      "predicted_n":109
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "system_fingerprint":"b7616-18ddaea2a",
+    "object":"chat.completion.chunk",
+    "created":1768343756,
+    "id":"chatcmpl-b5cdLDTs082xairZ4AIN9qknGMKG9xZI"
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to fill if condition. Probably check if count_begins > 1 else just run single apply? Probably if count_begins <=1: just apply whole content. So:\n\nif count_begins <= 1:\n    subprocess.run([\"apply_patch\"], input=content, text=True, check=True)\n    return\n\nThus fill.",
+    "role":"assistant",
+    "content":"if count_begins <= 1:\n    subprocess.run([\"apply_patch\"], input=content, text=True, check=True)\n    return"
+  },
+  "request_body":{
+    "options":[],
+    "top_p":1,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "max_tokens":4096,
+    "model":"gpt-oss:120b",
+    "stream":true,
+    "messages":[{
+        "role":"developer",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position marked with: <|fim_middle|>\nThe surrounding code is limited to X lines above/below the cursor, so it may not be the full file. Focus on the code near <|fim_middle|>Do NOT explain your decisions. Do NOT return markdown blocks ```\nDo NOT repeat surrounding code (suffix/prefix)\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace.\nYOU ARE ONLY INSERTING CODE, DO NOT REPEAT PREFIX/SUFFIX. Think about overlap before finishing your thoughts.\n\nFor example, if you see this in a python file:\ndef adder(a, b):\n    return <|fim_middle|> + b\n\nThe correct completion is:\na\n\nNOT:\na + b\n\nand NOT:\n    return a + b\n\nMake sure to practice the code change before you return a suggestion. Take the cursor line (at least) and type it out with the new code and make sure it is valid, correct code.\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n\n## Recent yanks across all files in the project:\n.. yanked from lua/ask-openai/tools/inproc/test-multi-patch.patch:\n*** Begin Patch\n\n.. yanked from lua/ask-openai/tools/inproc/test-multi-patch.patch:\n*** Begin Patch\n*** End Patch\n\n\n\n# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/ask-openai.nvim/tests/manual_prompting/jetbrains_mellum/base/file_level_fim.py:0-13\nfrom show import show_completion_for\n\nrequest_body = {\n    \"prompt\": \"<fim_prefix>local M = {}\\n\\nfunction M.add(a, b)\\n    return a + b\\nend\\n\\n<fim_suffix>\\n\\n\\nreturn M<fim_middle>\",\n    \"options\": {\n        \"num_ctx\": 8192\n    },\n    \"raw\": True,\n    \"num_predict\": 200,\n    \"stream\": False,\n    \"model\": \"huggingface.co/JetBrains/Mellum-4b-base-gguf:latest\",\n}\n\nshow_completion_for(request_body)\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tests/manual_prompting/gemma3/test-fim-instructions.py:0-19\nfrom show import show_completion_for\n\nprompt = \"\"\"\nComplete the missing code between the given sections. Only provide the code that fills the gap.\n\n**Prefix:**\ndef calculate_average(numbers):\n    if not numbers:\n        return 0\n    total = sum(numbers)\n\n**Suffix:**\n    return average\n\n**Missing Code:**\n\"\"\"\n\nrequest_body = {\n    \"prompt\": prompt,\n    \"options\": {\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tests/manual_prompting/jetbrains_mellum/base/fim-with-context-files.py:0-19\n#\n# * additional files as context!\n#    https://huggingface.co/JetBrains/Mellum-4b-base#fill-in-the-middle-with-additional-files-as-context-generation\n#\nprompt = \"\"\"<filename>utils.py\ndef multiply(x, y):\n    return x * y\n<filename>config.py\nDEBUG = True\nMAX_VALUE = 100\n<filename>example.py\n<fim_suffix>\n\n# Test the function\nresult = calculate_sum(5, 10)\nprint(result)<fim_prefix>def calculate_sum(a, b):\n<fim_middle>\"\"\"\n\nimport requests\nimport json\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tests/manual_prompting/qwen2_5coder/worked/kinda/repo_name_with_file_sep_without_name.py:0-19\nfrom show import show_completion_for\n\n# FYI run as a module (not script):\n#   i.e. `python -m file_level_fim`\n#   `python -m file_name_without_ext` b/c then I can keep shared show lib in dir above and nest diff \"modules\" in dirs like \"worked\"\n\n# FYI! worked ok ish... but a few times it generated not valid python... so w/o the name it seemed to have a little trouble\n\nrequest_body = {\n    \"prompt\": \"<|repo_name|>maths<|file_sep|><|fim_prefix|>local M = {}\\n\\nfunction M.add(a, b)\\n    return a + b\\nend\\n\\n<|fim_suffix|>\\n\\n\\nreturn M<|fim_middle|>\",\n    \"options\": {\n        \"num_ctx\": 8192\n    },\n    \"raw\": True,\n    \"num_predict\": 200,\n    \"stream\": False,\n    \"model\": \"qwen2.5-coder:7b-base-q8_0\",\n}\n\nshow_completion_for(request_body)\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tests/manual_prompting/qwen2_5coder/worked/repo_name_with_file_sep_with_name.py:0-18\nfrom show import show_completion_for\n\n# FYI run as a module (not script):\n#   i.e. `python -m file_level_fim`\n#   `python -m file_name_without_ext` b/c then I can keep shared show lib in dir above and nest diff \"modules\" in dirs like \"worked\"\n\n# FYI also works fine to add file_sep with calc.lua (as is expected)\nrequest_body = {\n    \"prompt\": \"<|repo_name|>maths<|file_sep|>calc.lua<|fim_prefix|>local M = {}\\n\\nfunction M.add(a, b)\\n    return a + b\\nend\\n\\n<|fim_suffix|>\\n\\n\\nreturn M<|fim_middle|>\",\n    \"options\": {\n        \"num_ctx\": 8192\n    },\n    \"raw\": True,\n    \"num_predict\": 200,\n    \"stream\": False,\n    \"model\": \"qwen2.5-coder:7b-base-q8_0\",\n}\n\nshow_completion_for(request_body)\n\n"
+      },{
+        "role":"user",
+        "content":"Please complete <|fim_middle|> in the following code (which has carefully preserved indentation):\n# this is a stopgap solution for when gptoss generates multiple patches in one patch file\n# - no idea why this isn't supported OOB\n#   alternatives all entail more instructions to every call to the model:\n#   - tell it not to, pray it never does\n#   fail if it does and explain in output\n#   - then model has to generate again and hopefully that works\n\n# This happens when:\n# *** Begin Patch\n# ...\n# *** End Patch\n# *** Begin Patch\n# ...\n# *** End Patch\n\n# for now I just want to split on Begin Patch\n# and then call apply_patch for each\n\n# read over STDIN\n\nimport subprocess\nimport sys\nimport re\n\ndef main() -> None:\n    # Read all input from STDIN\n    content = sys.stdin.read()\n\n    count_begins = len(re.findall(r\"^\\*\\*\\* Begin Patch$\", content, re.MULTILINE))\n    if <|fim_middle|>\n\n    # Split the content on each \"*** Begin Patch\" marker\n    # Keep the marker with each subsequent chunk\n    raw_patches = re.split(r\"(\\*\\*\\* Begin Patch)\", content)\n    # Recombine the split parts so each patch starts with the marker\n    patches = []\n    for i in range(1, len(raw_patches), 2):\n        marker = raw_patches[i]\n        body = raw_patches[i + 1] if i + 1 < len(raw_patches) else \"\"\n        patches.append(f\"{marker}{body}\")\n\n    print(\"Found multiple patch blocks, running one at a time...\")\n\n    for i, patch in enumerate(patches, start=1):\n        print(f\"Applying patch #{i}...\")\n        subprocess.run([\"apply_patch\"], input=patch, text=True, check=True)\n\nif __name__ == \"__main__\":\n    main()"
+      }],
+    "raw":false
+  }
+}
