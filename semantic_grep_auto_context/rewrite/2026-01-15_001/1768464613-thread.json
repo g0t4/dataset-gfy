@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "created":1768464613,
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-Dx0a84PzIT1uzMzSG5AzPp2DgAuuIgOi",
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "timings":{
+      "prompt_n":552,
+      "predicted_per_second":205.22638873645,
+      "prompt_ms":115.788,
+      "prompt_per_token_ms":0.20976086956522,
+      "predicted_ms":1539.763,
+      "predicted_per_token_ms":4.872667721519,
+      "cache_n":508,
+      "predicted_n":316,
+      "prompt_per_second":4767.3334024251
+    },
+    "choices":[{
+        "delta":[],
+        "index":0,
+        "finish_reason":"stop"
+      }]
+  },
+  "response_message":{
+    "reasoning_content":"We need to modify code to stop on a bad regex and print a meaningful error, not ignore. Provide code only, no markdown. Ensure indentation preserved. We need to locate the snippet: in tools/chat_viewer/__main__.py. It currently catches re.error and does nothing (likely). We need to change to raise or exit with error message.\n\nWe need to add meaningful error printing, perhaps using sys.exit with message, or logging. Should preserve indentation. Probably add import sys if not already. Provide code change.\n\nWe need to output the modified snippet only? The instruction: \"Preserve indentation!\" So output the corrected code block with proper indentation, no markdown.\n\nWe must not add comments (they said no trivial comments). So just modify except block.\n\nAssuming surrounding code:\n\ntry:\n    PREAPPROVED_FILES.append(re.compile(line[3:]))\nexcept re.error:\n\nWe need to replace with something like:\n\nexcept re.error as exc:\n    sys.exit(f\"Invalid regular expression '{line[3:]}': {exc}\")\n\nMake sure sys imported earlier; maybe add import sys at top if not present.\n\nWe should output the entire file? Probably just the modified part. But they said preserve indentation; we can output the corrected code snippet.\n\nThus final answer: code with try/except block.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"            try:\n                PREAPPROVED_FILES.append(re.compile(line[3:]))\n            except re.error as exc:\n                sys.exit(f\"Invalid regular expression '{line[3:]}': {exc}\")"
+  },
+  "request_body":{
+    "max_tokens":8192,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "top_p":1,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer list[] over List[] to mimimizes imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/chunks/chunker_tests.py:188-202\n                #    - without this you'd have to attempt to parse code again and that might not go well\n                #  - PLUS it adds normalized context that the embeddings model can use\n                #\n                doc = f\"\"\"FILE: {relpath}\n    FUNC: {scope_path}\n    SIG : {sig_str}\n    CODE:\n    {code_block}\n    \"\"\"\n                print(doc)\n                # DOC : {first_docline or \"\"}\n\nclass TestTsChunker_Python_Decorators:\n\n    \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/chunks/chunker_tests.py:31-38\n\n\nclass TestReadingFilesAndNewLines:\n    \"\"\" purpose is to test that readlines is behaving the way I expect\n        and that I carefully document newline behaviors (i.e. not stripping them)\n    \"\"\"\n\n    \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/chunks/chunker_tests.py:290-294\ndef test_function_with_preceding_unrelated_comment(self):\n        chunk = self.chunks[3]\n        assert chunk.text == \"\"\"function Subtract(a, b)\n    return a - b\nend\"\"\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/chunks/chunker_tests.py:304-311\ndef test_function_with_preceding_unrelated_triple_dash_alias(self):\n        # again another edge case that I want to keep even though I use generic blank line detection\n        # ---@alias preceding (with blank line separator) is not related\n        # HOWEVER, if I were to tack one on w/o the blank line then that's gonna be included b/c that's not a direction I want to go with disambiguating annotation doc_commments :)\n        chunk = self.chunks[5]\n        assert chunk.text == \"\"\"function Divide(a, b)\n    return a / b\nend\"\"\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/indexer.py:81-100\n\n\n    def warn_about_other_extensions(self, index_languages: list[str]):\n\n        result = subprocess.run(\n            [\"fish\", \"-c\", f\"fd {self.source_code_dir} --exclude='\\\\.ctags\\\\.d' --exclude='\\\\.rag' --exec basename\"],\n            stdout=subprocess.PIPE,\n            text=True,\n            check=STOP_ON_FAILURE,\n        )\n        basenames = result.stdout.strip().splitlines()\n\n        ignore_files = [\"ctags\", \"ctags.d\"]\n\n        extensions = [basename.split(\".\")[-1] \\\n            for basename in basenames \\\n            if basename and \".\" in basename \\\n            and basename not in ignore_files\n        ]\n\n\n",
+        "role":"user"
+      },{
+        "content":"stop on a bad regex and print a meanignful error, do not ignore them\n\nHere is the code I selected:\n```tools/chat_viewer/__main__.py\n            try:\n                PREAPPROVED_FILES.append(re.compile(line[3:]))\n            except re.error:\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "temperature":1,
+    "model":"",
+    "stream":true
+  }
+}
