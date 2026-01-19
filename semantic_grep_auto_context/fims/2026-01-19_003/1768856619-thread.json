@@ -1,0 +1,56 @@
+{
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"a - ",
+    "reasoning_content":"We need to complete the subtraction function: return a - b. The cursor after \"return \" before \"b\". So we need \"a - \". That yields \"return a - b\". So insert `a - `."
+  },
+  "request_body":{
+    "model":"gpt-oss:120b",
+    "max_tokens":4096,
+    "stream":true,
+    "options":[],
+    "messages":[{
+        "role":"developer",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|fim_middle|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|fim_middle|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|fim_middle|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. thent he CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|fim_middle|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/backends/fim_backend.lua:137-141\nfunction()\n            return fim.qwen25coder.get_fim_prompt(self) -- WORKS FOR repo level using qwen's format entirely! (plus set qwen's stop_tokens to avoid rambles / trailing stop tokens)\n            -- return fim.bytedance_seed_coder.get_fim_prompt_file_level_only(self) -- WORKS well for file level using its own SPM format\n            -- return fim.bytedance_seed_coder.get_fim_prompt_repo_level(self)\n        end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/models/fim.lua:550-566\nfunction M.deepseek_coder_v2.get_fim_prompt(request)\n    local tokens = M.deepseek_coder_v2.sentinel_tokens\n\n    -- PSM format:\n    local fim_file_contents = tokens.FIM_BEGIN\n        .. request.prefix\n        .. tokens.FIM_HOLD\n        .. request.suffix\n        .. tokens.FIM_END\n\n    return fim_file_contents\n\n    -- ** paper also says at \"document level\" ...\n    -- * can I include filename? (if so => yanks/edits/etc)\n    -- * multiple files?\n    -- return prompt .. tokens.file_sep .. fim_file_contents\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/backends/fim_backend.lua:172-174\nfunction()\n            return fim.codestral.get_fim_prompt(self)\n        end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/backends/fim_backend.lua:115-117\nfunction()\n            return fim.mellum.get_fim_prompt(self)\n        end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/backends/fim_backend.lua:133-135\nfunction()\n            return fim.qwen25coder.get_fim_prompt(self)\n        end\n"
+      },{
+        "role":"user",
+        "content":"Please suggest text to replace <|fim_middle|>:\n\n```lua/ask-openai/predictions/tests/calc/calc.lua\nlocal M = {}\n\nfunction M.add(a, b)\n    return a + b\nend\n\nfunction M.sub(a, b)\n    return <|fim_middle|>b\nend\n\n\nreturn M\n```\n\nReminders about the cursor line:Text before cursor: `    return `\nText after cursor: `b`"
+      }],
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "top_p":1,
+    "raw":false,
+    "temperature":1
+  },
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-TgXuWNLPRjDKmiBQturMJn9ltl15lW6T",
+    "created":1768856619,
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "system_fingerprint":"b7773-3d55846a5",
+    "timings":{
+      "prompt_ms":6.861,
+      "prompt_per_token_ms":6.861,
+      "prompt_per_second":145.75134819997,
+      "predicted_per_token_ms":3.9959649122807,
+      "cache_n":1500,
+      "prompt_n":1,
+      "predicted_per_second":250.25244764455,
+      "predicted_n":57,
+      "predicted_ms":227.77
+    }
+  }
+}

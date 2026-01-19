@@ -1,0 +1,56 @@
+{
+  "request_body":{
+    "options":[],
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|fim_middle|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|fim_middle|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|fim_middle|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. thent he CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|fim_middle|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"developer"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:6-8\nfunction M.sub(a, b)\n    return a - b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:14-19\nfunction M.div(a, b)\n    if b == 0 then\n        error(\"Cannot divide by zero\")\n    end\n    return a / b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:10-12\nfunction M.mul(a, b)\n    return a * b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:2-4\nfunction M.add(a, b)\n    return a + b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:21-24\n-- Adding support for modulo operation\nfunction M.mod(a, b)\n    return a % b\nend\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|fim_middle|>:\n\n```lua/ask-openai/predictions/tests/calc/calc.lua\nlocal M = {}\n\nfunction M.add(a, b)\n    return a + b\nend\n\nfunction M.sub(a, b)\n    <|fim_middle|>\n\n\nreturn M\n```Text before cursor: `    `\nText before cursor is all whitespace (do not ignore this)",
+        "role":"user"
+      }],
+    "top_p":1,
+    "stream":true,
+    "temperature":1,
+    "model":"gpt-oss:120b",
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "max_tokens":4096,
+    "raw":false
+  },
+  "last_sse":{
+    "system_fingerprint":"b7773-3d55846a5",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "object":"chat.completion.chunk",
+    "timings":{
+      "cache_n":1372,
+      "predicted_per_second":253.32469231929,
+      "predicted_n":163,
+      "prompt_per_second":221.33687472333,
+      "prompt_n":1,
+      "prompt_ms":4.518,
+      "prompt_per_token_ms":4.518,
+      "predicted_ms":643.443,
+      "predicted_per_token_ms":3.9475030674847
+    },
+    "id":"chatcmpl-4FEe70W6UCrT8vjsBHxnEqbbkk6jFUh2",
+    "created":1768856343,
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "content":"return a - b\nend",
+    "reasoning_content":"We need to fill function body. Probably return a - b. Include indentation. Cursor line has indent 4 spaces before. So we insert `return a - b` newline then end? Actually function already has end after cursor? The snippet shows:\n\nfunction M.sub(a, b)\n    <|fim_middle|>\n\n\nreturn M\n\nMissing end for function. Probably after insertion need to add `return a - b\\nend`. But there is already blank line then return M. Need to close function. So insert `return a - b\\nend`? The end will be placed before blank line. Provide both lines with correct indent. Indent 4 spaces. So:\n\n`return a - b\nend`\n\nThus code.",
+    "role":"assistant"
+  }
+}
