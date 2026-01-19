@@ -1,0 +1,54 @@
+{
+  "last_sse":{
+    "id":"chatcmpl-m2SjjnFxq8Gbk9cyLLRqZ5QZL3KnjpUT",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7616-18ddaea2a",
+    "timings":{
+      "prompt_per_second":6436.6921713569,
+      "predicted_per_token_ms":4.0457975778547,
+      "prompt_n":1489,
+      "cache_n":0,
+      "predicted_per_second":247.17005256854,
+      "prompt_per_token_ms":0.15535930154466,
+      "predicted_ms":2338.471,
+      "prompt_ms":231.33,
+      "predicted_n":578
+    },
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "created":1768779031
+  },
+  "request_body":{
+    "model":"",
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "top_p":1,
+    "max_tokens":8192,
+    "temperature":1,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/ApplyPatch.svelte:30-49\n      case 'delete': return 'DELETE'\n      case 'move': return 'MOVE'\n      default: return 'UPDATE'\n    }\n  }\n</script>\n\n<div class=\"space-y-4\">\n  <!-- Toggle -->\n  <div class=\"flex items-center gap-2 text-sm\">\n    <button\n      class=\"px-2 py-1 rounded {!showWordDiff ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-400'}\"\n      onclick={() => showWordDiff = false}\n    >\n      Raw Diff\n    </button>\n    <button\n      class=\"px-2 py-1 rounded {showWordDiff ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-400'}\"\n      onclick={() => showWordDiff = true}\n    >\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/ApplyPatch.svelte:45-64\n    </button>\n    <button\n      class=\"px-2 py-1 rounded {showWordDiff ? 'bg-gray-600 text-white' : 'bg-gray-800 text-gray-400'}\"\n      onclick={() => showWordDiff = true}\n    >\n      Word Diff\n    </button>\n  </div>\n\n  {#if showWordDiff}\n    <!-- Word diff view -->\n    {#each parsed.files as file, idx}\n      {@const fileId = getFileId(msgIndex, idx + 1)}\n      <div id={fileId} class=\"border border-gray-600 rounded overflow-hidden scroll-mt-4\">\n        <div\n          class=\"group px-3 py-1.5 bg-gray-700/50 text-sm font-mono border-b border-gray-600 flex gap-2 items-center justify-between cursor-pointer\"\n          onclick={() => copy(fileId)}\n        >\n          <div class=\"flex gap-2\">\n            <span class=\"{getActionColor(file.action)} font-bold\">[{getActionLabel(file.action)}]</span>\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/ApplyPatch.svelte:0-19\n<script lang=\"ts\">\n  import { parsePatch, groupChanges } from '../lib/patch-parser'\n  import { getFileId } from '../lib/hash-nav'\n  import CodeBlock from './CodeBlock.svelte'\n  import LinkButton, { copy } from './LinkButton.svelte'\n\n  interface Props {\n    patch: string\n    msgIndex?: number\n    toolIndex?: number\n  }\n\n  let { patch, msgIndex = 0, toolIndex = 1 }: Props = $props()\n\n  let showWordDiff = $state(true)\n\n  const parsed = $derived(parsePatch(patch))\n\n  function getActionColor(action: string): string {\n    switch (action) {\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/ApplyPatch.svelte:75-94\n            {#if hunk.header}\n              <div class=\"text-gray-500 mb-1\">{hunk.header}</div>\n            {/if}\n            {@const groups = groupChanges(hunk.changes)}\n            {#each groups as group}\n              {#if group.type === 'context'}\n                {#each group.context ?? [] as line}\n                  <div class=\"text-gray-400 whitespace-pre\">{line || '\\u00A0'}</div>\n                {/each}\n              {:else if group.wordDiff}\n                <div class=\"whitespace-pre-wrap\">\n                  {#each group.wordDiff as segment}\n                    {#if segment.type === 'removed'}\n                      <span class=\"bg-red-900/60 text-red-300\">{segment.value}</span>\n                    {:else if segment.type === 'added'}\n                      <span class=\"bg-green-900/60 text-green-300\">{segment.value}</span>\n                    {:else}\n                      <span class=\"text-gray-300\">{segment.value}</span>\n                    {/if}\n                  {/each}\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/ToolCalls.svelte:0-19\n<script lang=\"ts\">\n  import type { ToolCall } from '../lib/types'\n  import { getToolCallId } from '../lib/hash-nav'\n  import CodeBlock from './CodeBlock.svelte'\n  import ApplyPatch from './ApplyPatch.svelte'\n  import LinkButton, { copy } from './LinkButton.svelte'\n\n  interface Props {\n    calls: ToolCall[]\n    msgIndex: number\n  }\n\n  let { calls, msgIndex }: Props = $props()\n\n  interface FormattedArgs {\n    type: 'code' | 'patch'\n    code?: string\n    language?: string\n    patch?: string\n  }\n\n",
+        "role":"user"
+      },{
+        "content":"split up into two buttons that are always visible, like \"word diff\" button and \"raw diff\" in other ApplyPatch component\n\nHere is the code I selected:\n```tools/chat_viewer_web/src/components/ToolResult.svelte\n      <button\n        onclick={() => (showRawJson = !showRawJson)}\n        class=\"px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors\"\n      >\n        {showRawJson ? 'Show Message' : 'Show JSON'}\n      </button>\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }]
+  },
+  "response_message":{
+    "reasoning_content":"We need to modify ToolResult.svelte to split the toggle button into two always visible buttons: \"Word Diff\" and \"Raw Diff\"? Wait description: \"split up into two buttons that are always visible, like \"word diff\" button and \"raw diff\" in other ApplyPatch component\". The code snippet is a toggle button that toggles showRawJson. They want two separate buttons: one for raw diff (maybe show raw JSON) and one for something else (maybe show message?). But context: In ApplyPatch component they have two toggle buttons for raw diff and word diff, both always visible. Here they have one button toggling showRawJson. They likely want two separate buttons: one to show raw JSON, one to show message (maybe parsed?). So need to replace this button with two buttons: one to set showRawJson = true (Raw JSON) and one to set showRawJson = false (Show Message). Both always visible. Also adjust button classes accordingly: use similar style as ApplyPatch: maybe bg-gray-600 when active etc. Provide code only.\n\nWe need to preserve indentation. Let's locate the snippet in ToolResult.svelte. Provide new code block.\n\nWe'll extract condition: const isShowingRaw = showRawJson. Then two buttons.\n\nImplementation:\n\n{@const isRaw = showRawJson}\n<button class=\"px-2 py-1 text-xs rounded transition-colors {isRaw ? 'bg-gray-600 text-white' : 'bg-gray-700 text-gray-300'}\" onclick={() => showRawJson = true}>Raw JSON</button>\n<button class=\"px-2 py-1 text-xs rounded transition-colors {isRaw ? 'bg-gray-700 text-gray-300' : 'bg-gray-600 text-white'}\" onclick={() => showRawJson = false}>Show Message</button>\n\nBut maintain original classes: \"px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 rounded transition-colors\". We'll modify to conditional background.\n\nLet's write replacement code.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"```svelte\n{#if true}\n  {@const isRaw = showRawJson}\n  <button\n    onclick={() => (showRawJson = true)}\n    class=\"px-2 py-1 text-xs rounded transition-colors {isRaw ? 'bg-gray-600 text-white' : 'bg-gray-700 text-gray-300'}\"\n  >\n    Raw JSON\n  </button>\n  <button\n    onclick={() => (showRawJson = false)}\n    class=\"px-2 py-1 text-xs rounded transition-colors {isRaw ? 'bg-gray-700 text-gray-300' : 'bg-gray-600 text-white'}\"\n  >\n    Show Message\n  </button>\n{/if}\n```"
+  }
+}
