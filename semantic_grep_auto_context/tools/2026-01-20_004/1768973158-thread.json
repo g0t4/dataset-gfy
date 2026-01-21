@@ -1,0 +1,197 @@
+{
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"The abbreviation for `builder_tests.py` has been added to **.config.fish**:\n\n```fish\nabbr ptw_builder (ptw_path \"auto_edit/fcpxml/builder_tests.py\")\n```\n\nYou can now run the tests with `ptw_builder`."
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "messages":[{
+        "content":"Your name is Gippity, Wes's best buddy that loves effusive swearing! You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nFor tool use, never modify files outside of the current working directory unless the user requested it:\n~/repos/github/g0t4/auto-edit-suggests\n\nHere are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nRecommendations:\n- Prefer `rg` over `grep`\n- Prefer `fd` over `find` and `ls -R`\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\n## Use `apply_patch` to edit files.\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/fcpxml/builder_tests.py:0-6\nimport xml.etree.ElementTree as ET\n\nimport pytest\n\nfrom auto_edit.fcpxml.builder import FcpXml\nfrom auto_edit.ranges import SilenceRange\n\n\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/fcpxml/builder_tests.py:7-25\n@pytest.fixture\ndef fcp_xml():\n    # Minimal dummy video clip with required attributes\n    class DummyVideo:\n        fps = 30\n        filename = \"dummy.mp4\"\n\n        # The path is not used for frames_to_fraction calculations\n        def __init__(self):\n            self.filename = \"dummy.mp4\"\n\n    dummy = DummyVideo()\n    return FcpXml(\n        original=dummy,\n        fcpbundle_path=\"/tmp\",\n        project_name=\"test\",\n        output_dir=\"/tmp\",\n        fcpxml_file=\"/tmp/out.fcpxml\",\n    )\n\n## ~/repos/github/g0t4/auto-edit-suggests/generate_fcpxml_notebook.py:15-31\nimport numpy as np\nimport subprocess\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom moviepy.editor import VideoFileClip\nfrom auto_edit.new_silence.ranges import get_ranges\nfrom auto_edit.silences.align import align_silences_to_frame_boundaries_asymmetric_pad_WIP\nfrom auto_edit.silences.detect_raw import ffmpeg_detect_silence_raw\nfrom auto_edit.ranges import ContentRange, FrameRange, SilenceRange\nfrom auto_edit.tests.test_files import *\nfrom auto_edit.fcpxml.builder import FcpXml\nfrom auto_edit.samples import files\nfrom auto_edit.new_silence.player.segment_plotter import SegmentPlotter\nfrom auto_edit.new_silence.detect import *\nfrom auto_edit.transcribe import WhisperSegment\nfrom auto_edit.new_silence.detects.breathing import mark_breathing\n\n\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/test_files.py:10-45\nclass gptoss_fim_video:\n    full = gptoss_fim_examples / \"full.mp4\"\n\n    #  TODO fix issues w/ PTS on minute1 and throw if start in ffprobe output != 0 anywhere\n    #      minute1=gptoss_fim_examples / \"minutes\" / \"minute1\" / \"minute1.mp4\",\n    # TODO then add check to shell out to ffprobe and look for start = NON zero value and fail if so\n    #  TODO! worse case just trim first 0.080 off of combined.shifted.mp4 and minute1.mp4 videos\n    #   that s/b fine on most recordings\n    #   ffprobe -select_streams a:0 -show_packets -read_intervals %+1  foo.mp4/mkv\n    #   ffprobe -select_streams a:0 -of csv -show_packets -read_intervals %+1  foo.mp4/mkv\n    #\n    #  !!! FOR now you can test with minute2+ b/c they're already re-encoded and there are no non-zero starts\n    #  !!! that means for auto-edit purposes what you generate will line up with what FCPX shows\n\n    minute2 = gptoss_fim_examples / \"minutes\" / \"minute2\" / \"minute2.mp4\"\n    minute3 = gptoss_fim_examples / \"minutes\" / \"minute3\" / \"minute3.mp4\"\n    minute4 = gptoss_fim_examples / \"minutes\" / \"minute4\" / \"minute4.mp4\"\n    minute5 = gptoss_fim_examples / \"minutes\" / \"minute5\" / \"minute5.mp4\"\n    minute6 = gptoss_fim_examples / \"minutes\" / \"minute6\" / \"minute6.mp4\"\n    minute7 = gptoss_fim_examples / \"minutes\" / \"minute7\" / \"minute7.mp4\"\n    minute8 = gptoss_fim_examples / \"minutes\" / \"minute8\" / \"minute8.mp4\"\n    minute9 = gptoss_fim_examples / \"minutes\" / \"minute9\" / \"minute9.mp4\"\n    minute10 = gptoss_fim_examples / \"minutes\" / \"minute10\" / \"minute10.mp4\"\n    minute11 = gptoss_fim_examples / \"minutes\" / \"minute11\" / \"minute11.mp4\"\n    minute12 = gptoss_fim_examples / \"minutes\" / \"minute12\" / \"minute12.mp4\"\n    minute13 = gptoss_fim_examples / \"minutes\" / \"minute13\" / \"minute13.mp4\"\n\n    @staticmethod\n    def minute(num):\n        return gptoss_fim_examples / \"minutes\" / f\"minute{num}\" / f\"minute{num}.mp4\"\n\n    split_breathing = gptoss_fim_examples / \"breathing-split-silence.mp4\"\n    split_breathing_wav = gptoss_fim_examples / \"breathing-split-silence.wav\"\n\n    # FYI for testing non-zero start to a video\n    non_zero_start = gptoss_fim_examples / \"minutes/non_zero_start/non_zero_start_from_minute1_44.mp4\"\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/range-tests.py:0-1\nfrom auto_edit.ranges import FrameRange, ContentRange, SilenceRange\n\n\n",
+        "role":"user"
+      },{
+        "content":"can you add builder_tests.py to my .config.fish, look at the .config.fish first",
+        "role":"user"
+      },{
+        "reasoning_content":"We need to modify .config.fish file, adding builder_tests.py perhaps to some path? Likely want to source it? Probably add a line to include path. Let's view .config.fish.",
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"uQNKp8nUvYNgIqqxYYMdI28cd3DtC83q",
+            "function":{
+              "name":"run_command",
+              "arguments":"{\"command\":\"ls -R .config.fish\",\"workdir\":\"~/repos/github/g0t4/auto-edit-suggests\"}"
+            },
+            "type":"function"
+          }],
+        "content":""
+      },{
+        "tool_call_id":"uQNKp8nUvYNgIqqxYYMdI28cd3DtC83q",
+        "role":"tool",
+        "content":"{\"content\":[{\"name\":\"STDOUT\",\"text\":\".config.fish\\n\",\"type\":\"text\"}]}"
+      },{
+        "reasoning_content":"File not listed. Maybe it's a hidden file in home? Path? Probably at repo root? Let's search.",
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"uajn8hxO95MECr3PHYQcpDPEiNMlwZrJ",
+            "function":{
+              "name":"run_command",
+              "arguments":"{\"command\":\"ls -a\",\"workdir\":\"~/repos/github/g0t4/auto-edit-suggests\"}"
+            },
+            "type":"function"
+          }],
+        "content":""
+      },{
+        "tool_call_id":"uajn8hxO95MECr3PHYQcpDPEiNMlwZrJ",
+        "role":"tool",
+        "content":"{\"content\":[{\"name\":\"STDOUT\",\"text\":\".\\n..\\n.claude\\n.config.fish\\n.DS_Store\\n.git\\n.gitignore\\n.luarc.json\\n.pytest_cache\\n.python-version\\n.rag\\n.rag.yaml\\n.venv\\n.vim\\nauto_edit\\ngenerate_fcpxml_notebook.py\\nMakefile\\nnotes\\npyproject.toml\\npytest.ini\\nrecreate-venv.sh\\nuv.lock\\n\",\"type\":\"text\"}]}"
+      },{
+        "reasoning_content":"Open .config.fish.",
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"q0xfOM9XgJ2pAh2EkUVmx72kLMl9RyqM",
+            "function":{
+              "name":"run_command",
+              "arguments":"{\"command\":\"cat .config.fish\"}"
+            },
+            "type":"function"
+          }],
+        "content":""
+      },{
+        "tool_call_id":"q0xfOM9XgJ2pAh2EkUVmx72kLMl9RyqM",
+        "role":"tool",
+        "content":"{\"content\":[{\"name\":\"STDOUT\",\"text\":\"function __local_ptw_one\\n    # echo \\\"\\\" \\\"auto_edit/tests/aligned-tests.py::TestIntegration::test_detect_split_breathing_into_two_silences\\\"\\n    echo \\\"\\\" \\\"auto_edit/new_silence/tests/integration_tests.py::TestsIntegration::test_detect_split_breathing_into_two_silences\\\"\\nend\\n\\n# function deactivate_local_config_fish\\n#     functions --erase __local_ptw_one\\n# end\\n\\n# * unit style (fast) tests\\n# TODO my naming of modules kinda sucks! lol I don't know what is what from name alone\\nfunction ptw_path --argument path\\n    echo \\\"ptw --clear -- $path --capture=no --log-cli-level=INFO\\\"\\nend\\n\\nabbr ptw_ranges (ptw_path \\\"auto_edit/new_silence/ranges_tests.py\\\")\\nabbr ptw_gaps (ptw_path \\\"auto_edit/new_silence/gaps_tests.py\\\")\\nabbr ptw_detect (ptw_path \\\"auto_edit/new_silence/detect_tests.py\\\")\\nabbr ptw_humanize (ptw_path \\\"auto_edit/new_silence/detects/humanize_tests.py\\\")\\nabbr ptw_crossings (ptw_path \\\"auto_edit/new_silence/detects/crossings_tests.py\\\")\\nabbr ptw_all_new (ptw_path \\\"auto_edit/new_silence/**/*_tests.py\\\")\\n\\nabbr ptw_integration (ptw_path \\\"auto_edit/new_silence/tests/integration_tests.py\\\")\\nabbr ptw_integration_one (ptw_path \\\"auto_edit/new_silence/tests/integration_tests.py::TestsIntegration::test_detect_split_breathing_into_two_silences\\\")\\nabbr ptw_integration_taper (ptw_path \\\"auto_edit/new_silence/tests/integration_tests.py::TestsLeftSpeechTaper\\\")\\n\",\"type\":\"text\"}]}"
+      },{
+        "reasoning_content":"Add builder_tests.py similar to others. Probably want an abbreviation like ptw_builder? Add line: abbr ptw_builder (ptw_path \"auto_edit/fcpxml/builder_tests.py\"). Insert near others.",
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"yhRJkFoyclaBOLBoDxe17dnfKM3ombJg",
+            "function":{
+              "name":"apply_patch",
+              "arguments":"{\"patch\":\"*** Begin Patch\\n*** Update File: .config.fish\\n@@\\n abbr ptw_all_new (ptw_path \\\"auto_edit/new_silence/**/*_tests.py\\\")\\n+\\n+abbr ptw_builder (ptw_path \\\"auto_edit/fcpxml/builder_tests.py\\\")\\n*** End Patch\\n*** End Patch\"}"
+            },
+            "type":"function"
+          }],
+        "content":""
+      },{
+        "tool_call_id":"yhRJkFoyclaBOLBoDxe17dnfKM3ombJg",
+        "role":"tool",
+        "content":"{\"content\":[{\"text\":\"Success. Updated the following files:\\nM .config.fish\\n\",\"type\":\"text\"}]}"
+      },{
+        "role":"assistant",
+        "tool_calls":[],
+        "content":"The abbreviation for `builder_tests.py` has been added to **.config.fish**:\n\n```fish\nabbr ptw_builder (ptw_path \"auto_edit/fcpxml/builder_tests.py\")\n```\n\nYou can now run the tests with `ptw_builder`."
+      }],
+    "top_p":1,
+    "max_tokens":4096,
+    "temperature":1,
+    "tools":[{
+        "function":{
+          "name":"run_command",
+          "description":"Run a command on this darwin machine",
+          "parameters":{
+            "properties":{
+              "workdir":{
+                "description":"Optional, current working directory",
+                "type":"string"
+              },
+              "stdin":{
+                "description":"Optional, text to pipe into the command's STDIN. For example, pass a python script to python3. Or, pass text for a new file to the cat command to create it!",
+                "type":"string"
+              },
+              "command":{
+                "description":"Command with args",
+                "type":"string"
+              }
+            },
+            "required":["command"],
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "type":"function",
+        "function":{
+          "name":"semantic_grep",
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "required":["query"],
+            "properties":{
+              "filetype":{
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace.",
+                "type":"string"
+              },
+              "instruct":{
+                "description":"instructions for the query",
+                "type":"string"
+              },
+              "query":{
+                "description":"query text, what you are looking for",
+                "type":"string"
+              },
+              "embed_top_k":{
+                "description":"number of embeddings to consider for reranking",
+                "type":"number"
+              },
+              "top_k":{
+                "description":"number of results to return (post reranking)",
+                "type":"number"
+              }
+            },
+            "type":"object"
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"apply_patch",
+          "description":"Patch a file",
+          "parameters":{
+            "required":["patch"],
+            "properties":{
+              "patch":{
+                "type":"string",
+                "description":"file changes in custom diff format"
+              }
+            },
+            "type":"object"
+          }
+        }
+      }],
+    "stream":true,
+    "model":""
+  },
+  "last_sse":{
+    "created":1768973158,
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "timings":{
+      "prompt_n":117,
+      "predicted_per_second":238.14910515474,
+      "prompt_ms":81.543,
+      "prompt_per_token_ms":0.69694871794872,
+      "predicted_ms":251.943,
+      "predicted_per_token_ms":4.19905,
+      "predicted_n":60,
+      "prompt_per_second":1434.825797432,
+      "cache_n":3367
+    },
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-MKLotfOweAysFzN0P1p1X0VA9XJ4uGOd"
+  }
+}
