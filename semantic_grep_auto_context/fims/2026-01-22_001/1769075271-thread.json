@@ -1,0 +1,53 @@
+{
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1769075271,
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "id":"chatcmpl-bITKuhBjkLlEiqrBdJx1ohA3J6PZqxce",
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_n":52,
+      "prompt_per_second":1268.8891452301,
+      "prompt_ms":43.345,
+      "prompt_n":55,
+      "predicted_ms":247.031,
+      "predicted_per_token_ms":4.7505961538462,
+      "prompt_per_token_ms":0.78809090909091,
+      "cache_n":827,
+      "predicted_per_second":210.49989677409
+    }
+  },
+  "request_body":{
+    "options":[],
+    "stream":true,
+    "messages":[{
+        "role":"developer",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|fim_middle|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|fim_middle|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|fim_middle|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. thent he CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|fim_middle|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: 2026-01-22_001\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"Please suggest text to replace <|fim_middle|>:\n\n```README.md\n\nmath in FIMs... especially when rewriting some code with diff units... never gets old! 30*2.1  <|fim_middle|>\n\n```\n\n## Reminders about the cursor line:\nText before cursor: `math in FIMs... especially when rewriting some code with diff units... never gets old! 30*2.1  `"
+      }],
+    "model":"gpt-oss:120b",
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "top_p":1,
+    "raw":false,
+    "max_tokens":4096,
+    "temperature":1
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to complete after the space. Probably compute product: 30*2.1 = 63. So suggestion \"63\". Add no extra spaces? Cursor after space, so just \"63\".",
+    "role":"assistant",
+    "content":"63"
+  }
+}
