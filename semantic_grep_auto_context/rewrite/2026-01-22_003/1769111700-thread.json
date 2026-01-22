@@ -1,0 +1,57 @@
+{
+  "request_body":{
+    "max_tokens":4096,
+    "stream":true,
+    "model":"",
+    "top_p":1,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/init.lua:312-317\nfunction()\n        ---@type ScreenPalEditorWindow, SilencesController\n        local win, silences = syncify(detect_silences)\n        local silence = silences:get_this_silence()\n        move_playhead_to_silence(win, silence)\n    end\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/init.lua:958-960\nfunction SPal_ReopenProject()\n    get_cached_editor_window():reopen_project()\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/streamdeck/reloader.lua:2-18\nfunction reloadOnMacrosChanges(path)\n    local scriptPath = path or \"~/.hammerspoon/config/macros\"\n\n    -- local function hotReloadModule()\n    --     package.loaded[scriptPath] = nil -- Unload from cache\n    --     dofile(scriptPath) -- Reload the script\n    --     hs.alert.show(\"Reloaded: \" .. scriptPath)\n    -- end\n\n    local watcher = hs.pathwatcher.new(scriptPath, function(files, flagTables)\n        -- for _, file in ipairs(files) do ... hot reload each? (FYI symlinks might not match if checking based on file name\n        hs.reload() -- crude, reload config as a pseudo restart\n    end)\n\n    watcher:start()\n    verbose(\"Auto-reload enabled for: \" .. scriptPath)\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/init.lua:539-641\nfunction SPal_AdjustSelection(side, num_frames, text)\n    -- ** if text triggered this, then paste it if in a text box (effectively bypass shortcut for textfields)\n    if pasted_text_in_textfield(text) then\n        return\n    end\n\n    run_async(function()\n        ---@type ScreenPalEditorWindow, SilencesController\n        local win, silences = syncify(detect_silences)\n        local timeline = win:timeline_controller()\n\n        local tool = silences.hack_detected.tool\n        if not tool or not tool.x_end then\n            -- TODO split out function\n            -- no tool open, try using current silence\n            -- move to other side of current silence\n            -- obviously, no selection adjustment (b/c no selection is open)\n\n            local playhead_x = timeline:get_current_playhead_timeline_relative_x()\n            local silence = silences:get_this_silence()\n\n            if not silence then\n                -- PRN do I care about PRN in here? should I jump to S/E sides if those are used?\n                -- I mostly added this with O in mind but S/E should work too and maybe I want those ends and not the [O]pposite?\n\n                -- no current silence => find nearest (either side)\n                local next = silences:get_next_silence()\n                local prev = silences:get_prev_silence()\n                if not prev and not next then\n                    -- very unlikely!\n                    return\n                end\n                if not next then\n                    silence = prev\n                elseif not prev then\n                    silence = next\n                else\n                    -- which is closer?\n                    local prev_distance = playhead_x - prev.x_end\n                    local next_distance = next.x_start - playhead_x\n                    if prev_distance < next_distance then\n                        silence = prev\n                    else\n                        silence = next\n                    end\n                end\n            end\n            if not silence then return end\n\n            local playhead_closer_to_start = playhead_x < silence:x_middle()\n            if playhead_closer_to_start then\n                timeline:move_playhead_to(silence.x_end)\n            else\n                timeline:move_playhead_to(silence.x_start)\n            end\n\n            return\n        end\n\n        if side == START then\n            timeline:move_playhead_to(tool.x_start)\n            if num_frames > 0 then\n                -- expand\n                hs.eventtap.keyStroke({}, LEFT, 0, win.app)\n            elseif num_frames < 0 then\n                -- shink\n                hs.eventtap.keyStroke({}, RIGHT, 0, win.app)\n            end\n            -- 0 == JUMP to start only\n        elseif side == END then\n            -- FYI this works on end to expand (click right of end), just not to shrink (click left of end)\n            -- -- 6 == 2*3 (3 pixels in 1080p per frame at zoom2)\n            -- local num_pixels = 6 * num_frames\n            -- if num_frames < 0 then\n            --     num_pixels = -12\n            -- end\n            -- print(\"adjusting by num_pixels: \" .. tostring(num_pixels) .. \" frames: \" .. tostring(num_frames))\n            -- next_frame_x_guess_zoom2 = tool.x_end + num_pixels\n            -- extend selection to current playhead position\n            -- timeline:move_playhead_to(next_frame_x_guess_zoom2)\n            -- hs.eventtap.keyStroke({}, \"e\", 0, win.app)\n\n            -- move cursor to end of selection\n            timeline:move_playhead_to(tool.x_end)\n            -- arrow left/right to move one frame w/o calculating x pixel value and without issues going back with cursor\n            if num_frames > 0 then\n                hs.eventtap.keyStroke({}, RIGHT, 0, win.app) -- expand\n            elseif num_frames < 0 then\n                hs.eventtap.keyStroke({}, LEFT, 0, win.app) -- shrink\n            end\n            -- 0 == JUMP to end only\n        elseif side == OTHER then\n            -- just flip to other side!\n            local playhead_x = timeline:get_current_playhead_timeline_relative_x()\n            local playhead_closer_to_start = playhead_x < tool:x_middle()\n            if playhead_closer_to_start then\n                timeline:move_playhead_to(tool.x_end)\n            else\n                timeline:move_playhead_to(tool.x_start)\n            end\n        end\n    end)\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/streamdeck/commands.lua:20-32\n---@param macro string @Name or UUID\n---@param param string|nil\nfunction runKMMacro(macro, param)\n    -- FYI could use osascript too (pass applescript to hammerspoon?)\n    local app = \"/Applications/Keyboard\\\\ Maestro.app/Contents/MacOS/keyboardmaestro\"\n    local command = app .. \" \" .. macro\n    if param then\n        command = command .. \" -p '\" .. param .. \"'\"\n    end\n    verbose(\"exec KM: \" .. command)\n\n    runCommand(command)\nend\n",
+        "role":"user"
+      },{
+        "content":"spelling?\n\nHere is the code I selected:\n```.config/hammerspoon/config/macros/screenpal/editor_window.lua\n            -- restart macro (handles several niceities)\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    }
+  },
+  "last_sse":{
+    "timings":{
+      "prompt_ms":441.483,
+      "prompt_per_token_ms":0.29064055299539,
+      "predicted_ms":271.525,
+      "predicted_per_token_ms":4.5254166666667,
+      "prompt_n":1519,
+      "cache_n":438,
+      "predicted_n":60,
+      "prompt_per_second":3440.6760849229,
+      "predicted_per_second":220.97412761256
+    },
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "delta":[],
+        "index":0,
+        "finish_reason":"stop"
+      }],
+    "created":1769111700,
+    "id":"chatcmpl-jupgb6WblDx3cW7JgissP60equ38eSat"
+  },
+  "response_message":{
+    "content":"```lua\n            -- restart macro (handles several niceties)\n```",
+    "finish_reason":"stop",
+    "reasoning_content":"User wants to fix spelling: comment \"restart macro (handles several niceities)\". Probably \"niceities\" should be \"niceties\". Provide corrected line preserving indentation.",
+    "role":"assistant"
+  }
+}
