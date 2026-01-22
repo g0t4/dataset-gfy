@@ -1,0 +1,53 @@
+{
+  "last_sse":{
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "timings":{
+      "predicted_per_second":204.36360728423,
+      "predicted_n":46,
+      "prompt_per_second":1011.3495898416,
+      "cache_n":847,
+      "prompt_ms":35.596,
+      "prompt_per_token_ms":0.98877777777778,
+      "predicted_ms":225.089,
+      "predicted_per_token_ms":4.8932391304348,
+      "prompt_n":36
+    },
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-3pm3EF3aQMOI9Pw6VgPbxE9bWmxhbTyv",
+    "created":1769078142,
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "role":"assistant",
+    "content":"0.0016",
+    "finish_reason":"stop",
+    "reasoning_content":"We need to compute difference: 54.7224 - 54.7208 = 0.0016. So insert 0.0016."
+  },
+  "request_body":{
+    "max_tokens":4096,
+    "stream":true,
+    "top_p":1,
+    "messages":[{
+        "role":"developer",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|fim_middle|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|fim_middle|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|fim_middle|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. thent he CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|fim_middle|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: 2026-01-22_002\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"Please suggest text to replace <|fim_middle|>:\n\n```README.md\nonce again, AWESOME at math...\n and not only math, it also knew WHAT to calculate (I had not yet written down A-B here... so damn cool)\n54.7224-54.7208 = <|fim_middle|>\n\n```\n\n## Reminders about the cursor line:\nText before cursor: `54.7224-54.7208 = `"
+      }],
+    "options":[],
+    "model":"gpt-oss:120b",
+    "raw":false,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1
+  }
+}
