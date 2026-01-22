@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "created":1769072881,
+    "timings":{
+      "cache_n":0,
+      "predicted_ms":437.434,
+      "prompt_per_second":7380.3653176883,
+      "prompt_n":1775,
+      "predicted_per_second":205.745323866,
+      "predicted_n":90,
+      "predicted_per_token_ms":4.8603777777778,
+      "prompt_per_token_ms":0.13549464788732,
+      "prompt_ms":240.503
+    },
+    "id":"chatcmpl-pLiOMDHGtmDjFj6ybKYpgEcknVLt4R9d",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "object":"chat.completion.chunk",
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "reasoning_content":"We need to add logging of start seconds in message with fstring. Modify that line to include start seconds. Probably change print to include left.start_seconds. Provide code snippet with context preserving indentation.",
+    "role":"assistant",
+    "content":"```auto_edit/new_silence/ranges.py\n                left_start_frame = round(left.start_seconds * fps)\n                print(f\"NO right_taper_start, start_seconds={left.start_seconds}\")\n```",
+    "finish_reason":"stop"
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/ranges.py:\n                # TODO! which way should I round, perhaps put that logic into locator\n\n.. yanked from auto_edit/new_silence/ranges.py:\n                # TODO! do I need nearest frame rounding? FIRST make sure you have real problems in FCPX before bothering with this.\n\n",
+        "role":"user"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/segments.py:230-233\ndef start_seconds(self) -> float:\n        if self.left_speech:\n            return self.left_speech.start_seconds\n        return self.gap.segments[0].start_seconds\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/ranges.py:72-88\nclass SilenceRange(FrameRange):\n\n    dampen: bool = True  # reduce audio level of entire clip, defaults to True for legacy silence detect approach\n\n    def __str__(self):\n        result = f\"Silence[{self.start_frame}➜{self.end_frame})\"\n        if self.dampen:\n            result += f\" dampen\"\n        return result\n\n    def __copy__(self):\n        return self.__deepcopy__()\n\n    def __deepcopy__(self, memo=None):\n        new = SilenceRange(self.start_frame, self.end_frame)\n        new.dampen = self.dampen\n        return new\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/silences/align.py:39-58\n\n\ndef align_silences_to_frame_boundaries_asymmetric_pad_WIP(silences: list[RawSilencePeriod], fps, left_padding_frames=1) -> list[AlignedSilencePeriod]:\n\n    silences = merge_tiny_gaps(silences, fps)\n\n    aligned_silences = []\n    for silence in silences:\n        exact_start_frame = silence.start_seconds * fps\n        exact_end_frame = silence.end_seconds * fps\n        if exact_start_frame > 1:\n            frame_after_start = math.ceil(exact_start_frame)\n        else:\n            rich.print(\"[white bold]FYI! silence starts before first frame, rounding to first frame (zero)[/]\")\n            frame_after_start = 0  # avoid start content sliver due to padding (at start of video!)\n\n        frame_before_end = math.floor(exact_end_frame)  # FYI leaving end sliver case for all_ranges logic b/c it is not as straight forward as start sliver\n\n        print(f\"{silence} seconds // frames {round(exact_start_frame,2)}➜{round(exact_end_frame,2)}\")\n        print(f\"  {left_padding_frames=}\")\n\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/silences/align.py:41-74\ndef align_silences_to_frame_boundaries_asymmetric_pad_WIP(silences: list[RawSilencePeriod], fps, left_padding_frames=1) -> list[AlignedSilencePeriod]:\n\n    silences = merge_tiny_gaps(silences, fps)\n\n    aligned_silences = []\n    for silence in silences:\n        exact_start_frame = silence.start_seconds * fps\n        exact_end_frame = silence.end_seconds * fps\n        if exact_start_frame > 1:\n            frame_after_start = math.ceil(exact_start_frame)\n        else:\n            rich.print(\"[white bold]FYI! silence starts before first frame, rounding to first frame (zero)[/]\")\n            frame_after_start = 0  # avoid start content sliver due to padding (at start of video!)\n\n        frame_before_end = math.floor(exact_end_frame)  # FYI leaving end sliver case for all_ranges logic b/c it is not as straight forward as start sliver\n\n        print(f\"{silence} seconds // frames {round(exact_start_frame,2)}➜{round(exact_end_frame,2)}\")\n        print(f\"  {left_padding_frames=}\")\n\n        # show gap for debugging only (saves time calculating when > 0.5)\n        start_gap = frame_after_start - exact_start_frame\n        end_gap = exact_end_frame - frame_before_end\n        print(f\"  gaps (frames): start={round(start_gap,2)}, end={round(end_gap,2)}\")\n\n        print(f\"  pre-padding: {frame_after_start}➜{frame_before_end}\")\n        # FYI a bit of testing shows there are cases where end is trimmed too early if I don't have padding to push left inward... but I have to quantify how often padding also casues issues (leaves click from breathing!)...\n        #   also might need to fix silence threshold (relative to clip volume, not absolute?) ... that might be issue too\n        aligned_start_frame = frame_after_start + left_padding_frames if exact_start_frame > 1 else 0  # avoid start sliver\n        aligned_end_frame = frame_before_end\n        aligned = AlignedSilencePeriod(aligned_start_frame, aligned_end_frame)\n        print(f\"  {aligned}\")\n        aligned_silences.append(aligned)\n\n    return aligned_silences\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/player/standalone.py:38-57\n        start_frame_after = math.ceil(start_frame)\n        rich.print(f\"{start_frame_before=}, {start_frame=}, {start_frame_after=}\")\n\n        end_frame = end_seconds * analysis.fps\n        end_frame_before = math.floor(end_frame)\n        end_frame_after = math.ceil(end_frame)\n        rich.print(f\"{end_frame_before=}, {end_frame=}, {end_frame_after=}\")\n\n        # does start frame matter? before/after => BOTH SOUND GREAT\n        print(\"start BEFORE\")\n        play_frames(analysis, start_frame_before, end_frame)\n        time.sleep(0.5)\n        print(\"start AFTER\")\n        play_frames(analysis, start_frame_after, end_frame)\n        time.sleep(0.5)\n\n        # what about end frame? before/after?\n        print(\"end BEFORE\")\n        play_frames(analysis, start_frame, end_frame_before)\n        time.sleep(0.5)\n\n",
+        "role":"user"
+      },{
+        "content":"log the start seconds in message too with fstring\n\nHere is the code I selected:\n```auto_edit/new_silence/ranges.py\n                left_start_frame = round(left.start_seconds * fps)\n                print(\"NO right_taper_start\")\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "model":"",
+    "temperature":1,
+    "top_p":1,
+    "max_tokens":4096
+  }
+}
