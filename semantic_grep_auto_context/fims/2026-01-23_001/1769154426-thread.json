@@ -1,0 +1,56 @@
+{
+  "request_body":{
+    "raw":false,
+    "model":"gpt-oss:120b",
+    "top_p":1,
+    "temperature":1,
+    "options":[],
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "max_tokens":4096,
+    "messages":[{
+        "role":"developer",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|fim_middle|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|fim_middle|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|fim_middle|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|fim_middle|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. thent he CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|fim_middle|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: dotfiles\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/windows/tools_window.lua:64-66\nfunction ToolBarWindow:wait_for_tools_button()\n    return wait_for_element(function() return self:get_button_by_description(\"Tools\") end, 20, 20, \"button Tools\")\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/windows/tools_window.lua:79-96\n\n\n---@return hs.axuielement[]\nfunction ToolBarWindow:get_edits_buttons()\n    self:wait_for_tools_button() -- good way to wait for toolbar to be \"ready\"\n    -- first two are not for edits, they're the Tools menu and button to use the last used tool (Volume in this case)\n    -- AXButton: desc:'Tools'\n    -- AXButton: desc:'Volume'\n    -- AXButton: desc:'Shape (2.68 sec)'\n    -- AXButton: desc:'Volume (0.32 sec)'\n    --   the buttons for current edits/tools have () in description\n    --\n    --   FYI in AppleScript I used:\n    --       return a reference to (every button of my toolbar whose description ends with \" sec)\")\n    --       use this if you have issues with just ()\n    --\n    return vim.iter(self._win:buttons())\n        :filter(\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/windows/tools_window.lua:81-101\n---@return hs.axuielement[]\nfunction ToolBarWindow:get_edits_buttons()\n    self:wait_for_tools_button() -- good way to wait for toolbar to be \"ready\"\n    -- first two are not for edits, they're the Tools menu and button to use the last used tool (Volume in this case)\n    -- AXButton: desc:'Tools'\n    -- AXButton: desc:'Volume'\n    -- AXButton: desc:'Shape (2.68 sec)'\n    -- AXButton: desc:'Volume (0.32 sec)'\n    --   the buttons for current edits/tools have () in description\n    --\n    --   FYI in AppleScript I used:\n    --       return a reference to (every button of my toolbar whose description ends with \" sec)\")\n    --       use this if you have issues with just ()\n    --\n    return vim.iter(self._win:buttons())\n        :filter(function(button)\n            local description = button:attributeValue(\"AXDescription\")\n            return string.match(description, \"%b()\") ~= nil\n        end)\n        :totable()\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/windows/tools_window.lua:123-125\nfunction ToolBarWindow:get_preview_this_edit_button()\n    return self:get_button_by_description_matching(\"^Preview this edit\")\nend\n\n## ~/repos/github/g0t4/dotfiles/.config/hammerspoon/config/macros/screenpal/windows/tools_window.lua:120-122\nfunction ToolBarWindow:get_copy_this_edit_button()\n    return self:get_button_by_description_matching(\"^Copy overlay\")\nend\n"
+      },{
+        "role":"user",
+        "content":"Please suggest text to replace <|fim_middle|>:\n\n```.config/hammerspoon/config/macros/macos/preview.lua\nlocal function get_preview_app()\n    return GetAppElement(\"com.apple.Preview\")\nend\n\nfunction PreviewApp_LineWeightButton()\n    local app = get_preview_app()\n    if not app then return end\n\n    local win = app:axFocusedWindow()\n    if not win then return end\n\n    local toolbar = win:toolbar(1)\n    if not toolbar then return end\n\n    local line_weight_button = toolbar:button<|fim_middle|>\n    if not line_weight_button then return end\n    -- line weight button in toolbar\n    --   line_weight_button:desc('Shape Style')\n    line_weight_button:axPress()\n\n\n\n    -- app:window(1):toolbar(1):button(12)\n    --\n    -- AXDescription: Shape Style<string>\n    -- AXEnabled: true<bool>\n    -- AXFocused: false<bool>\n    -- AXHelp: Shape Style<string>\n    -- AXRoleDescription: button<string>\n    -- frame: x=555.0,y=232.0,w=36.0,h=24.0\n    --\n    -- AXChildren: (0)\n    --\n    -- AXChildrenInNavigationOrder: (0)\n    --\n    -- unique ref: app:window('Untitled.png')\nend\n```\n\n## Reminders about the cursor line:\nText before cursor: `    local line_weight_button = toolbar:button`"
+      }]
+  },
+  "last_sse":{
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "id":"chatcmpl-pj7IXcL6sMO7bXLRztSzyxn26nsWelIt",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_ms":224.116,
+      "prompt_per_token_ms":0.11648440748441,
+      "predicted_ms":204.337,
+      "predicted_per_token_ms":4.1701428571429,
+      "predicted_n":49,
+      "prompt_per_second":8584.8399935748,
+      "prompt_n":1924,
+      "predicted_per_second":239.79993833716,
+      "cache_n":0
+    },
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "created":1769154426
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"We need to complete after toolbar:button. Likely need an index, e.g., (12). Based on comment below shows button(12). So insert `(12)`.",
+    "role":"assistant",
+    "content":"(12)"
+  }
+}
