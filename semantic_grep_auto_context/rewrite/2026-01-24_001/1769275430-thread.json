@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "created":1769275430,
+    "id":"chatcmpl-ViT05iCRcb1InzsXpyoQk3Vdq8JbonMg",
+    "timings":{
+      "prompt_per_second":2653.8890874999,
+      "prompt_n":1455,
+      "cache_n":196,
+      "prompt_ms":548.252,
+      "prompt_per_token_ms":0.37680549828179,
+      "predicted_ms":653.852,
+      "predicted_per_token_ms":7.0306666666667,
+      "predicted_per_second":142.23402237815,
+      "predicted_n":93
+    },
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "delta":[],
+        "index":0,
+        "finish_reason":"stop"
+      }],
+    "object":"chat.completion.chunk"
+  },
+  "response_message":{
+    "content":"```ts\n// ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts\nconsole.log(\"\\n\\n\" + \"=\".repeat(20) + \" run \" + \"=\".repeat(20) + \"\\n\");\n```",
+    "reasoning_content":"We need to replace manual separator with repeat. Likely use `'='.repeat(20)` etc. Provide code snippet.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  },
+  "request_body":{
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from :\nSpawnSyncOptionsWithBufferEncoding\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\nconst command = 'ls -lh /usr';\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\nconsole.log(\"stdout:\", result.stdout);\n\n.. yanked from node_modules/@types/node/child_process.d.ts:\noverlapped\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\na\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\na\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\na\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\n    console.log(\"******************** spawnSync COMPLETE ********************\");\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\n\n\n.. yanked from ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts:\nrunSyncWithStdio(\"inherit\")\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## TypeScript Code Preferences\n\n- Use camelCase\n- Use PascalCase for classes and interfaces\n- Terminate with a semicolon.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/mcp-server-commands/src/decide/spawn.ts:0-17\nimport {spawn} from 'node:child_process';\nimport {once} from 'node:events';\nconst ls = spawn('ls', ['-lh', '/usr']);\n\n// NOTES:\n// - spawn/spawnSync are the foundation of all other methods\n// - async, non-blocking (event loop)\n\nls.stdout.on('data', (data) => {\n    console.log(`stdout: ${data}`);\n});\n\nls.stderr.on('data', (data) => {\n    console.error(`stderr: ${data}`);\n});\n\nconst [code] = await once(ls, 'close');\nconsole.log(`child process exited with code ${code}`);\n\n\n## ~/repos/github/g0t4/mcp-server-commands/src/always_log.ts:10-43\n       function verbose_log(message: string, data?: any) {\n    // https://modelcontextprotocol.io/docs/tools/debugging - mentions various ways to debug/troubleshoot (including dev tools)\n    //\n    // remember STDIO transport means can't log over STDOUT (client expects JSON messages per the spec)\n    // https://modelcontextprotocol.io/docs/tools/debugging#implementing-logging\n    //   mentions STDERR is captured by the host app (i.e. Claude Desktop app)\n    //   server.sendLoggingMessage is captured by MCP client (not Claude Desktop app)\n    //   SO, IIUC use STDERR for logging into Claude Desktop app logs in:\n    //      '~/Library/Logs/Claude/mcp.log'\n    if (verbose) {\n        always_log(message, data);\n    }\n    // inspector, catches these logs and shows them on left hand side of screen (sidebar)\n\n    // TODO add verbose parameter (CLI arg?)\n\n    // IF I wanted to log via MCP client logs (not sure what those are/do):\n    //  I do not see inspector catching these logs :(, there is a server notifications section and it remains empty\n    //server.sendLoggingMessage({\n    //    level: \"info\",\n    //    data: message,\n    //});\n    // which results in something like:\n    //server.notification({\n    //    method: \"notifications/message\",\n    //    params: {\n    //        level: \"warning\",\n    //        logger: \"mcp-server-commands\",\n    //        data: \"ListToolsRequest2\",\n    //    },\n    //});\n    //\n    // FYI client should also requets a log level from the server, so that needs to be here at some point too\n}\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/manual/test.ts:22-24\n\n\nconsole.log();\n\n\n## ~/repos/github/g0t4/mcp-server-commands/src/always_log.ts:0-19\nlet verbose = false;\n// check CLI args:\nif (process.argv.includes(\"--verbose\")) {\n    verbose = true;\n}\n\nif (verbose) {\n    always_log(\"INFO: verbose logging enabled\");\n}\n\nexport function verbose_log(message: string, data?: any) {\n    // https://modelcontextprotocol.io/docs/tools/debugging - mentions various ways to debug/troubleshoot (including dev tools)\n    //\n    // remember STDIO transport means can't log over STDOUT (client expects JSON messages per the spec)\n    // https://modelcontextprotocol.io/docs/tools/debugging#implementing-logging\n    //   mentions STDERR is captured by the host app (i.e. Claude Desktop app)\n    //   server.sendLoggingMessage is captured by MCP client (not Claude Desktop app)\n    //   SO, IIUC use STDERR for logging into Claude Desktop app logs in:\n    //      '~/Library/Logs/Claude/mcp.log'\n    if (verbose) {\n\n\n## ~/repos/github/g0t4/mcp-server-commands/src/index.ts:15-32\nconst server = new Server(\n    {\n        name: package_name,\n        version: package_version,\n        description: \"Run commands on this \" + os.platform() + \" machine\",\n    },\n    {\n        capabilities: {\n            //resources: {},\n            tools: {},\n            prompts: {},\n            //logging: {}, // for logging messages that don't seem to work yet or I am doing them wrong\n        },\n    }\n);\nreisterTools(server);\nregisterPrompts(server);\n\n\n"
+      },{
+        "role":"user",
+        "content":"make this use repeat instead of manual =====\n\nHere is the code I selected:\n```~/repos/github/g0t4/mcp-server-commands/src/decide/spawn-sync.ts\n    console.log(\"\\n\\n==================== run ====================\\n\");\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "model":"",
+    "max_tokens":4096,
+    "top_p":1
+  }
+}
