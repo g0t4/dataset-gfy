@@ -1,0 +1,54 @@
+{
+  "request_body":{
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/Markdown.svelte:0-19\n<script lang=\"ts\">\n  import { marked } from 'marked'\n  import hljs from 'highlight.js'\n  import { getLanguageFromPath } from '../lib/highlight'\n\n  interface Props {\n    content: string\n  }\n\n  let { content }: Props = $props()\n\n  // Custom renderer for code blocks\n  const renderer = new marked.Renderer()\n\n  renderer.code = function(token: any) {\n    const code = token.text\n    const lang = token.lang || ''\n\n    // Check if lang looks like a file path (contains / or . with extension)\n    const isFilePath = lang.includes('/') || (lang.includes('.') && lang.split('.').length > 1)\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/CodeBlock.svelte:0-13\n<script lang=\"ts\">\n  import { highlight } from '../lib/highlight'\n\n  interface Props {\n    code: string\n    language?: string\n  }\n\n  let { code, language = 'text' }: Props = $props()\n\n  const highlighted = $derived(highlight(code, language))\n</script>\n\n<pre class=\"overflow-x-auto text-sm bg-gray-900 p-3 rounded\"><code class=\"hljs\">{@html highlighted}</code></pre>\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/MessageView.svelte:0-19\n<script lang=\"ts\">\n  import type { Message } from '../lib/types'\n  import { getRoleColor, extractContent } from '../lib/types'\n  import { getMessageId } from '../lib/hash-nav'\n  import ToolCalls from './ToolCalls.svelte'\n  import ToolResult from './ToolResult.svelte'\n  import Markdown from './Markdown.svelte'\n  import SemanticGrepMatches from './SemanticGrepMatches.svelte'\n  import LinkButton, { copy } from './LinkButton.svelte'\n\n  interface Props {\n    message: Message\n    index: number\n  }\n\n  let { message, index }: Props = $props()\n\n  let showRaw = $state(false)\n\n  const role = $derived(message.role)\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/MessageView.svelte:90-109\n              </button>\n            </div>\n            {#if showRaw}\n              <div class=\"whitespace-pre-wrap text-gray-200\">\n                {content}\n              </div>\n            {:else}\n              <Markdown {content} />\n            {/if}\n          </div>\n        {:else}\n          <div class=\"whitespace-pre-wrap text-gray-200\">\n            {content}\n          </div>\n        {/if}\n      {/if}\n\n      <!-- Tool calls (for assistant) -->\n      {#if toolCalls && toolCalls.length > 0}\n        <ToolCalls calls={toolCalls} msgIndex={index} />\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer_web/src/components/MessageView.svelte:105-124\n      {/if}\n\n      <!-- Tool calls (for assistant) -->\n      {#if toolCalls && toolCalls.length > 0}\n        <ToolCalls calls={toolCalls} msgIndex={index} />\n      {/if}\n    {/if}\n  </div>\n</article>\n\n<style>\n  .text-role-system { color: #d946ef; }\n  .text-role-developer { color: #06b6d4; }\n  .text-role-user { color: #22c55e; }\n  .text-role-assistant { color: #eab308; }\n  .text-role-tool { color: #ef4444; }\n\n  .bg-role-system { background-color: rgba(217, 70, 239, 0.2); }\n  .bg-role-developer { background-color: rgba(6, 182, 212, 0.2); }\n  .bg-role-user { background-color: rgba(34, 197, 94, 0.2); }\n\n"
+      },{
+        "role":"user",
+        "content":"see clipboard for run_process logic, which uses mode=shell+command_line OR mode=executable+argv\n\nHere is the code I selected:\n```tools/chat_viewer_web/src/components/ToolCalls.svelte\n      // Special handling for run_command - show the command\n      if (name === 'run_command' && parsed.command) {\n        return { type: 'code', code: parsed.command, language: 'bash' }\n      }\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "top_p":1,
+    "max_tokens":8192,
+    "temperature":1,
+    "stream":true,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    }
+  },
+  "last_sse":{
+    "created":1769451225,
+    "id":"chatcmpl-tDEtz7Mt49WiNZMhsYlULNMWyWaNsOsZ",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_per_token_ms":4.6484621212121,
+      "predicted_n":660,
+      "cache_n":310,
+      "prompt_n":999,
+      "predicted_per_second":215.12491097577,
+      "prompt_per_second":6347.4514886966,
+      "prompt_ms":157.386,
+      "prompt_per_token_ms":0.15754354354354,
+      "predicted_ms":3067.985
+    }
+  },
+  "response_message":{
+    "content":"      // Special handling for run_command - show the command\n      if (name === 'run_command' && parsed.command) {\n        return { type: 'code', code: parsed.command, language: 'bash' }\n      }\n\n      // Special handling for run_process - show the command or executable\n      if (name === 'run_process' && parsed) {\n        const isShellMode = parsed.mode === 'shell' && typeof parsed.command_line === 'string'\n        if (isShellMode) {\n          return { type: 'code', code: parsed.command_line, language: 'bash' }\n        }\n\n        const isExecutableMode =\n          parsed.mode === 'executable' &&\n          Array.isArray(parsed.argv) &&\n          parsed.argv.length > 0\n\n        if (isExecutableMode) {\n          const cmd = parsed.argv.map(arg => String(arg)).join(' ')\n          return { type: 'code', code: cmd, language: 'bash' }\n        }\n      }",
+    "reasoning_content":"The user wants help with the code snippet in ToolCalls.svelte, presumably to add handling for run_process logic, which uses mode=shell+command_line OR mode=executable+argv. They mention \"see clipboard for run_process logic, which uses mode=shell+command_line OR mode=executable+argv\". So we need to modify the code to handle run_process similarly to run_command, extracting appropriate code and language.\n\nWe need to locate ToolCalls.svelte file content. Not provided, but we know a part with special handling for run_command. We need to add similar handling for run_process. Need to parse 'parsed' which likely includes mode, command_line, argv. Provide appropriate return type.\n\nProbably if mode is 'shell' and command_line exists, we treat as bash code. If mode is 'executable' and argv exists, we treat as maybe command line list? Could be language 'bash' too.\n\nWe need to preserve indentation and other code.\n\nThus produce a patch: add after the run_command handling:\n\n```ts\n// Special handling for run_process - show the command or executable\nif (name === 'run_process' && parsed) {\n  if (parsed.mode === 'shell' && parsed.command_line) {\n    return { type: 'code', code: parsed.command_line, language: 'bash' }\n  }\n  if (parsed.mode === 'executable' && Array.isArray(parsed.argv) && parsed.argv.length > 0) {\n    const cmd = parsed.argv.map(arg => JSON.stringify(arg)).join(' ')\n    return { type: 'code', code: cmd, language: 'bash' }\n  }\n}\n```\n\nBut we need to match style. Use same variable names.\n\nProbably we need to extract ambiguous condition into variable, e.g., isShellMode = parsed.mode === 'shell' && parsed.command_line; isExecutableMode = parsed.mode === 'executable' && parsed.argv?.length.\n\nAdd those variables.\n\nThus final answer is code snippet patch. Provide only code? The instruction: \"Do not wrap answers in markdown code blocks\". So we should output raw code modifications. Probably show the modified snippet.\n\nWe'll output the updated portion with new handling.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  }
+}
