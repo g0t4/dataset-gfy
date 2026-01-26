@@ -4,3 +4,7 @@ converting tests to use new API, similar but totally different assertions, this 
     in fact, retrieval only returned other tests using the new APIs!
 
 PERFECT!
+## second thread
+port rest of tests
+- love how well it did with exit code being zero now when previously I didn't return it if zero
+- also previously I would check STDERR was EMPTY, whereas new API doesn't see empty STDERR/STDOUT
