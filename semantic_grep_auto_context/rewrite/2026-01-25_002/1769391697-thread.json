@@ -1,0 +1,60 @@
+{
+  "request_body":{
+    "max_tokens":4096,
+    "top_p":1,
+    "temperature":1,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from tests/integration/exec-utils.test.ts:\n\n    test(\"should execute a simple bash command over STDIN\", async () => {\n        const result = await runProcess({\n            mode: \"executable\",\n            argv: [\"bash\"],\n            input: 'echo \"Hello World\"', // STDIN\n        });\n        // console.log(result);\n\n        expect(result.content).toHaveLength(2);\n        const stdoutMessage = result.content?.[1];\n        expect(stdoutMessage?.name).toBe(\"STDOUT\");\n        expect(stdoutMessage?.text).toBe(\"Hello World\\n\");\n\n        const stderrMessage = result.content?.[0];\n        expect(stderrMessage?.name).toBe(\"EXIT_CODE\");\n        expect(stderrMessage?.text).toBe(\"0\");\n\n    });\n\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## TypeScript Code Preferences\n\n- Use camelCase\n- Use PascalCase for classes and interfaces\n- Terminate with a semicolon.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:105-124\n    });\n\n    describe(\"failures set isError and explain why\", () => {\n        describe(\"nonexistentcommand (failure in the command position)\", () => {\n            test(\"shell+command_line\", async () => {\n                const result = await runProcess({\n                    mode: \"shell\",\n                    command_line: \"nonexistentcommand\",\n                });\n                // console.log(result);\n\n                // * error is from shell, thus 'close' returns it\n                // ON_CLOSE {\n                //   stdout: '',\n                //   stderr: '/bin/sh: nonexistentcommand: command not found\\n',\n                //   code: 127,\n                //   signal: undefined\n                // }\n\n                expect(result.isError).toBe(true);\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:120-139\n                //   code: 127,\n                //   signal: undefined\n                // }\n\n                expect(result.isError).toBe(true);\n                expect(result.content).toHaveLength(2);\n\n                // FYI keep EXIT_CODE first, feels appropriate\n                //  do not put it after STDOUT/STDERR where it might be missed by me (when I do log reviews)\n                //  also I think its best for the model to see it first/early\n                const exit_code = result.content[0];\n                expect(exit_code.name).toContain(\"EXIT_CODE\");\n                expect(exit_code.text).toContain(\"127\");\n\n                // * verify error explains (contains) nonexistentcommand\n                const stderr = result.content[1];\n                expect(stderr.name).toContain(\"STDERR\");\n                // FYI different shells will have different messages \n                // - might need shell/os specific test case if that causes issues\n                expect(stderr.text).toMatch(/nonexistentcommand.*not found/i);\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:150-169\n                //   stdout: '',\n                //   stderr: '',\n                //   code: 'ENOENT',\n                //   signal: undefined,\n                //   message: 'spawn nonexistentcommand ENOENT',\n                //   killed: undefined,\n                //   cmd: 'nonexistentcommand'\n                // }\n\n                const result = await runProcess({\n                    mode: \"executable\",\n                    argv: [\"nonexistentcommand\"],\n                });\n                // console.log(result);\n\n                expect(result.isError).toBe(true);\n                expect(result.content).toHaveLength(2);\n                const exit_code = result.content[0];\n                expect(exit_code.name).toContain(\"EXIT_CODE\");\n                expect(exit_code.text).toContain(\"ENOENT\");\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:135-154\n                const stderr = result.content[1];\n                expect(stderr.name).toContain(\"STDERR\");\n                // FYI different shells will have different messages \n                // - might need shell/os specific test case if that causes issues\n                expect(stderr.text).toMatch(/nonexistentcommand.*not found/i);\n                // gh actions:\n                //   /bin/sh: 1: nonexistentcommand: not found\n\n            });\n\n            test(\"executable+argv\", async () => {\n                // * error is from spawn (not shell)\n                //   thus 'error' event returns this one \n                // * not the same as with shell+command_line above\n                // ON_ERROR {\n                //   stdout: '',\n                //   stderr: '',\n                //   code: 'ENOENT',\n                //   signal: undefined,\n                //   message: 'spawn nonexistentcommand ENOENT',\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:165-184\n                expect(result.isError).toBe(true);\n                expect(result.content).toHaveLength(2);\n                const exit_code = result.content[0];\n                expect(exit_code.name).toContain(\"EXIT_CODE\");\n                expect(exit_code.text).toContain(\"ENOENT\");\n                //\n                //  this error is raised by spawn, not my spawn_wrapped\n                //  therefore it has different fields, including message\n                const message = result.content[1];\n                expect(message.name).toContain(\"MESSAGE\");\n                expect(message.text).toContain(\"spawn nonexistentcommand ENOENT\");\n            });\n        });\n\n        describe(\"valid command, fails\", () => {\n            test(\"shell+command_line returning non‑zero exit code\", async () => {\n                // tests failing command through the 'close' event pathway\n                //  yes this couples to implementation, so be it!\n                const result = await runProcess({\n                    mode: \"shell\",\n\n"
+      },{
+        "role":"user",
+        "content":"rewite to use runProcess like test yanked to clipboard\n\nHere is the code I selected:\n```tests/integration/exec-utils.test.ts\n(\"should handle command errors properly in bash\", async () => {\n        try {\n            await execFileWithInput(\"bash\", \"nonexistentcommand\", {});\n            fail(\"Should have thrown an error\");\n        } catch (result: any) {\n            // FYI catch is so you can run assertions on the failed result, given the promise is rejected, it's then thrown here\n            // console.log(result);\n            const expected_stderr = \"bash: line 1: nonexistentcommand: command not found\";\n            expect(result.stderr).toContain(expected_stderr);\n            const expected_message = \"Command failed: bash\\n\" + expected_stderr + \"\\n\";\n            expect(result.message).toContain(expected_message);\n            expect(result.code).toBe(127);\n        }\n    });\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "stream":true,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    }
+  },
+  "last_sse":{
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "id":"chatcmpl-YemduItxBE8l5ZHKFMDEOrDDYvCmbbJR",
+    "created":1769391697,
+    "timings":{
+      "prompt_ms":437.185,
+      "prompt_per_token_ms":0.28555519268452,
+      "predicted_ms":854.245,
+      "predicted_per_token_ms":4.6680054644809,
+      "predicted_per_second":214.22425650721,
+      "predicted_n":183,
+      "prompt_per_second":3501.9499754109,
+      "cache_n":199,
+      "prompt_n":1531
+    },
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  },
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"```ts\ntest(\"should handle command errors properly in bash\", async () => {\n    const result = await runProcess({\n        mode: \"executable\",\n        argv: [\"bash\"],\n        input: \"nonexistentcommand\",\n    });\n\n    expect(result.isError).toBe(true);\n    expect(result.content).toHaveLength(2);\n\n    const exitCode = result.content[0];\n    expect(exitCode.name).toContain(\"EXIT_CODE\");\n    expect(exitCode.text).toContain(\"127\");\n\n    const stderr = result.content[1];\n    expect(stderr.name).toContain(\"STDERR\");\n    const expectedStderr = \"bash: line 1: nonexistentcommand: command not found\";\n    expect(stderr.text).toContain(expectedStderr);\n});\n```",
+    "reasoning_content":"We need to rewrite to use runProcess as in other test. Provide updated test code."
+  }
+}
