@@ -12,3 +12,5 @@ love that it knows how to map contains vs exact match...
   instead I'd avoid tests w/o contains matches
   or maybe even give up on this array/object style assertion if enough need the contains operation
 
+## 1769403673-thread.json - convert rest of file (7 tests!)
+so darn cool, it worked out great when reviewed!
