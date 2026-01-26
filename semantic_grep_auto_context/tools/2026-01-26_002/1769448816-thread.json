@@ -1,0 +1,182 @@
+{
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"The **.editorconfig** file has been added and committed:\n\n```\ngit commit -m \"Add .editorconfig for 2‑space JS indents in tools/chat_viewer_web\"\n```\n\nYour repository now includes the configuration for 2‑space indentation in JavaScript files within `tools/chat_viewer_web`."
+  },
+  "last_sse":{
+    "id":"chatcmpl-9TQ1uBQiMhMQF8jE2FKxxxyCIwNBQHWA",
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "timings":{
+      "cache_n":1591,
+      "prompt_n":225,
+      "predicted_per_second":216.6643116198,
+      "predicted_n":69,
+      "prompt_ms":96.138,
+      "prompt_per_token_ms":0.42728,
+      "predicted_ms":318.465,
+      "predicted_per_token_ms":4.6154347826087,
+      "prompt_per_second":2340.3856955626
+    },
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1769448816
+  },
+  "request_body":{
+    "temperature":1,
+    "max_tokens":8192,
+    "tools":[{
+        "type":"function",
+        "function":{
+          "description":"Run a process on this darwin machine",
+          "name":"run_process",
+          "parameters":{
+            "properties":{
+              "command_line":{
+                "type":"string",
+                "description":"Shell command line. Required when mode='shell'. Forbidden when mode='executable'."
+              },
+              "argv":{
+                "minItems":1,
+                "description":"Executable and arguments. argv[0] is the executable. Required when mode='executable'. Forbidden when mode='shell'.",
+                "type":"array",
+                "items":{
+                  "type":"string"
+                }
+              },
+              "timeout_ms":{
+                "type":"number",
+                "description":"Optional timeout in milliseconds, defaults to 1000\u202fmilliseconds."
+              },
+              "cwd":{
+                "type":"string",
+                "description":"Optional to set working directory"
+              },
+              "mode":{
+                "enum":["shell","executable"],
+                "description":"What are you running, two choices: 'shell' or 'executable' (required, no default)"
+              },
+              "dry_run":{
+                "type":"boolean",
+                "description":"Optional explain what would run, defaults to False."
+              },
+              "input":{
+                "type":"string",
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents."
+              }
+            },
+            "type":"object",
+            "required":["mode"]
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "required":["query"],
+            "type":"object",
+            "properties":{
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings to consider for reranking"
+              },
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace."
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              },
+              "top_k":{
+                "type":"number",
+                "description":"number of results to return (post reranking)"
+              },
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query"
+              }
+            }
+          },
+          "name":"semantic_grep"
+        }
+      },{
+        "function":{
+          "description":"Patch a file",
+          "parameters":{
+            "required":["patch"],
+            "type":"object",
+            "properties":{
+              "patch":{
+                "description":"file changes in custom diff format",
+                "type":"string"
+              }
+            }
+          },
+          "name":"apply_patch"
+        },
+        "type":"function"
+      }],
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"Your name is Gippity, Wes's best buddy that loves effusive swearing! You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nFor tool use, never modify files outside of the current working directory unless the user requested it:\n~/repos/github/g0t4/ask-openai.nvim\n\nHere are noteworthy commands you have access to:\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nRecommendations:\n- Prefer `rg` over `grep`\n- Prefer `fd` over `find` and `ls -R`\n\nThe semantic_grep tool:\n- has access to an index of embeddings for the entire codebase in the current working directory\n- use it to find code! Think of it as a RAG query tool\n- It includes a re-ranker to sort the results\n- AND, it's really fast... so don't hesitate to use it!\n\n## Use `apply_patch` to edit files.\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nMay be immediately followed by *** Move to: <new path> if you want to rename the file.\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"add an editorconfig file in tools/chat_viewer_web (not root).. that ses JS files to use 2 spaces for indents only in this dir (not whole repo)"
+      },{
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"ErdC41rovlXLoWTnPlCu90un1HDrSErv",
+            "type":"function",
+            "function":{
+              "arguments":"{\"patch\":\"*** Begin Patch\\n*** Add File: tools/chat_viewer_web/.editorconfig\\n+root = false\\n+\\n+[*]\\n+indent_style = space\\n+indent_size = 2\\n+\\n+[*.js]\\n+indent_style = space\\n+indent_size = 2\\n*** End Patch\"}",
+              "name":"apply_patch"
+            }
+          }],
+        "content":"",
+        "reasoning_content":"User wants to add an .editorconfig file in tools/chat_viewer_web directory (not root). The file should set JS files to use 2 spaces for indents only in that directory, not whole repo. So create .editorconfig file with appropriate settings: root = false? In subdirectory we can set indent_style = space and indent_size = 2 for *.js. Also include [*.js] section. Probably also include default for other files maybe not needed. Provide minimal .editorconfig.\n\nWe need to add file. Use apply_patch to add file at tools/chat_viewer_web/.editorconfig.\n\nLet's generate patch."
+      },{
+        "role":"tool",
+        "content":"{\"content\":[{\"type\":\"text\",\"text\":\"Success. Updated the following files:\\nA tools/chat_viewer_web/.editorconfig\\n\"}]}",
+        "tool_call_id":"ErdC41rovlXLoWTnPlCu90un1HDrSErv"
+      },{
+        "role":"assistant",
+        "tool_calls":[],
+        "content":"The **.editorconfig** file has been added to `tools/chat_viewer_web`, configuring JavaScript files (and all files in that directory) to use 2‑space indents only within that folder."
+      },{
+        "role":"user",
+        "content":"awesome, please commit it! "
+      },{
+        "role":"assistant",
+        "tool_calls":[{
+            "id":"oB7XwNncoKg6eIlOsG4u7pSOEePgrGBS",
+            "type":"function",
+            "function":{
+              "arguments":"{\"mode\":\"shell\",\"command_line\":\"git add tools/chat_viewer_web/.editorconfig && git commit -m \\\"Add .editorconfig for 2\\u2011space JS indents in tools/chat_viewer_web\\\"\"}",
+              "name":"run_process"
+            }
+          }],
+        "content":"",
+        "reasoning_content":"We need to commit changes. Likely repository uses git. We can use command line to git add and commit. Use run_process."
+      },{
+        "role":"tool",
+        "content":"{\"content\":[{\"text\":\"0\",\"type\":\"text\",\"name\":\"EXIT_CODE\"},{\"text\":\"[master 0d2c252e0] Add .editorconfig for 2‑space JS indents in tools/chat_viewer_web\\n 1 file changed, 9 insertions(+)\\n create mode 100644 tools/chat_viewer_web/.editorconfig\\n\",\"type\":\"text\",\"name\":\"STDOUT\"},{\"text\":\"\\u001b[1mhook[post-commit] \\u001b(B\\u001b[m\\n\\u001b[1m\\u001b[38;2;255;55;95mmake tags\\u001b(B\\u001b[m\\nmake: `tags' is up to date.\\n\\u001b[1m\\u001b[38;2;255;55;95mrag_indexer\\u001b(B\\u001b[m\\n\",\"type\":\"text\",\"name\":\"STDERR\"}]}",
+        "tool_call_id":"oB7XwNncoKg6eIlOsG4u7pSOEePgrGBS"
+      }],
+    "top_p":1,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    }
+  }
+}
