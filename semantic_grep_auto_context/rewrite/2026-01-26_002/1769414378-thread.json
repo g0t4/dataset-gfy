@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "timings":{
+      "predicted_per_second":214.82856631361,
+      "predicted_n":438,
+      "prompt_per_second":7129.9833369229,
+      "prompt_ms":176.438,
+      "prompt_per_token_ms":0.14025278219396,
+      "predicted_ms":2038.835,
+      "predicted_per_token_ms":4.6548744292237,
+      "prompt_n":1258,
+      "cache_n":0
+    },
+    "created":1769414378,
+    "id":"chatcmpl-QtbeAVifAc8jrpIH1SgU6ozMwmBdaSIU",
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7785-1c7cf94b2"
+  },
+  "response_message":{
+    "finish_reason":"stop",
+    "content":"```python\nimport os\nimport fnmatch\nfrom pathlib import Path\n\n# ... existing imports ...\n\nclass Config:\n    # ... existing code ...\n\n    def is_file_supported(self, doc_path: str) -> bool:\n        _, ext = os.path.splitext(doc_path)\n        file_type = ext.lstrip('.').lower()\n        file_type = ALIASED_EXTENSIONS.get(file_type, file_type)\n\n        if file_type not in self.include:\n            return False\n\n        return not self._is_ignored_path(doc_path)\n\n    def _is_ignored_path(self, doc_path: str) -> bool:\n        \"\"\"Return True if the given path matches any ignore pattern.\"\"\"\n        path_str = str(Path(doc_path))\n        for pattern in self.ignores:\n            # fnmatch supports Unix shell‑style wildcards\n            if fnmatch.fnmatch(path_str, pattern):\n                return True\n        return False\n```",
+    "reasoning_content":"We need to implement ignores matching in config. Likely add method to Config class to check ignore patterns using spec from ignores module. Let's open file? Probably need to import ignores and use its is_ignored? Actually config should have ignores list patterns. Implement method that checks if doc_path matches any ignore pattern. Use pathlib Path and maybe spec.match_file. Simpler: use ignores.is_ignored? But config has its own ignore list. We'll add method in config: is_ignored_path(self, doc_path) that returns bool by checking against self.ignores patterns (list of str). Use Path(doc_path).match? Use pathlib's match with glob? Implement:\n\ndef is_ignored(self, doc_path: str) -> bool:\n    path = Path(doc_path)\n    rel = path if not path.is_absolute() else path\n    for pattern in self.ignores:\n        if path.match(pattern) or path.is_relative_to(Path(pattern).parent):\n            return True\n    return False\n\nBut keep simple: use fnmatch.fnmatch.\n\nImplement using fnmatch.fnmatch(str(path), pattern). Return True if any.\n\nUpdate is_file_supported to also check not ignored.\n\nLet's write code.",
+    "role":"assistant"
+  },
+  "request_body":{
+    "top_p":1,
+    "temperature":1,
+    "stream":true,
+    "max_tokens":4096,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "model":"",
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/ignores.py:59-73\ndef is_ignored(file_path: str | Path, server: LanguageServer | None = None):\n    file_path = Path(file_path)\n\n    if spec is None or root_path is None:\n        warn_client(server)\n        return False\n\n    if not file_path.is_relative_to(root_path):\n        # FYI for now IGNORE all files NOT inside the root path\n        return True\n\n    # relative path is needed for relative patterns that start without a wildcard\n    rel_path = file_path.relative_to(root_path)\n\n    return spec.match_file(rel_path)\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/ignores_tests.py:27-34\ndef test_all_paths_ignored_for_asterisk_dot_extension_pattern(tmp_root):\n    use_pygls_workspace(tmp_root)\n\n    # absolute path that IS relative to root_path\n    assert is_ignored(tmp_root / \"subdir/file.pyc\")\n\n    # relative path upfront\n    assert is_ignored(\"is/relative/initially.pyc\")\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/ignores_tests.py:44-47\ndef test_literal_entry(tmp_root):\n    use_pygls_workspace(tmp_root)\n    assert is_ignored(tmp_root / \"venv/foo.c\")\n    assert not is_ignored(tmp_root / \"venvfoo.c\")\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/updates/file_queue.py:78-97\n\n\n    async def update_embeddings(self, doc_uri: str):\n        doc_path = uris.to_fs_path(doc_uri)\n        if doc_path == None:\n            logger.warning(f\"abort update rag... to_fs_path returned {doc_path}\")\n            return\n\n        if not self.config.is_file_supported(doc_path):\n            logger.debug(f\"filetype not supported: {doc_path}\")\n            return\n        if ignores.is_ignored(doc_path, self.server):\n            logger.debug(f\"rag ignored doc: {doc_path}\")\n            return\n        if Path(doc_path).suffix == \"\":\n            #  i.e. githooks\n            # currently I don't index extensionless anwyways, so skip for now in updates\n            # would need to pass vim_filetype from client (like I do for FIM queries within them)\n            #   alternatively I could parse shebang?\n            # but, I want to avoid extensionless so lets not make it possible to use them easily :)\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/ignores_tests.py:36-42\ndef test_ignore_if_not_relative_to_workspace_root_dir(tmp_root):\n    use_pygls_workspace(tmp_root)\n    # absolute path that IS NOT relative to root_path\n    #  IOTW in a directory outside of root_path\n    assert is_ignored(\"/foo/subdir/file.pyc\")\n    assert is_ignored(\"/foo/subdir/bar.txt\")\n    assert is_ignored(\"/venv/foo.c\")\n",
+        "role":"user"
+      },{
+        "content":"implement ignores (remove matching items)\n\nHere is the code I selected:\n```lua/ask-openai/rag/lsp/config.py\n\n    def is_file_supported(self, doc_path: str) -> bool:\n        _, ext = os.path.splitext(doc_path)\n        file_type = ext.lstrip('.').lower()\n\n        # TODO is this file extension or was filetype vim filetype? if so you'll have to use a lookup!\n        #   FYI can fix that later, just get this started for now so I don't log false positives in LSP server for Unsupported files (most of the time anyways)\n\n        file_type = ALIASED_EXTENSIONS.get(file_type, file_type)\n\n        return file_type in self.include\n        # and (file_type not in self.ignores) # TODO ignores need a method that does the match check\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }]
+  }
+}
