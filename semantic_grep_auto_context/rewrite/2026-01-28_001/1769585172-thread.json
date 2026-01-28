@@ -1,0 +1,60 @@
+{
+  "response_message":{
+    "content":"def analysis2():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute2)\n\ndef analysis3():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute3)\n\ndef analysis4():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute4)\n\ndef analysis5():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute5)\n\ndef analysis6():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute6)\n\ndef analysis7():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute7)\n\ndef analysis8():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute8)\n\ndef analysis9():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute9)\n\ndef analysis10():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute10)\n\ndef analysis11():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute11)\n\ndef analysis12():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute12)\n\ndef analysis13():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute13)",
+    "reasoning_content":"We need to change \"minute2\" part to use gptoss_fim_video.minute2 (same for each #). Likely the get_full_analysis expects a Path object, not string. In current code they pass strings like \"minute2\". We need to change each function to call get_full_analysis(gptoss_fim_video.minute2) etc. Need to preserve import line. So modify return line: return get_full_analysis(gptoss_fim_video.minute2) etc. Must import gptoss_fim_video? It's probably already in scope elsewhere; but we only modify these functions. Should we add import? The instruction: \"leave import alone\". So only change argument. So code:\n\ndef analysis2():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(gptoss_fim_video.minute2)\n\nSimilarly for others up to minute13.\n\nWe need to ensure we reference gptoss_fim_video. Probably defined elsewhere; okay.\n\nProvide updated code block with same indentation. No markdown.",
+    "role":"assistant",
+    "finish_reason":"stop"
+  },
+  "last_sse":{
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "timings":{
+      "prompt_per_second":4707.7078358855,
+      "cache_n":1269,
+      "prompt_n":625,
+      "predicted_per_second":217.00882182065,
+      "predicted_n":632,
+      "predicted_per_token_ms":4.6081075949367,
+      "prompt_ms":132.761,
+      "prompt_per_token_ms":0.2124176,
+      "predicted_ms":2912.324
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1769585172,
+    "id":"chatcmpl-qGbw48Skjp8qlYJPTGfcgkQsmOSgxQh6",
+    "object":"chat.completion.chunk"
+  },
+  "request_body":{
+    "temperature":1,
+    "max_tokens":8192,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## Recent yanks (copy to clipboard):\n```auto_edit/tests/test_files.py\ndef analysis9():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute9\")\n```\n\n```auto_edit/tests/test_files.py\ndef analysis10():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute10\")\n```\n\n```auto_edit/tests/test_files.py\ndef analysis11():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute11\")\n```\n\n```auto_edit/tests/test_files.py\ngptoss_fim_examples / \"minutes/first_10mins/first_10mins.mp4\"\n\n```\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/tests/analysis_loader.py:10-17\ndef get_full_analysis(video: Path) -> AudioAnalysisResult:\n    \"\"\" `minute_attr` must be an attribute on `gptoss_fim_video` \"\"\"\n    if video not in _CACHE:\n        analysis = full_analysis(video)\n        # Apply breathing marks once; tests expect it.\n        mark_breathing(analysis)\n        _CACHE[video] = analysis\n    return _CACHE[video]\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detector_notebook.py:84-91\ndef quick_load(num):\n    analysis = full_analysis(gptoss_fim_video.minute(num))\n    plt.close(\"all\")\n    clear()\n    plotter = SegmentPlotter.for_entire(analysis)\n    plotter.show()\n    mark_breathing(analysis, plotter)\n    plotter.zoom_to_gap_at_seconds(1)  # take to first window basically\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/tests/integration_tests.py:43-52\n    def test_minute4(self):\n        # * minute4 @ 7sec\n        win = analysis4().window_at_seconds(7)\n        assert win\n        assert len(win.gap.crossovers) == 5\n        # taper speech: min0:6.7313s -39.1357dB | max1:6.7646s -34.6303dB |\n        # breathing: min2:6.8302s -75.8738dB | max3:6.9896s -38.2408dB | min4:7.2562s -73.8155dB\n        assert win.gap.left_taper_end.time.seconds == pytest.approx(6.8302, 0.001)\n        assert win.gap.right_taper_start.time.seconds == pytest.approx(7.2562, 0.001)\n        # TODO! assert win.breathing\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/tests/integration_tests.py:293-299\n    def test_minute6(self):\n        # min0:54.9260s -57.6516dB | max1:54.9776s -49.9246dB | min2:55.0833s -82.6621dB | max3:55.0906s -80.9416dB | min4:55.1531s -91.6585dB\n        # min2/3 s/b removed (one pair, back to back)\n        #   dB diff: 82.6621dB -  80.9416dB = 1.7205dB\n        #   sec diff: 55.0906s - 55.0833s = 0.0073 => 14 hops (I'm fine with this duration me thinks)\n        #     TODO would be nice to run analysis across full 10 minutes or more => and find / show only subset of gaps\n        only_single_breathing_hump(analysis6(), 54.9260, 55.1531)\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detector_notebook.py:40-59\n# %%\n\nanalysis_min4 = full_analysis(gptoss_fim_video.minute4)\n# analysis_min7 = full_analysis(gptoss_fim_video.minute7)\n\nplt.close(\"all\")\n\n# %%\n\nplt.close(\"all\")\nwhich_segs = [s for s in analysis_min4.merged_segments if s.start_seconds]\nwhich_windows = analysis_min4.windows\nwin_breathe = analysis_min4.window_at_seconds(19.0)  # min3 breathe\n# win_breathe = analysis.window_at_seconds(9) # min3 breathe\n# win_breathe = analysis.window_at_seconds(12) # min3 breathe\n# win_breathe25 = analysis.window_at_seconds(25.5)  # min3 breathe\nclear()\nplotter = SegmentPlotter(analysis_min4, which_segs, windows_subset=which_windows)\nplotter.show()\nmark_breathing(analysis_min4, plotter)\n\n"
+      },{
+        "role":"user",
+        "content":"change \"minute2\" part to use gptoss_fim_video.minute2  (same for each #) - leave import alone\n\nHere is the code I selected:\n```auto_edit/tests/test_files.py\ndef analysis2():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute2\")\n\ndef analysis3():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute3\")\n\ndef analysis4():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute4\")\n\ndef analysis5():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute5\")\n\ndef analysis6():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute6\")\n\ndef analysis7():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute7\")\n\ndef analysis8():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute8\")\n\ndef analysis9():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute9\")\n\ndef analysis10():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute10\")\n\ndef analysis11():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute11\")\n\ndef analysis12():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute12\")\n\ndef analysis13():\n    from auto_edit.new_silence.tests.analysis_loader import get_full_analysis\n    return get_full_analysis(\"minute13\")\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "top_p":1,
+    "model":""
+  }
+}
