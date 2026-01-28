@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_per_token_ms":4.5488867924528,
+      "predicted_per_second":219.83400458748,
+      "predicted_n":318,
+      "prompt_per_second":6762.8728084083,
+      "prompt_n":1173,
+      "cache_n":0,
+      "prompt_ms":173.447,
+      "prompt_per_token_ms":0.14786615515772,
+      "predicted_ms":1446.546
+    },
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "id":"chatcmpl-lccXdjICJ58WGOfV22adyaNcZOeHoMmM",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1769573404
+  },
+  "response_message":{
+    "role":"assistant",
+    "content":"        if is_shift(event):\n            # Find the index of the current crossover within the gap.\n            try:\n                idx = win.gap.crossovers.index(cross)\n            except ValueError:\n                idx = -1\n            cp = cross.critical_point\n            label = cross.min_max_label()\n            txt = f\"{label}{idx}:{cp.time.seconds:.4f}s {cp.rms:.4f}dB\"\n        else:\n            txt = cross.label()",
+    "finish_reason":"stop",
+    "reasoning_content":"We need to modify code in auto_edit/new_silence/player/plot_helpers.py: replace usage of as_label_string() for shift case with getting index of the cross (crossover) in gap.crossovers and then show it similar to as_label_string but only one entry.\n\nWe need context: likely inside some function handling events where cross is defined. Need to find variable cross? Probably earlier code defines cross variable representing a CrossoverData object. Want to find its index in win.gap.crossovers list.\n\nImplementation: find index = win.gap.crossovers.index(cross) maybe. But need to ensure cross is in list. Then format string similar to as_label_string: label = cross.min_max_label(); cp = cross.critical_point; formatted = f\"{label}{idx}:{cp.time.seconds:.4f}s {cp.rms:.4f}dB\". Use that as txt.\n\nWe need to edit that snippet accordingly, preserving indentation. Provide only code changes, no extra comments, no markdown.\n\nLet's output the modified block."
+  },
+  "request_body":{
+    "max_tokens":8192,
+    "top_p":1,
+    "temperature":1,
+    "stream":true,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## Recent yanks across all files in the project:\n.. yanked from auto_edit/new_silence/detects/segments.py:\n        for idx, c in enumerate(self):\n            cp = c.critical_point\n            label = c.min_max_label()\n            rows.append(f\"{label}{idx}:{cp.time.seconds:.4f}s {cp.rms:.4f}dB\")\n        return \" | \".join(rows)\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/segments.py:60-82\nclass Crossovers(list[\"CrossoverData\"]):\n    \"\"\"Thin ``list`` subclass for :class:`CrossoverData` objects.\n\n    Keeps the full list interface while providing convenience helpers.\n    \"\"\"\n\n    def __init__(self, iterable: list[\"CrossoverData\"] | None = None):\n        super().__init__(iterable or [])\n\n    def critical_points(self) -> list[\"RmsPoint\"]:\n        \"\"\"Return the ``critical_point`` of each stored crossover.\"\"\"\n        return [c.critical_point for c in self]\n\n    def as_label_string(self) -> str:\n        \"\"\"Return a formatted string of labels and critical points:\n              min0:0.12s -3.4dB | max1:0.45s 2.1dB\n        \"\"\"\n        rows = []\n        for idx, c in enumerate(self):\n            cp = c.critical_point\n            label = c.min_max_label()\n            rows.append(f\"{label}{idx}:{cp.time.seconds:.4f}s {cp.rms:.4f}dB\")\n        return \" | \".join(rows)\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/detectors/ideas.py:29-31\n    @property\n    def crosses(self):\n        return self.win.gap.crossovers\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:14-27\n@dataclass(frozen=True, slots=True)\nclass Crossover:\n    \"\"\"Represent a zero‑crossing event.\n\n    Attributes\n    ----------\n    before_index: int\n        Index of the sample just before the sign change.\n    after_index: int\n        Index of the sample just after the sign change.\n    \"\"\"\n\n    before_index: int\n    after_index: int\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/segments.py:58-66\n\n\nclass Crossovers(list[\"CrossoverData\"]):\n    \"\"\"Thin ``list`` subclass for :class:`CrossoverData` objects.\n\n    Keeps the full list interface while providing convenience helpers.\n    \"\"\"\n\n    \n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/breathing.py:191-193\n            class VirtualGapSegment(DetectedSegment):\n                left_cross: CrossoverData | None\n                right_cross: CrossoverData | None\n"
+      },{
+        "role":"user",
+        "content":"in the latter case, get the index of the cross (crossover) in gap.crossovers and then show it like as_label_string() shows but obviously just one in thi scase\n\nHere is the code I selected:\n```auto_edit/new_silence/player/plot_helpers.py\n        if is_shift(event):\n            # Use the ``Crossovers`` helper to generate the formatted string.\n            # This keeps the logic in one place and mirrors the earlier manual\n            # construction.\n            txt = win.gap.crossovers.as_label_string()\n        else:\n            txt = cross.label()\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    }
+  }
+}
