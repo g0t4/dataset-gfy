@@ -1,0 +1,60 @@
+{
+  "last_sse":{
+    "timings":{
+      "prompt_ms":236.886,
+      "prompt_per_token_ms":0.12421919244887,
+      "predicted_ms":2574.429,
+      "predicted_per_token_ms":5.7852337078652,
+      "cache_n":0,
+      "prompt_n":1907,
+      "predicted_per_second":172.85386390536,
+      "prompt_per_second":8050.2857914778,
+      "predicted_n":445
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-biuU9L5ef3JlB87hwfCx6ksLuK5L6AxK",
+    "created":1769728512,
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }]
+  },
+  "response_message":{
+    "reasoning_content":"We need to modify test function to also print both sets of crossovers using as_label_string loop method like in other spots. Need to find that method. Search in repo maybe: as_label_string? Not in given context. Probably a method on CrossoverData or list. Let's assume there is a function that takes list of CrossoverData and returns string. Might be defined elsewhere. Let's search mental: maybe in detect/crossings.py there is method to get label string. There's label() method per CrossoverData. as_label_string likely concatenates labels. Could be a utility function elsewhere. We need to call that loop method. We'll add after mismatch print, also print labels. Use something like:\n\nlabels = \" \".join(c.label() for c in win.gap.crossovers)\nsecondary = \" \".join(c.label() for c in win.gap.secondary_crossovers)\nrich.print(f\"    crossovers: {labels}\")\nrich.print(f\"    secondary: {secondary}\")\n\nBut they said using as_label_string loop method. Perhaps CrossoverData has method as_label_string? Not present. Could be in other file. Since unknown, we can implement loop: for each list, generate string via c.label(). Provide one line each. Ensure indentation preserved.\n\nWe'll modify test function accordingly. Provide code only, no markdown.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"```python\ndef test_full_first_10_mins_secondary_crossovers(self):\n    analysis = analysis_first10mins()\n    for win in analysis.windows:\n        if len(win.gap.crossovers) != len(win.gap.secondary_crossovers):\n            rich.print(\n                f\"  Mismatch {seconds_to_timecode(win.gap.start_seconds(), fps)}: \"\n                f\"{len(win.gap.crossovers)} crossovers vs \"\n                f\"{len(win.gap.secondary_crossovers)} secondary\"\n            )\n            cross_labels = \" \".join(c.label() for c in win.gap.crossovers)\n            secondary_labels = \" \".join(c.label() for c in win.gap.secondary_crossovers)\n            rich.print(f\"    crossovers: {cross_labels}\")\n            rich.print(f\"    secondary: {secondary_labels}\")\n```"
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "temperature":1,
+    "model":"",
+    "max_tokens":8192,
+    "stream":true,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## Recent yanks (copy to clipboard):\n```auto_edit/new_silence/detector_notebook.py\nshow_for(gptoss_fim_video.minute7)\nplotter.zoom_to_gap_at_seconds(2.5)  # double hop\n```\n\n",
+        "role":"user"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/moot.py:71-90\n    def print_crossovers(crossovers: list[CrossoverData], filtered: list[CrossoverData]) -> None:\n        if len(filtered) == len(crossovers):\n            return\n\n        rich.print(\"[bold yellow]  Reduced crossovers[/]\")\n        previous: CrossoverData = None\n        for cross in crossovers:\n            label = cross.min_max_label()\n            time_sec = cross.cp.time.seconds\n            rms = cross.cp.rms\n            diff_info = \"\"\n            if previous is not None:\n                db_diff = rms - previous.cp.rms\n                time_diff_hops = cross.cp.time.hops - previous.cp.time.hops\n                diff_info = f\" {time_diff_hops:.0f}hops {db_diff:.2f}dB\"\n            if cross in filtered:\n                rich.print(f\"    [bold]{label} {time_sec:.3f}s {rms:.2f}dB{diff_info}[/bold]\")\n            else:\n                rich.print(f\"    [bold yellow]{label} {time_sec:.3f}s {rms:.2f}dB{diff_info} moot[/bold yellow]\")\n            previous = cross\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/breathing.py:194-213\n        for cross in crossovers_exp:\n            plot_cross_box(cross, offset_gated_experimental__0_2, plotter)\n\n    return material_crossovers, material_crossovers_exp\n\ndef mark_breathing(analysis: AudioAnalysisResult, plotter: SegmentPlotter | None = None):\n    if plotter:\n        clear()\n        breathing_state.set_plotter(plotter)\n\n    for win in analysis.windows:\n        win.breathing = None  # reset just in case was set elsewhere\n\n        console.print(f\"gap: {seconds_to_timecode_markup(win.gap.start_seconds(), fps=analysis.fps)} => \"\n                      f\"{seconds_to_timecode_markup(win.gap.end_seconds(), fps=analysis.fps)}\", highlight=False)\n\n        gap_rms = analysis.rms_slice_for_gap(win)\n\n        win.gap.crossovers, win.gap.secondary_crossovers = compute_and_plot_crossovers(gap_rms, win, analysis, plotter)\n        c = GapContext(win, gap_rms, analysis, plotter)\n\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/crossings_tests.py:0-3\nimport pytest\nimport numpy as np\nfrom auto_edit.new_silence.detects.crossings import zero_crossings, Crossover\n\n\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/detectors/ideas.py:29-31\n    @property\n    def crosses(self):\n        return self.win.gap.crossovers\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/new_silence/detects/crossings.py:29-110\n@dataclass\nclass CrossoverData:\n    crossover: Crossover\n\n    before: AVTime\n    middle: AVTime\n    after: AVTime\n\n    min: RmsPoint\n    max: RmsPoint\n\n    after_diff_value: float\n\n    def __init__(self, crossover: Crossover, diff_stride2_gated: TimeSeries, analysis: \"AudioAnalysisResult\"):\n        self.crossover = crossover\n\n        self.after = AVTime(diff_stride2_gated.times[crossover.after_index], analysis)\n        self.before = AVTime(diff_stride2_gated.times[crossover.before_index], analysis)\n        self.after_diff_value = diff_stride2_gated.values[crossover.after_index]\n\n        self.middle = AVTime(\n            (self.before.seconds + self.after.seconds) / 2,\n            analysis,\n        )\n\n        # get rms values (not stride 2 btw, so make sure to map via time/hops, not array offsets)\n        rms_segment = analysis.rms_slice(\n            analysis.to_hops(self.before.seconds),\n            analysis.to_hops(self.after.seconds),\n        )\n\n        # min makes most sense for upward crossover (rampup)\n        min_idx = np.argmin(rms_segment.values)\n        self.min = RmsPoint(\n            AVTime(rms_segment.times[min_idx], analysis),\n            rms_segment.values[min_idx],\n        )\n\n        # max makes most sense for downward crossover (taper)\n        max_idx = np.argmax(rms_segment.values)\n        self.max = RmsPoint(\n            AVTime(rms_segment.times[max_idx], analysis),\n            rms_segment.values[max_idx],\n        )\n\n    @property\n    def cp(self) -> RmsPoint:\n        \"\"\"\n        aliases critical_point\n        - for cases where code gets absurdly long\n        - thus use this for readability (avoids super long lines)\n        \"\"\"\n        return self.critical_point\n\n    @property\n    def critical_point(self) -> RmsPoint:\n        \"\"\"\n        critical RMS value of the crossover.\n        1. for upward crossovers (ramp‑up) the minimum RMS is the critical point\n        2. for downward crossovers (taper) the maximum RMS is the critical point\n        \"\"\"\n        return self.min if self.is_upward() else self.max\n\n    def is_local_min(self) -> bool:\n        return self.is_upward()\n\n    def is_upward(self) -> bool:\n        return self.after_diff_value > 0\n\n    def is_local_max(self) -> bool:\n        return self.is_downward()\n\n    def is_downward(self) -> bool:\n        return self.after_diff_value < 0\n\n    def min_max_label(self) -> str:\n        return \"min\" if self.is_local_min() else \"max\"\n\n    def label(self) -> str:\n        label = self.min_max_label()\n        cp = self.critical_point\n        return f\"{label}{cp.time.seconds:.4f}s {cp.rms:.2f}dB\"\n",
+        "role":"user"
+      },{
+        "content":"also print both sets of crossovers using hte as_label_string loop method like in other spots so I have the points in one line to setup tests\n\nHere is the code I selected:\n```auto_edit/new_silence/tests/integration_tests.py\n    def test_full_first_10_mins_secondary_crossovers(self):\n        analysis = analysis_first10mins()\n        for win in analysis.windows:\n            if len(win.gap.crossovers) != len(win.gap.secondary_crossovers):\n                rich.print( \\\n                        f\"  Mismatch {seconds_to_timecode(win.gap.start_seconds(), fps)}: \"\n                        f\"{len(win.gap.crossovers)} crossovers vs \"\n                        f\"{len(win.gap.secondary_crossovers)} secondary\"\n                )\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "top_p":1
+  }
+}
