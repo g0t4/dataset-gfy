@@ -1,0 +1,51 @@
+{
+  "response_message":{
+    "finish_reason":"stop",
+    "reasoning_content":"The user says \"spelling\" and shows a code snippet from a markdown file: \n```\n```lua/ask-openai/questions/p...\n- while embeddings are great for finding relevant code, if you need to find every occurence instances of text, make sure to double check with a command like `rg`\n```\n\nThey likely want to correct spelling errors. The snippet: \"occurence\" should be \"occurrence\". Also maybe \"instances\" is redundant: \"every occurrence of text\". Also \"double check\" maybe \"double-check\". Also maybe grammar: \"while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\". Also \"embedding\" maybe singular? But likely they want to correct spelling.\n\nWe need to output corrected code, preserving indentation. It's a markdown file; code block language \"lua/ask-openai/questions/prompts/tools.md\"? That's weird; but we just need to output the corrected line.\n\nThus output:\n\n```lua/ask-openai/questions/prompts/tools.md\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double‑check with a command like `rg`\n```\n\nPreserve indentation. No extra comments.",
+    "role":"assistant",
+    "content":"```lua/ask-openai/questions/prompts/tools.md\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n```"
+  },
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "top_p":1,
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"spelling\n\nHere is the code I selected:\n```lua/ask-openai/questions/prompts/tools.md\n- while embeddings are great for finding relevant code, if you need to find every occurence instances of text, make sure to double check with a command like `rg`\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "temperature":1,
+    "stream":true,
+    "max_tokens":8192,
+    "model":""
+  },
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-mu7oKsgwDHjL0GhdJz7YoEs038IjjZoy",
+    "created":1769681072,
+    "timings":{
+      "prompt_n":161,
+      "prompt_ms":93.405,
+      "prompt_per_token_ms":0.58015527950311,
+      "predicted_ms":1458.406,
+      "cache_n":157,
+      "predicted_n":318,
+      "prompt_per_second":1723.6764627161,
+      "predicted_per_second":218.04627792261,
+      "predicted_per_token_ms":4.5861823899371
+    },
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }]
+  }
+}
