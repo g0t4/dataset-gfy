@@ -1,0 +1,3 @@
+I love coding this way...
+
+btw you'd think it would get rid of the empty print... but, did I ask for that? yes/no? implicit desires should be made explicit!
