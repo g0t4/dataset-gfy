@@ -1,0 +1,143 @@
+{
+  "request_body":{
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "max_tokens":8192,
+    "model":"",
+    "messages":[{
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nFor tool use, never modify files outside of the current working directory unless the user requested it:\n~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n\n## Use `apply_patch` to edit files.\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nIf you want to rename the file too, immediately follow with:\n*** Move to: <new path>\n\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nHere is the grammar:\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file\n\n\nTips on a failure:\n\n- You only need enough context for a unique match!\n- The line(s) you replace are context too; if they’re unique, no additional context is needed.\n- Split bigger patches into smaller patches, i.e. if editing two functions, try each separately!\n- Watch out for whitespace differences, i.e. blank lines\n\nPlease be curteous:\n\n- NEVER leave comments about removed code, just get rid of it. This code lives in a git repo.\n- Check your work! Especially after a failure.\n\n### More Examples\n\nHere's a patch file to change the `win` property's type:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@ @dataclass\n-class GapContext:\n-    win: GapWindow\n-    gap_rms: TimeSeries\n-    analysis: AudioAnalysisResult\n+class GapContext:\n+    win: SilenceWindow\n+    gap_rms: TimeSeries\n+    analysis: AudioAnalysisResult\n*** End Patch\n```\n\nWhich can be simplified to:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-class GapContext:\n-    win: GapWindow\n+class GapContext:\n+    win: SilenceWindow\n*** End Patch\n```\n\nOr, this could work if the `win` property is unique:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-    win: GapWindow\n+    win: SilenceWindow\n*** End Patch\n```\n",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"what kinda files are in this project",
+        "role":"user"
+      }],
+    "tools":[{
+        "function":{
+          "parameters":{
+            "type":"object",
+            "required":["mode"],
+            "properties":{
+              "mode":{
+                "enum":["shell","executable"],
+                "description":"What are you running, two choices: 'shell' or 'executable' (required, no default)"
+              },
+              "cwd":{
+                "type":"string",
+                "description":"Optional to set working directory"
+              },
+              "input":{
+                "type":"string",
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents."
+              },
+              "argv":{
+                "type":"array",
+                "minItems":1,
+                "items":{
+                  "type":"string"
+                },
+                "description":"Executable and arguments. argv[0] is the executable. Required when mode='executable'. Forbidden when mode='shell'."
+              },
+              "command_line":{
+                "type":"string",
+                "description":"Shell command line. Required when mode='shell'. Forbidden when mode='executable'."
+              },
+              "dry_run":{
+                "type":"boolean",
+                "description":"Optional explain what would run, defaults to False."
+              },
+              "timeout_ms":{
+                "type":"number",
+                "description":"Optional timeout in milliseconds, defaults to 1000\u202fmilliseconds."
+              }
+            }
+          },
+          "name":"run_process",
+          "description":"Run a process on this darwin machine"
+        },
+        "type":"function"
+      },{
+        "function":{
+          "parameters":{
+            "type":"object",
+            "required":["patch"],
+            "properties":{
+              "patch":{
+                "type":"string",
+                "description":"file changes in custom diff format"
+              }
+            }
+          },
+          "name":"apply_patch",
+          "description":"Patch a file"
+        },
+        "type":"function"
+      },{
+        "type":"function",
+        "function":{
+          "parameters":{
+            "type":"object",
+            "required":["query"],
+            "properties":{
+              "top_k":{
+                "type":"number",
+                "description":"number of results to return (post reranking)"
+              },
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings to consider for reranking"
+              },
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace."
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              },
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query"
+              }
+            }
+          },
+          "name":"semantic_grep",
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results."
+        }
+      }],
+    "top_p":1,
+    "temperature":1
+  },
+  "response_message":{
+    "finish_reason":"tool_calls",
+    "reasoning_content":"We need to list files in project. Use semantic_grep or maybe run_process to list directory. There's no tool for ls; but can use semantic_grep with query maybe \"list all files\"? Better use run_process with command \"ls -R\" maybe. Use run_process.",
+    "role":"assistant"
+  },
+  "last_sse":{
+    "choices":[{
+        "delta":[],
+        "finish_reason":"tool_calls",
+        "index":0
+      }],
+    "id":"chatcmpl-HPNsbk4WwgQ93XaWrSCLLnTbqnPkce6i",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1769681925,
+    "object":"chat.completion.chunk",
+    "timings":{
+      "predicted_per_second":213.02799320973,
+      "predicted_n":96,
+      "prompt_per_second":3192.7873112453,
+      "prompt_ms":126.222,
+      "cache_n":1168,
+      "predicted_ms":450.645,
+      "predicted_per_token_ms":4.69421875,
+      "prompt_n":403,
+      "prompt_per_token_ms":0.31320595533499
+    },
+    "system_fingerprint":"b7785-1c7cf94b2"
+  }
+}
