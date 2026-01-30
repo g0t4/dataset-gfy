@@ -1,0 +1,246 @@
+{
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "id":"chatcmpl-HqRyNsjrkuoiRv81Of4PWI5rr5RC8G53",
+    "created":1769791111,
+    "object":"chat.completion.chunk",
+    "timings":{
+      "prompt_n":132,
+      "predicted_per_second":173.1609570708,
+      "predicted_n":153,
+      "cache_n":9181,
+      "prompt_ms":89.507,
+      "prompt_per_token_ms":0.67808333333333,
+      "predicted_ms":883.571,
+      "predicted_per_token_ms":5.7749738562092,
+      "prompt_per_second":1474.7449920118
+    },
+    "system_fingerprint":"b7785-1c7cf94b2"
+  },
+  "request_body":{
+    "model":"",
+    "top_p":1,
+    "temperature":1,
+    "messages":[{
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nFor tool use, never modify files outside of the current working directory unless the user requested it:\n~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n\n## Committing\n\n- This project is in a git repo.\n- Once a request is complete and verified done, please commit the changes.\n- Keep the description concise.\n- And, include \"Co-Authored-By: gptoss120b\" in commit message\n- Only commit files you changed.\n\n\n## Commands\n\nHere are noteworthy commands you have access to:\n\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nHere are some *suggestions* too...\n\n### Use `fd` to list files\n\n```sh\n# Usage: fd [OPTIONS] [regex] [path]...\nfd                      # list files and dirs (except hidden and ignored)\nfd foo                  # basename contains \"foo\" (regex)\nfd '^foo' src           # limit to \"src\" directory (path)\nfd --extension js\nfd -p foo               # --full-path contains foo\nfd --type file\nfd --type dir\n\nfd -l                   # think: ls -l\nfd --exec stat          # execute stat on each result\n\nfd --hidden             # show hidden files == start with dot like .bashrc\nfd --no-ignore          # disable using .gitignore, .ignore, .fdignore to hide files\nfd --unrestricted    # show everything: both hidden and ignored\n\nfd --exclude node_modules # glob exclusion (not regex)\n\nfd --max-depth 3\nfd --size +10M\nfd --changed-within 2hours\nfd --changed-before 7days\n\n# Files are versioned in git, so you can use `git` to find files too:\ngit ls-files\n\n# other commands are fine too! as long as they're not needlessly slow / verbose!\n```\n\n### Use `rg` (ripgrep) to search file contents\n\n```sh\nrg bar # instead of grep -R\nrg -o bar  # only matched part (grep -o)\nrg -v bar # invert match (grep -v)\nrg --glob=\"*manual*\" embed  # glob filters paths (contains manual)\nrg --glob=\"!*manual*\" embed  # ! excludes (does not contain manual)\nrg --max-depth 1\nrg --multiline\n\n# list files only:\nrg --files-with-matches # or -l\nrg --files  # list searched files\n\nfd | rg foo # search STDIN\n```\n\n### _Verboten_ Commands\n\n> [!WARNING]\n> NEVER use `ls -R`\n> NEVER use `grep -R`\n> NEVER use `find . -type f`\n\nWhy? Because they are _SLOW_ and generate tons of useless output as they hoover up `node_modules`, `.venv`, etc because they don't support `.gitignore` exclusions.\n\nOther costly mistakes to avoid:\n```sh\nls -R ~ # gonna be a late night 🥱\nls -R / # only assholes do this 😈\n```\n\n\n## Use `apply_patch` to edit files.\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nIf you want to rename the file too, immediately follow with:\n*** Move to: <new path>\n\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nHere is the grammar:\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file\n\n\nTips on a failure:\n\n- You only need enough context for a unique match!\n- The line(s) you replace are context too; if they’re unique, no additional context is needed.\n- Split bigger patches into smaller patches, i.e. if editing two functions, try each separately!\n- Watch out for whitespace differences, i.e. blank lines\n\nPlease be curteous:\n\n- NEVER leave comments about removed code, just get rid of it. This code lives in a git repo.\n- Check your work! Especially after a failure.\n\n### More Examples\n\nHere's a patch file to change the `win` property's type:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@ @dataclass\n-class GapContext:\n-    win: GapWindow\n-    gap_rms: TimeSeries\n-    analysis: AudioAnalysisResult\n+class GapContext:\n+    win: SilenceWindow\n+    gap_rms: TimeSeries\n+    analysis: AudioAnalysisResult\n*** End Patch\n```\n\nWhich can be simplified to:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-class GapContext:\n-    win: GapWindow\n+class GapContext:\n+    win: SilenceWindow\n*** End Patch\n```\n\nOr, this could work if the `win` property is unique:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-    win: GapWindow\n+    win: SilenceWindow\n*** End Patch\n```\n",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/jinja/manual/harmony_library.py:15-34\n)\n\nencoding = load_harmony_encoding(HarmonyEncodingName.HARMONY_GPT_OSS)\n\nsystem_message = (\n    SystemContent.new()\n        .with_reasoning_effort(ReasoningEffort.HIGH)\n        .with_conversation_start_date(\"2025-06-28\")\n)\n\napply_patch_instructions = (Path(os.environ[\"WES_REPOS\"])\n    / \"github/g0t4/ask-openai.nvim\"\n    / \"lua/ask-openai/tools/inproc/apply_patch.md\").read_text()\n\ndeveloper_message = (\n    DeveloperContent.new()\n        .with_instructions(apply_patch_instructions)\n        .with_function_tools(\n            [\n                ToolDescription.new(\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/inference/client/test_qwen3_retrieval.py:11-30\n\n\nasync def main():\n    logging_fwk_to_console(\"INFO\")\n    # logging_fwk_to_console(\"DEBUG\")\n    logger = get_logger(__name__)\n\n    dot_rag_dir = Path(\"~/repos/github/g0t4/ask-openai.nvim/.rag\").expanduser().absolute()\n    set_root_dir(dot_rag_dir.parent)\n    datasets = load_all_datasets(dot_rag_dir)\n\n    args = LSPSemanticGrepRequest(\n        query=\"where did I set the top_k for semantic grep?\",\n        currentFileAbsolutePath=\"test.py\",\n        vimFiletype=\"py\",\n        instruct=None,  # intentionally blank\n        skipSameFile=False,\n        topK=4,\n        embedTopK=8,\n        languages=\"EVERYTHING\",  # test search across languages\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/lsp/inference/client/test_qwen3_retrieval.py:13-42\nasync def main():\n    logging_fwk_to_console(\"INFO\")\n    # logging_fwk_to_console(\"DEBUG\")\n    logger = get_logger(__name__)\n\n    dot_rag_dir = Path(\"~/repos/github/g0t4/ask-openai.nvim/.rag\").expanduser().absolute()\n    set_root_dir(dot_rag_dir.parent)\n    datasets = load_all_datasets(dot_rag_dir)\n\n    args = LSPSemanticGrepRequest(\n        query=\"where did I set the top_k for semantic grep?\",\n        currentFileAbsolutePath=\"test.py\",\n        vimFiletype=\"py\",\n        instruct=None,  # intentionally blank\n        skipSameFile=False,\n        topK=4,\n        embedTopK=8,\n        languages=\"EVERYTHING\",  # test search across languages\n    )\n\n    ranked_matches = await semantic_grep(\n        args=args,\n        datasets=datasets,\n    )\n\n    # * dump details\n    for idx, m in enumerate(ranked_matches):\n        rich.print(f'#{m.rerank_rank} / {m.id}: rerank={format_score_percent(m.rerank_score)} embed={format_score_percent(m.embed_score)}/#{m.embed_rank}')\n        if logger.isEnabledForDebug():\n            print_code(m.text)\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/inproc/apply_patch_multi.py:23-73\ndef main() -> None:\n    parser = argparse.ArgumentParser()\n    parser.add_argument(\n        \"--dry-run\",\n        action=\"store_true\",\n        help=\"Print the patch content without applying it\",\n    )\n    args = parser.parse_args()\n\n    content = sys.stdin.read()\n\n    # de-duplicate consecutive \"*** End Patch\" lines (collapse into one)\n    #  often happens w/ gptoss at the end of a patch file\n    #  really no reason not to just ignore this\n    #    maybe a sign that the model \"forgot\" something...\n    #    more likely just a mistake in \"closing\" out the patch\n    #    I've noticed this with mutli Patch examples\n    content = re.sub(r\"(^\\*\\*\\* End Patch$\\n*){2,}\", \"*** End Patch\\n\", content, flags=re.MULTILINE)  # https://regexr.com/8j95j\n\n    if args.dry_run:\n        import rich\n        rich.print(\"[blue]de-dupe End Patch:[/]\")\n        print(content)\n        print()\n\n    apply_patch_rs = Path(\"~/repos/github/openai/codex/codex-rs/target/release/apply_patch\").expanduser()  # https://regexr.com/8j95m\n    count_begins = len(re.findall(r\"^\\*\\*\\* Begin Patch$\", content, flags=re.MULTILINE))\n    if count_begins <= 1:\n        if not args.dry_run:\n            subprocess.run([apply_patch_rs], input=content, text=True, check=True)\n        return\n\n    # Split the content on each \"*** Begin Patch\" marker\n    # Keep the marker with each subsequent chunk\n    raw_patches = re.split(r\"(^\\*\\*\\* Begin Patch$)\", content, flags=re.MULTILINE)\n    # Recombine the split parts so each patch starts with the marker\n    patches = []\n    for i in range(1, len(raw_patches), 2):\n        marker = raw_patches[i]\n        body = raw_patches[i + 1] if i + 1 < len(raw_patches) else \"\"\n        patches.append(f\"{marker}{body}\")\n\n    print(f\"Found {count_begins} patch blocks, running one at a time...\")\n\n    for i, patch in enumerate(patches, start=1):\n        print(f\"## Applying patch #{i}:\")\n        for line in patch.split(\"\\n\"):\n            print(f\"{line}\")\n        print()\n        if not args.dry_run:\n            subprocess.run([apply_patch_rs], input=patch, text=True, check=True)\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/tests/commits/test.py:20-39\n\n\n# print(AttrList(['a', 'b'], c='d'))\n\ndef build_frecency_from_git():\n    # Get commits with file stats\n    git_log = subprocess.run(\n        ['git', 'log', '--numstat', '--pretty=format:%H|%at|%an', '--since=6 months ago'],\n        capture_output=True,\n        text=True,\n    )\n\n    frecency_data = {}\n    for line in git_log.stdout.split('\\n'):\n        if '|' in line:  # Commit info\n            commit_hash, timestamp, author = line.split('|')\n        elif '\\t' in line:  # File changes\n            adds, dels, filepath = line.split('\\t')\n\n            if filepath not in frecency_data:\n\n",
+        "role":"user"
+      },{
+        "content":"modify my system instructions for commits and add a blurb about how this project uses a git repo and the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes)",
+        "role":"user"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"FUJWFU0mSZ0P4Fbrhx0v7qV1coMPmjKl",
+            "function":{
+              "arguments":"{\"query\":\"Committing\",\"filetype\":\"\",\"top_k\":20}",
+              "name":"semantic_grep"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"The user asks: \"modify my system instructions for commits and add a blurb about how this project uses a git repo and the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes)\".\n\nWe need to modify \"system instructions\". There's a system message at the top that says: \"You are ChatGPT, ...\". But the user wants us to modify their system instructions for commits. The \"system instructions for commits\" might refer to the developer instructions included in the prompt that says how to commit changes. They want to add a blurb about how this project uses a git repo and the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes). So we need to modify the system instructions accordingly.\n\nThe system instructions currently include \"## Committing\" section. We need to modify that part to include the new blurb. Since we are ChatGPT, we can output a revised version of the system instructions? But the instruction says \"modify my system instructions for commits and add a blurb ...\". So we need to produce a patch to the system instructions file. Where are the system instructions stored? Typically in a file like `.github/...`? Or maybe they are in a file in the repo. The repository is the ask-openai.nvim plugin. The system instructions might be stored in a file like `lua/ask-openai/system_instructions.lua` or something.\n\nWe need to search the repo for commit instructions. Use `semantic_grep` to search for \"Committing\".",
+        "role":"assistant"
+      },{
+        "content":"{\"matches\":[],\"isError\":true,\"error\":\"Exception: No dataset for\"}",
+        "tool_call_id":"FUJWFU0mSZ0P4Fbrhx0v7qV1coMPmjKl",
+        "role":"tool"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"tK5LLE4Xn7tkW9FRGFu72RS9emMEasIr",
+            "function":{
+              "arguments":"{\"mode\":\"shell\",\"command_line\":\"fd -e lua -e py -e md\",\"cwd\":\"~/repos/github/g0t4/ask-openai.nvim\"}",
+              "name":"run_process"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"The semantic_grep tool fails because no dataset for? It might require dataset context. Possibly we need to use `rg` to search within the repo. Let's list files. Use `fd` to list files.",
+        "role":"assistant"
+      },{
+        "content":"{\"content\":[{\"text\":\"0\",\"name\":\"EXIT_CODE\",\"type\":\"text\"},{\"text\":\"README.md\\nlua/ask-openai/api.lua\\nlua/ask-openai/backends/curl.lua\\nlua/ask-openai/backends/curl_request.lua\\nlua/ask-openai/backends/json_client.lua\\nlua/ask-openai/backends/llama_cpp/jinja/README.md\\nlua/ask-openai/backends/llama_cpp/jinja/manual/harmony_library.py\\nlua/ask-openai/backends/llama_cpp/llama_server_client.lua\\nlua/ask-openai/backends/llama_cpp/llama_server_client_tests.lua\\nlua/ask-openai/backends/llama_cpp/stats.lua\\nlua/ask-openai/backends/models/agentica.lua\\nlua/ask-openai/backends/models/bytedance-seed-coder-notes.md\\nlua/ask-openai/backends/models/fim.lua\\nlua/ask-openai/backends/models/glm/glm47flash.md\\nlua/ask-openai/backends/models/gptoss/README.md\\nlua/ask-openai/backends/models/gptoss/fim_harmony.lua\\nlua/ask-openai/backends/models/gptoss/gptoss.lua\\nlua/ask-openai/backends/models/gptoss/prompts/fim_dev.md\\nlua/ask-openai/backends/models/gptoss/tokenizer.lua\\nlua/ask-openai/backends/models/meta.lua\\nlua/ask-openai/backends/models/tests/fim.tests.lua\\nlua/ask-openai/backends/ollama/notes/sses.md\\nlua/ask-openai/backends/openai_schema.lua\\nlua/ask-openai/backends/sse/data_only_parser.lua\\nlua/ask-openai/backends/sse/data_only_parser_tests.lua\\nlua/ask-openai/backends/sse/parsers.lua\\nlua/ask-openai/backends/todo_ollama_api_generate.lua\\nlua/ask-openai/backends/vllm/notes/sses.md\\nlua/ask-openai/config/init.lua\\nlua/ask-openai/config/local_share.lua\\nlua/ask-openai/frontends/prompts.lua\\nlua/ask-openai/frontends/thinking/dots.lua\\nlua/ask-openai/health.lua\\nlua/ask-openai/helpers/buffers.lua\\nlua/ask-openai/helpers/files.lua\\nlua/ask-openai/helpers/float_window.lua\\nlua/ask-openai/helpers/safely.lua\\nlua/ask-openai/helpers/selection.lua\\nlua/ask-openai/helpers/selection.tests.lua\\nlua/ask-openai/helpers/test_setup.lua\\nlua/ask-openai/helpers/testing.lua\\nlua/ask-openai/helpers/text.lua\\nlua/ask-openai/helpers/wrap_getpos.lua\\nlua/ask-openai/helpers/wrap_getpos.tests.lua\\nlua/ask-openai/hlgroups.lua\\nlua/ask-openai/init.lua\\nlua/ask-openai/logs/completion_logger.lua\\nlua/ask-openai/logs/logger.lua\\nlua/ask-openai/predictions/NOTES.md\\nlua/ask-openai/predictions/ansi.lua\\nlua/ask-openai/predictions/backends/MODELS.notes.md\\nlua/ask-openai/predictions/backends/fim_backend.lua\\nlua/ask-openai/predictions/backends/llama-server.md\\nlua/ask-openai/predictions/context/NOTES.md\\nlua/ask-openai/predictions/context/changelists.lua\\nlua/ask-openai/predictions/context/cmds.lua\\nlua/ask-openai/predictions/context/coc/context.lua\\nlua/ask-openai/predictions/context/coc/learn/diagnostics.lua\\nlua/ask-openai/predictions/context/coc/learn/symbols.lua\\nlua/ask-openai/predictions/context/ctags.lua\\nlua/ask-openai/predictions/context/ctags.tests.lua\\nlua/ask-openai/predictions/context/edits.lua\\nlua/ask-openai/predictions/context/git_diff.lua\\nlua/ask-openai/predictions/context/imports.lua\\nlua/ask-openai/predictions/context/init.lua\\nlua/ask-openai/predictions/context/inspect.lua\\nlua/ask-openai/predictions/context/item.lua\\nlua/ask-openai/predictions/context/matching_ctags.lua\\nlua/ask-openai/predictions/context/matching_ctags.tests.lua\\nlua/ask-openai/predictions/context/project.lua\\nlua/ask-openai/predictions/context/prompts.lua\\nlua/ask-openai/predictions/context/prompts.tests.lua\\nlua/ask-openai/predictions/context/ring_buffer.lua\\nlua/ask-openai/predictions/context/yanks.lua\\nlua/ask-openai/predictions/cursor_controller.lua\\nlua/ask-openai/predictions/fim_performance.lua\\nlua/ask-openai/predictions/frontend.lua\\nlua/ask-openai/predictions/keys.lua\\nlua/ask-openai/predictions/model-info.md\\nlua/ask-openai/predictions/models/codellama/NOTES.md\\nlua/ask-openai/predictions/models/qwen2.5-coder/OLLAMA-API-REVIEW.md\\nlua/ask-openai/predictions/models/qwen2.5-coder/README.md\\nlua/ask-openai/predictions/prediction.lua\\nlua/ask-openai/predictions/prefix_suffix.lua\\nlua/ask-openai/predictions/prefix_suffix_tests.lua\\nlua/ask-openai/predictions/stats.lua\\nlua/ask-openai/predictions/tests/benchmark/set_cursor_position.lua\\nlua/ask-openai/predictions/tests/benchmark/str_concat_vs_buffer.lua\\nlua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua\\nlua/ask-openai/predictions/tests/calc/calc-user.lua\\nlua/ask-openai/predictions/tests/calc/calc.lua\\nlua/ask-openai/predictions/tests/calc/numbers.lua\\nlua/ask-openai/predictions/tests/fib.py\\nlua/ask-openai/predictions/tests/repros/002/notes.md\\nlua/ask-openai/predictions/tests/repros/005/notes.md\\nlua/ask-openai/predictions/tests/similar-lang/README.md\\nlua/ask-openai/providers/byok.lua\\nlua/ask-openai/providers/copilot.lua\\nlua/ask-openai/providers/keyless.lua\\nlua/ask-openai/questions/ask-question-examples.md\\nlua/ask-openai/questions/ask.notes.md\\nlua/ask-openai/questions/buffers.lua\\nlua/ask-openai/questions/chat/formatters/generic.lua\\nlua/ask-openai/questions/chat/formatters/init.lua\\nlua/ask-openai/questions/chat/formatters/run_command.lua\\nlua/ask-openai/questions/chat/llama-server.md\\nlua/ask-openai/questions/chat/messages/rx.lua\\nlua/ask-openai/questions/chat/messages/shared.lua\\nlua/ask-openai/questions/chat/messages/tx.lua\\nlua/ask-openai/questions/chat/params.lua\\nlua/ask-openai/questions/chat/thread.lua\\nlua/ask-openai/questions/chat/tool_call.lua\\nlua/ask-openai/questions/chat/tool_call_output.lua\\nlua/ask-openai/questions/chat/window.lua\\nlua/ask-openai/questions/curl_request_for_thread.lua\\nlua/ask-openai/questions/curl_request_tests.lua\\nlua/ask-openai/questions/fold.lua\\nlua/ask-openai/questions/frontend.lua\\nlua/ask-openai/questions/lines_builder.lua\\nlua/ask-openai/questions/models/params.lua\\nlua/ask-openai/questions/prompts/system_message.md\\nlua/ask-openai/questions/prompts/tools.md\\nlua/ask-openai/rag/ERRORS.md\\nlua/ask-openai/rag/README.md\\nlua/ask-openai/rag/client/dedupe.lua\\nlua/ask-openai/rag/client/fim_query_notes.md\\nlua/ask-openai/rag/client/init.lua\\nlua/ask-openai/rag/index/stale.py\\nlua/ask-openai/rag/index/validate.py\\nlua/ask-openai/rag/indexer.py\\nlua/ask-openai/rag/indexer_tests.py\\nlua/ask-openai/rag/init.lua\\nlua/ask-openai/rag/lsp/__init__.py\\nlua/ask-openai/rag/lsp/chunks/NOTES.md\\nlua/ask-openai/rag/lsp/chunks/__init__.py\\nlua/ask-openai/rag/lsp/chunks/ansi.py\\nlua/ask-openai/rag/lsp/chunks/chunker.py\\nlua/ask-openai/rag/lsp/chunks/chunker_tests.py\\nlua/ask-openai/rag/lsp/chunks/identified.py\\nlua/ask-openai/rag/lsp/chunks/parsers.py\\nlua/ask-openai/rag/lsp/chunks/ts/TODO.md\\nlua/ask-openai/rag/lsp/chunks/ts/lua.py\\nlua/ask-openai/rag/lsp/chunks/ts/py.py\\nlua/ask-openai/rag/lsp/chunks/ts/ts.py\\nlua/ask-openai/rag/lsp/chunks/uncovered.py\\nlua/ask-openai/rag/lsp/chunks/uncovered_tests.py\\nlua/ask-openai/rag/lsp/config.py\\nlua/ask-openai/rag/lsp/context/imports/imports.py\\nlua/ask-openai/rag/lsp/fs.py\\nlua/ask-openai/rag/lsp/helpers.py\\nlua/ask-openai/rag/lsp/ignores.py\\nlua/ask-openai/rag/lsp/ignores_tests.py\\nlua/ask-openai/rag/lsp/inference/client/__init__.py\\nlua/ask-openai/rag/lsp/inference/client/embedder.py\\nlua/ask-openai/rag/lsp/inference/client/retrieval.py\\nlua/ask-openai/rag/lsp/inference/client/test_qwen3_embed.py\\nlua/ask-openai/rag/lsp/inference/client/test_qwen3_retrieval.py\\nlua/ask-openai/rag/lsp/inference/comms.py\\nlua/ask-openai/rag/lsp/inference/qwen3/known.py\\nlua/ask-openai/rag/lsp/inference/server/__main__.py\\nlua/ask-openai/rag/lsp/inference/server/helpers.py\\nlua/ask-openai/rag/lsp/inference/server/manual_test_memory.py\\nlua/ask-openai/rag/lsp/inference/server/qwen3_embeddings.py\\nlua/ask-openai/rag/lsp/inference/server/qwen3_rerank.py\\nlua/ask-openai/rag/lsp/inference/server/todos.md\\nlua/ask-openai/rag/lsp/logs.py\\nlua/ask-openai/rag/lsp/notes/drop_sentence_transformers.py\\nlua/ask-openai/rag/lsp/notes/hosted/llama_cpp.py\\nlua/ask-openai/rag/lsp/notes/transformers_qwen3.py\\nlua/ask-openai/rag/lsp/notes/treesitter/notebook.py\\nlua/ask-openai/rag/lsp/notes/treesitter.md\\nlua/ask-openai/rag/lsp/notes/with_st.py\\nlua/ask-openai/rag/lsp/rag.py\\nlua/ask-openai/rag/lsp/server.py\\nlua/ask-openai/rag/lsp/stoppers.py\\nlua/ask-openai/rag/lsp/storage.py\\nlua/ask-openai/rag/lsp/tokens/__wip__.py\\nlua/ask-openai/rag/lsp/updates/file_queue.py\\nlua/ask-openai/rag/pydants.py\\nlua/ask-openai/rag/tests/commits/test.py\\nlua/ask-openai/rag/tests/indexer_src/sample.lua\\nlua/ask-openai/rag/tests/test_cases/bm25/bm25.algorithm.py\\nlua/ask-openai/rag/tests/test_cases/treesitter/lua/doc_comments.lua\\nlua/ask-openai/rag/tests/test_cases/treesitter/lua/lambdas.lua\\nlua/ask-openai/rag/tests/test_cases/treesitter/python/class_with_functions.py\\nlua/ask-openai/rag/tests/test_cases/treesitter/python/dataclass.py\\nlua/ask-openai/rag/tests/test_cases/treesitter/python/decorators.py\\nlua/ask-openai/rag/tests/test_cases/treesitter/python/nested_functions.py\\nlua/ask-openai/rag/tests/test_cases/treesitter/python/two_functions.py\\nlua/ask-openai/rag/tests/treesitter-chunks.lua\\nlua/ask-openai/rewrites/BufferController.lua\\nlua/ask-openai/rewrites/ExtmarksSet.lua\\nlua/ask-openai/rewrites/MODEL.notes.md\\nlua/ask-openai/rewrites/WindowController.lua\\nlua/ask-openai/rewrites/displayer.lua\\nlua/ask-openai/rewrites/frontend.lua\\nlua/ask-openai/rewrites/frontend_tests.lua\\nlua/ask-openai/rewrites/harmony/NOTES.md\\nlua/ask-openai/rewrites/integration.tests.lua\\nlua/ask-openai/rewrites/message_builder.lua\\nlua/ask-openai/rewrites/thinking/init.lua\\nlua/ask-openai/rx/scheduler.lua\\nlua/ask-openai/rx/tests-setup.lua\\nlua/ask-openai/rx/tests.scheduler.lua\\nlua/ask-openai/status/lualine.lua\\nlua/ask-openai/suggest.lua\\nlua/ask-openai/tools/inproc/apply_patch.lua\\nlua/ask-openai/tools/inproc/apply_patch.md\\nlua/ask-openai/tools/inproc/apply_patch_extended.md\\nlua/ask-openai/tools/inproc/apply_patch_multi.py\\nlua/ask-openai/tools/inproc/apply_patch_multi_tests.py\\nlua/ask-openai/tools/inproc/planner.md\\nlua/ask-openai/tools/inproc/semantic_grep.lua\\nlua/ask-openai/tools/inprocess.lua\\nlua/ask-openai/tools/mcp/init.lua\\nlua/ask-openai/tools/mcp/run_process/commands.md\\nlua/ask-openai/tools/mcp/run_process/commits.md\\nlua/ask-openai/tools/notes/llama-server-tool-call.md\\nlua/ask-openai/tools/notes/mcp.md\\nlua/ask-openai/tools/notes/oai-chat-tools-notes.md\\nlua/ask-openai/tools/notes/ollama-tool-call.md\\nlua/ask-openai/tools/notes/vllm-qwen.md\\nlua/ask-openai/tools/plumbing.lua\\nlua/ask-openai/tools/router.lua\\nlua/ask-openai/tools/tests/sse.lua\\nlua/telescope/_extensions/ask_semantic_grep/async_dynamic_finder.lua\\nlua/telescope/_extensions/ask_semantic_grep.lua\\nnotes/fim.md\\nnotes/fim_scenarios/starcoder2.md\\nnotes/models/glm45/notes.md\\nnotes/research/openwebui/openwebui.md\\nnotes/research/swe/bm25/bm25.py\\nnotes/samples/gptoss/gptoss-hanoi.md\\ntests/duplicate_detection/learn-minhash.lua\\ntests/manual_prompting/gemma3/test-fim-instructions.py\\ntests/manual_prompting/jetbrains_mellum/base/file_level_fim.py\\ntests/manual_prompting/jetbrains_mellum/base/fim-with-context-files.py\\ntests/manual_prompting/qwen2_5coder/edits/ring_buffer.py\\ntests/manual_prompting/qwen2_5coder/file_level_fim.py\\ntests/manual_prompting/qwen2_5coder/repo_and_file_with_new_lines.py\\ntests/manual_prompting/qwen2_5coder/worked/kinda/repo_name_with_file_sep_without_name.py\\ntests/manual_prompting/qwen2_5coder/worked/repo_and_file_with_new_lines.py\\ntests/manual_prompting/qwen2_5coder/worked/repo_name_only_then_file_level-fim.py\\ntests/manual_prompting/qwen2_5coder/worked/repo_name_with_file_sep_with_name.py\\ntests/manual_prompting/repo_calc_01_user_file_too.py\\ntests/manual_prompting/repo_calc_02_edits.py\\ntests/manual_prompting/repo_calc_03_pasteboard.py\\ntests/manual_prompting/show.py\\ntests/plenary-learning/window-selection-clipboard.tests.lua\\ntests/test.lua\\ntools/chat_viewer/__main__.py\\n\",\"name\":\"STDOUT\",\"type\":\"text\"}]}",
+        "tool_call_id":"tK5LLE4Xn7tkW9FRGFu72RS9emMEasIr",
+        "role":"tool"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"rY7JRfaLr5ql7uCYh5GGtVZcHpSapCWd",
+            "function":{
+              "arguments":"{\"mode\":\"shell\",\"command_line\":\"sed -n '1,200p' lua/ask-openai/tools/mcp/run_process/commits.md\",\"cwd\":\"~/repos/github/g0t4/ask-openai.nvim\"}",
+              "name":"run_process"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"The system instructions for committing are probably not in the repo; they might be in a developer docs file like `lua/ask-openai/tools/mcp/run_process/commits.md`. Let's open that file.",
+        "role":"assistant"
+      },{
+        "content":"{\"content\":[{\"text\":\"0\",\"name\":\"EXIT_CODE\",\"type\":\"text\"},{\"text\":\"## Committing\\n\\n- This project is in a git repo.\\n- Once a request is complete and verified done, please commit the changes.\\n- Keep the description concise.\\n- And, include \\\"Co-Authored-By: <<COAUTHOR_NAME>>\\\" in commit message\\n- Only commit files you changed.\\n\",\"name\":\"STDOUT\",\"type\":\"text\"}]}",
+        "tool_call_id":"rY7JRfaLr5ql7uCYh5GGtVZcHpSapCWd",
+        "role":"tool"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"gcMfPdtPxTEzu93e7vLVu5aR0AXNfSwM",
+            "function":{
+              "arguments":"{\"patch\":\"*** Begin Patch\\n*** Update File: lua/ask-openai/tools/mcp/run_process/commits.md\\n@@\\n-## Committing\\n-\\n-- This project is in a git repo.\\n-- Once a request is complete and verified done, please commit the changes.\\n-- Keep the description concise.\\n-- And, include \\\"Co-Authored-By: <<COAUTHOR_NAME>>\\\" in commit message\\n-- Only commit files you changed.\\n+## Committing\\n+\\n+- This project is in a git repo. The model is welcome to use git commands (e.g., stash, restore) to rollback changes when undoing edits.\\n+- Once a request is complete and verified done, please commit the changes.\\n+- Keep the description concise.\\n+- And, include \\\"Co-Authored-By: <<COAUTHOR_NAME>>\\\" in commit message\\n+- Only commit files you changed.\\n*** End Patch\"}",
+              "name":"apply_patch"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"That's the file that contains the instructions. The user wants to \"modify my system instructions for commits and add a blurb about how this project uses a git repo and the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes)\". So we need to edit `lua/ask-openai/tools/mcp/run_process/commits.md` to modify the commit instructions.\n\nSpecifically, we need to add a blurb about the project using a git repo and the model can use git to rollback changes (stash/restore/etc). The current content:\n\n```\n## Committing\n\n- This project is in a git repo.\n- Once a request is complete and verified done, please commit the changes.\n- Keep the description concise.\n- And, include \"Co-Authored-By: <<COAUTHOR_NAME>>\" in commit message\n- Only commit files you changed.\n```\n\nWe need to modify it to include a note that the model can use git to rollback changes, stash/restore etc. Probably add a bullet like:\n\n\"- The project uses git; you may use git commands (e.g., stash, restore) to rollback changes if needed.\"\n\nWe may also incorporate \"the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes)\". So we can add a new bullet after the first bullet. Or modify the first bullet.\n\nThe user said \"modify my system instructions for commits and add a blurb about how this project uses a git repo and the model is welcome to use git to rollback changes (stash/restore/etc when undoing changes)\". So we need to modify the file accordingly.\n\nNow, after modifying, we need to commit changes. Use apply_patch to modify file. Then commit. Must include commit message with \"Co-Authored-By: gptoss120b\". Also must be concise and commit only this file. The commit message should reflect the change.\n\nThe commit description: \"Update commit instructions to mention git rollback capabilities\". And include Co-Authored-By: gptoss120b.\n\nWe must run apply_patch to update the file.\n\nNow, what about the \"system instructions\"? This file is used presumably as system instructions for commit guidelines. So editing it is enough.\n\nNow, proceed to apply_patch.",
+        "role":"assistant"
+      },{
+        "content":"{\"content\":[{\"text\":\"Success. Updated the following files:\\nM lua/ask-openai/tools/mcp/run_process/commits.md\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"gcMfPdtPxTEzu93e7vLVu5aR0AXNfSwM",
+        "role":"tool"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"BWGD9pMe8iOQ4JXhbOg4gtz4znufpQLX",
+            "function":{
+              "arguments":"{\"mode\":\"shell\",\"command_line\":\"git add lua/ask-openai/tools/mcp/run_process/commits.md\",\"cwd\":\"~/repos/github/g0t4/ask-openai.nvim\"}",
+              "name":"run_process"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"Now we need to commit changes. The system says we should commit after making modifications and verify done. So we need to run git commit. Use run_process.\n\nFirst, stage file. Then commit with proper message. Use `git add` and `git commit -m`. Let's create a commit message: \"Update commit instructions to mention git rollback capability\". Include \"Co-Authored-By: gptoss120b\". So commit message lines:\n\n```\nUpdate commit instructions to mention git rollback capability\n\nCo-Authored-By: gptoss120b\n```\n\nWe need to add Co-Authored-By after an empty line? Typically co-authored line goes after the commit message body. But we can include directly in commit message. Let's do:\n\n`git commit -m \"Update commit instructions to mention git rollback capability\" -m \"Co-Authored-By: gptoss120b\"`.\n\nMake sure to stage file with `git add lua/ask-openai/tools/mcp/run_process/commits.md`.\n\nWe'll run those commands.",
+        "role":"assistant"
+      },{
+        "content":"{\"content\":[{\"text\":\"0\",\"name\":\"EXIT_CODE\",\"type\":\"text\"}]}",
+        "tool_call_id":"BWGD9pMe8iOQ4JXhbOg4gtz4znufpQLX",
+        "role":"tool"
+      },{
+        "content":"",
+        "tool_calls":[{
+            "id":"aBR5lxVnahzyl5IO6P7stmeeXIwa1SK3",
+            "function":{
+              "arguments":"{\"mode\":\"shell\",\"command_line\":\"git commit -m \\\"Update commit instructions to mention git rollback capability\\\" -m \\\"Co-Authored-By: gptoss120b\\\"\",\"cwd\":\"~/repos/github/g0t4/ask-openai.nvim\"}",
+              "name":"run_process"
+            },
+            "type":"function"
+          }],
+        "reasoning_content":"Now commit.",
+        "role":"assistant"
+      },{
+        "content":"{\"content\":[{\"text\":\"0\",\"name\":\"EXIT_CODE\",\"type\":\"text\"},{\"text\":\"[master e505ef5b3] Update commit instructions to mention git rollback capability\\n 1 file changed, 1 insertion(+), 1 deletion(-)\\n\",\"name\":\"STDOUT\",\"type\":\"text\"},{\"text\":\"\\u001b[1mhook[post-commit] \\u001b(B\\u001b[m\\n make tags\\nmake: `tags' is up to date.\\n rag_indexer\\n\",\"name\":\"STDERR\",\"type\":\"text\"}]}",
+        "tool_call_id":"aBR5lxVnahzyl5IO6P7stmeeXIwa1SK3",
+        "role":"tool"
+      }],
+    "max_tokens":16384,
+    "chat_template_kwargs":{
+      "reasoning_effort":"high"
+    },
+    "stream":true,
+    "tools":[{
+        "type":"function",
+        "function":{
+          "parameters":{
+            "required":["mode"],
+            "properties":{
+              "command_line":{
+                "description":"Shell command line. Required when mode='shell'. Forbidden when mode='executable'.",
+                "type":"string"
+              },
+              "cwd":{
+                "description":"Optional to set working directory",
+                "type":"string"
+              },
+              "input":{
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents.",
+                "type":"string"
+              },
+              "mode":{
+                "description":"What are you running, two choices: 'shell' or 'executable' (required, no default)",
+                "enum":["shell","executable"]
+              },
+              "dry_run":{
+                "description":"Optional explain what would run, defaults to False.",
+                "type":"boolean"
+              },
+              "argv":{
+                "minItems":1,
+                "items":{
+                  "type":"string"
+                },
+                "description":"Executable and arguments. argv[0] is the executable. Required when mode='executable'. Forbidden when mode='shell'.",
+                "type":"array"
+              },
+              "timeout_ms":{
+                "description":"Optional timeout in milliseconds, defaults to 1000\u202fmilliseconds.",
+                "type":"number"
+              }
+            },
+            "type":"object"
+          },
+          "description":"Run a process on this darwin machine",
+          "name":"run_process"
+        }
+      },{
+        "type":"function",
+        "function":{
+          "parameters":{
+            "required":["patch"],
+            "properties":{
+              "patch":{
+                "description":"file changes in custom diff format",
+                "type":"string"
+              }
+            },
+            "type":"object"
+          },
+          "description":"Patch a file",
+          "name":"apply_patch"
+        }
+      },{
+        "function":{
+          "parameters":{
+            "required":["query"],
+            "properties":{
+              "filetype":{
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace.",
+                "type":"string"
+              },
+              "embed_top_k":{
+                "description":"number of embeddings to consider for reranking",
+                "type":"number"
+              },
+              "query":{
+                "description":"query text, what you are looking for",
+                "type":"string"
+              },
+              "instruct":{
+                "description":"instructions for the query",
+                "type":"string"
+              },
+              "top_k":{
+                "description":"number of results to return (post reranking)",
+                "type":"number"
+              }
+            },
+            "type":"object"
+          },
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "name":"semantic_grep"
+        },
+        "type":"function"
+      }]
+  },
+  "response_message":{
+    "content":"The commit instructions have been updated to include a note that the project uses Git and the model may use Git commands (e.g.,\u202fstash, restore) to roll back changes when undoing edits. The change has been committed:\n\n```\nUpdate commit instructions to mention git rollback capability\n\nCo-Authored-By: gptoss120b\n```\n\nOnly the relevant file (`lua/ask-openai/tools/mcp/run_process/commits.md`) was modified.",
+    "finish_reason":"stop",
+    "reasoning_content":"The commit succeeded.\n\nNow we should respond to the user with confirmation that the system instructions have been updated accordingly.\n\nPotentially also mention that the commit message includes Co-Authored-By: gptoss120b.\n\nNow, answer.",
+    "role":"assistant"
+  }
+}
