@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "timings":{
+      "prompt_n":1647,
+      "prompt_ms":243.805,
+      "prompt_per_token_ms":0.14802975106254,
+      "predicted_ms":743.803,
+      "predicted_per_token_ms":4.9258476821192,
+      "predicted_per_second":203.0107434361,
+      "predicted_n":151,
+      "prompt_per_second":6755.3987818133,
+      "cache_n":0
+    },
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "created":1769744873,
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "id":"chatcmpl-W6px0361ckjQXrWbPbEVWUYoJi5KEyNm"
+  },
+  "request_body":{
+    "temperature":1,
+    "model":"",
+    "max_tokens":8192,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "top_p":1,
+    "stream":true,
+    "messages":[{
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/helpers/selection.lua:0-9\nlocal log = require(\"ask-openai.logs.logger\").predictions()\n\n---@class Selection\n---@field original_text string\n---@field _start_line_0indexed integer\n---@field _start_col_0indexed integer\n---@field _end_line_0indexed integer\n---@field _end_col_0indexed integer\nlocal Selection = {}\n\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua:337-356\n    local user_prompt = context.cleaned_prompt\n    local code_context = \"\"\n    local code_caveat = \"\"\n    local code = selection.original_text\n    if code ~= nil and code ~= \"\" then\n        local start_line = (selection._start_line_0indexed or 0) + 1\n        local end_line = (selection._end_line_0indexed or 0) + 1\n        local line_info = start_line == end_line and tostring(start_line) or (start_line .. \"-\" .. end_line)\n        code_context = \"Here is the code I selected:\"\n            .. \"\\n```\" .. file_name .. \":\" .. line_info\n            .. \"\\n\" .. code .. \"\\n```\"\n        code_caveat = \"\\n\\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!\"\n        -- TODO add separate reasoning level for rewrites/questions vs predictions... that should help here and with tool calls too!\n        -- * response indentation:\n        -- - ALTERNATIVELY, if I could show more of the surrounding code, that would likely help too/instead\n        -- - FYI mentioning \"carefully preserved indentation\" resulted in the model not generating markdown wrapers and explanations! (gptoss120b)\n        --   - btw I strip out markdown blocks so really, I don't care anymore if those are present in the response!\n        -- - FYI gptoss120b w/ medium reasoning + caveat is working well\n        --   - cannot get low reasoning to work well\n    else\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/helpers/wrap_getpos.tests.lua:513-536\n                                function()\n        local selection = GetPosSelectionRange:new({\n            start_line_base1 = 10,\n            end_line_base1 = 20,\n            start_col_base1 = 30,\n            end_col_base1 = 40,\n        })\n\n        it(\":start_line_base0()\", function()\n            assert.equal(selection:start_line_base0(), 9)\n        end)\n\n        it(\":end_line_base0()\", function()\n            assert.equal(selection:end_line_base0(), 19)\n        end)\n\n        it(\":start_col_base0()\", function()\n            assert.equal(selection:start_col_base0(), 29)\n        end)\n\n        it(\":end_col_base0()\", function()\n            assert.equal(selection:end_col_base0(), 39)\n        end)\n    end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/prefix_suffix.lua:18-50\n--- Determine range of lines to take before/after cursor position.\n--- Try taking X lines in both directions.\n--- If one direction doesn't have X lines, try taking the difference from the other side.\nfunction PrefixSuffixChunk.determine_line_range_base0(current_row_b0, take_num_lines_each_way, buffer_line_count)\n    -- separate logic for finding range of lines to use as prefix/suffix\n    -- - the math here can be off by a smidge and won't matter b/c separate code reads the lines\n    -- - assuming cursor line stays in range, you're good to go\n\n    -- FYI I am experimenting here with _b0 for base 0... leave this style for comparison until you feel super compelled to make everything the same\n\n    local take_start_row_b0 = current_row_b0 - take_num_lines_each_way\n    local take_end_row_b0 = current_row_b0 + take_num_lines_each_way\n    if take_start_row_b0 < 0 then\n        -- start row cannot be before first line!\n        local unused_prefix_rows = -take_start_row_b0\n        take_start_row_b0 = 0\n\n        -- unused lines in prefix are added to possible suffix\n        take_end_row_b0 = take_end_row_b0 + unused_prefix_rows\n    end\n\n    local last_row_num_b0 = buffer_line_count - 1\n    if take_end_row_b0 > last_row_num_b0 then\n        -- end row cannot be after last line!\n        local unused_suffix_rows = take_end_row_b0 - buffer_line_count\n        take_end_row_b0 = last_row_num_b0\n\n        -- unused lines in suffix are added to possible prefix\n        take_start_row_b0 = take_start_row_b0 - unused_suffix_rows\n        take_start_row_b0 = math.max(0, take_start_row_b0)\n    end\n    return take_start_row_b0, take_end_row_b0\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/prefix_suffix_tests.lua:167-175\n)\n    end)\nend)\n\n\nlocal ps = require(\"ask-openai.predictions.prefix_suffix\")\n\ndescribe(\"determine_line_range\", function()\n    it(\"plenty of lines for both prefix and suffix\", \n",
+        "role":"user"
+      },{
+        "content":"what line range did I select\n\nHere is the code I selected:\n```lua/ask-openai/predictions/tests/calc/calc.lua:7-10\nfunction M.sub(a, b)\n    return b\nend\n\n```",
+        "role":"user"
+      }]
+  },
+  "response_message":{
+    "reasoning_content":"The user asks: \"what line range did I select\n\nHere is the code I selected:\n```lua/ask-openai/predictions/tests/calc/calc.lua:7-10\nfunction M.sub(a, b)\n    return b\nend\n\n```\"\n\nThey want to know the line range they selected. The code block says line range 7-10. So answer: lines 7 through 10 (inclusive). Possibly also note base-1 indexing. So answer: start line 7, end line 10.\n\nThus respond.",
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"You selected lines **7\u202f–\u202f10** (inclusive) of `lua/ask-openai/predictions/tests/calc/calc.lua`."
+  }
+}
