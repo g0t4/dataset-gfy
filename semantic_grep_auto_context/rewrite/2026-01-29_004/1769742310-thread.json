@@ -1,0 +1,57 @@
+{
+  "response_message":{
+    "content":"---@param a number\n---@param b number\n---@return number\nfunction M.sub(a, b)\n    return a - b\nend",
+    "finish_reason":"stop",
+    "reasoning_content":"The user says \"test\". They show selected code: a snippet with function M.sub(a, b) returns b (which is wrong, should be a - b?). They want help with that code. According to preferences, we need to rewrite code: maybe fix the ambiguous condition? Not relevant. Provide proper function with correct behavior, maybe with type annotations. Should preserve indentation. They want to preserve indentation and unrelated code/comments unchanged. Probably only this snippet is given, but we need to modify the function to correctly subtract and add annotations.\n\nWe should produce code with proper naming (snake_case). The function is already sub, fine. Use EmmyLua annotation: param a number, param b number, return number.\n\nAlso ensure module M defined? Not needed, just modify function. Return a - b.\n\nSo output the corrected code snippet. No markdown. Just code.",
+    "role":"assistant"
+  },
+  "request_body":{
+    "stream":true,
+    "messages":[{
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:6-8\nfunction M.sub(a, b)\n    return a - b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-user.lua:0-4\nlocal calc = require(\"calc\")\nprint(\"1+3 = \" .. calc.add(1, 3))\n\nprint(\"sqrt of -5 = \" .. tostring(calc.sqroot(-5)))\n-- print(\"2 * pi = \"\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:49-49\nfunction M.min(a, b) return math.min(a, b) end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:49-57\n\n\n-- Note: This Lua module provides basic arithmeti0c\n\n\n\n\n\nreturn M\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:21-24\n-- Adding support for modulo operation\nfunction M.mod(a, b)\n    return a % b\nend\n",
+        "role":"user"
+      },{
+        "content":"test\n\nHere is the code I selected:\n```lua/ask-openai/predictions/tests/calc/calc.lua:7-9\nfunction M.sub(a, b)\n    return b\nend\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "top_p":1,
+    "model":"",
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "max_tokens":8192
+  },
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "id":"chatcmpl-lhrDNoMDgtF9iLAvy4F9cemr1i19s282",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "timings":{
+      "prompt_n":843,
+      "prompt_ms":157.79,
+      "prompt_per_token_ms":0.18717674970344,
+      "predicted_ms":994.141,
+      "predicted_per_token_ms":4.6893443396226,
+      "cache_n":0,
+      "predicted_per_second":213.249428401,
+      "predicted_n":212,
+      "prompt_per_second":5342.5438874453
+    },
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "created":1769742310
+  }
+}
