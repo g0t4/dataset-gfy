@@ -1,0 +1,165 @@
+{
+  "last_sse":{
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "timings":{
+      "prompt_n":2891,
+      "prompt_ms":349.488,
+      "prompt_per_token_ms":0.12088827395365,
+      "predicted_ms":1385.735,
+      "predicted_per_token_ms":4.6037707641196,
+      "predicted_per_second":217.2132478432,
+      "predicted_n":301,
+      "prompt_per_second":8272.1009018908,
+      "cache_n":2327
+    },
+    "created":1769748751,
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-tYEdO8sFc7pqhKB8aFy0KfuCYw7rvYej"
+  },
+  "response_message":{
+    "role":"assistant",
+    "content":"Yes – you already have an abbreviation for the `fd --extension` (or `fd -e`) option.\n\nIn **`fish/load_last_interactive_only/files-search-specific.fish`** you’ll find:\n\n```fish\nabbr fd_ext 'fd --extension'\n```\n\nSo you can type:\n\n```fish\nfd_ext py   # expands to: fd --extension py\n```\n\nIf you prefer an even shorter name you can add your own abbreviation, e.g.:\n\n```fish\nabbr fde 'fd --extension'\n```\n\nand then use `fde` the same way. After adding it, reload your fish config (`source ~/.config/fish/config.fish` or open a new shell) and the new shortcut will be available.",
+    "finish_reason":"stop",
+    "reasoning_content":"The search result shows definitions of abbreviations in fish config: we see \"abbr fd_ext 'fd --extension'\". That's likely the abbreviation for fd -e (which is same as --extension). The user asks \"do I have an abbr for fd -e ? in fish shell\". So answer: Yes, there is an abbreviation \"fd_ext\" defined. Also there may be a short version like \"fdE\"? Actually \"fdE\" is exclude. So answer: The abbreviation is \"fd_ext\". Provide usage. Also note maybe they want a short alias for \"-e\". The file is fish/load_last_interactive_only/files-search-specific.fish. So respond with that info."
+  },
+  "request_body":{
+    "temperature":1,
+    "stream":true,
+    "model":"",
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "max_tokens":8192,
+    "top_p":1,
+    "tools":[{
+        "type":"function",
+        "function":{
+          "description":"Run a process on this darwin machine",
+          "parameters":{
+            "properties":{
+              "cwd":{
+                "type":"string",
+                "description":"Optional to set working directory"
+              },
+              "argv":{
+                "items":{
+                  "type":"string"
+                },
+                "description":"Executable and arguments. argv[0] is the executable. Required when mode='executable'. Forbidden when mode='shell'.",
+                "type":"array",
+                "minItems":1
+              },
+              "mode":{
+                "description":"What are you running, two choices: 'shell' or 'executable' (required, no default)",
+                "enum":["shell","executable"]
+              },
+              "dry_run":{
+                "type":"boolean",
+                "description":"Optional explain what would run, defaults to False."
+              },
+              "timeout_ms":{
+                "type":"number",
+                "description":"Optional timeout in milliseconds, defaults to 1000\u202fmilliseconds."
+              },
+              "input":{
+                "type":"string",
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents."
+              },
+              "command_line":{
+                "type":"string",
+                "description":"Shell command line. Required when mode='shell'. Forbidden when mode='executable'."
+              }
+            },
+            "required":["mode"],
+            "type":"object"
+          },
+          "name":"run_process"
+        }
+      },{
+        "type":"function",
+        "function":{
+          "parameters":{
+            "properties":{
+              "patch":{
+                "type":"string",
+                "description":"file changes in custom diff format"
+              }
+            },
+            "required":["patch"],
+            "type":"object"
+          },
+          "name":"apply_patch",
+          "description":"Patch a file"
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"semantic_grep",
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "properties":{
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query"
+              },
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings to consider for reranking"
+              },
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. Leave unset for all indexed filetypes in a workspace."
+              },
+              "top_k":{
+                "type":"number",
+                "description":"number of results to return (post reranking)"
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              }
+            },
+            "required":["query"],
+            "type":"object"
+          }
+        }
+      }],
+    "messages":[{
+        "role":"system",
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers using code comments.\n- NEVER change **unrelated code and comments.**\n- Never add new comments to the end of a line.\n- Never add trivial comments.\n- Respect indentation when modifying code.\n- Prefer readable code over of comments.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nFor tool use, never modify files outside of the current working directory unless the user requested it:\n~/repos/github/g0t4/dotfiles\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n\n## Committing\n\n- This project is in a git repo.\n- Once a request is complete and verified done, please commit the changes.\n- Keep the description concise.\n- And, include \"Co-Authored-By: gptoss120b\" in commit message\n- Only commit files you changed.\n\n\n## Commands\n\nHere are noteworthy commands you have access to:\n\n- fd, rg, gsed, gawk, jq, yq, httpie\n- exa, icdiff, ffmpeg, imagemagick, fzf\n\nHere are some *suggestions* too...\n\n### Use `fd` to list files\n\n```sh\n# Usage: fd [OPTIONS] [regex] [path]...\nfd                      # list files and dirs (except hidden and ignored)\nfd foo                  # basename contains \"foo\" (regex)\nfd '^foo' src           # limit to \"src\" directory (path)\nfd --extension js\nfd -p foo               # --full-path contains foo\nfd --type file\nfd --type dir\n\nfd -l                   # think: ls -l\nfd --exec stat          # execute stat on each result\n\nfd --hidden             # show hidden files == start with dot like .bashrc\nfd --no-ignore          # disable using .gitignore, .ignore, .fdignore to hide files\nfd --unrestricted    # show everything: both hidden and ignored\n\nfd --exclude node_modules # glob exclusion (not regex)\n\nfd --max-depth 3\nfd --size +10M\nfd --changed-within 2hours\nfd --changed-before 7days\n\n# Files are versioned in git, so you can use `git` to find files too:\ngit ls-files\n\n# other commands are fine too! as long as they're not needlessly slow / verbose!\n```\n\n### Use `rg` (ripgrep) to search file contents\n\n```sh\nrg bar # instead of grep -R\nrg -o bar  # only matched part (grep -o)\nrg -v bar # invert match (grep -v)\nrg --glob=\"*manual*\" embed  # glob filters paths (contains manual)\nrg --glob=\"!*manual*\" embed  # ! excludes (does not contain manual)\nrg --max-depth 1\nrg --multiline\nrg --files  # list searched files\n\nfd | rg foo # search STDIN\n```\n\n### _Verboten_ Commands\n\n> [!WARNING]\n> NEVER use `ls -R` to search for files.\n> NEVER use `grep -R` to search file contents.\n> NEVER use `find . -type f` to find files, it doesn't give a fuck about ignores, so it will hooover up every node_modules and .venv and take two hours for you to ingest\n\n\nOther costly mistakes to avoid:\n\n```sh\nls -R ~ # gonna be a late night 🥱\nls -R / # only assholes do this 😈\n```\n\n- Never prefer commands that are slow 🐢\n- Never run commands that generate butt loads of output, for no good reason... `ls -R` 👀\n\n## Use `apply_patch` to edit files.\n\nYour patch language is a stripped‑down, file‑oriented diff format designed to be easy to parse and safe to apply. You can think of it as a high‑level envelope:\n\n*** Begin Patch\n[ one or more file sections ]\n*** End Patch\n\nWithin that envelope, you get a sequence of file operations.\nYou MUST include a header to specify the action you are taking.\nEach operation starts with one of three headers:\n\n*** Add File: <path> - create a new file. Every following line is a + line (the initial contents).\n*** Delete File: <path> - remove an existing file. Nothing follows.\n*** Update File: <path> - patch an existing file in place (optionally with a rename).\n\nIf you want to rename the file too, immediately follow with:\n*** Move to: <new path>\n\nThen one or more “hunks”, each introduced by @@ (optionally followed by a hunk header).\nWithin a hunk each line starts with:\n\n- for inserted text,\n* for removed text, or\n  space ( ) for context.\n  At the end of a truncated hunk you can emit *** End of File.\n\nHere is the grammar:\n\nPatch := Begin { FileOp } End\nBegin := \"*** Begin Patch\" NEWLINE\nEnd := \"*** End Patch\" NEWLINE\nFileOp := AddFile | DeleteFile | UpdateFile\nAddFile := \"*** Add File: \" path NEWLINE { \"+\" line NEWLINE }\nDeleteFile := \"*** Delete File: \" path NEWLINE\nUpdateFile := \"*** Update File: \" path NEWLINE [ MoveTo ] { Hunk }\nMoveTo := \"*** Move to: \" newPath NEWLINE\nHunk := \"@@\" [ header ] NEWLINE { HunkLine } [ \"*** End of File\" NEWLINE ]\nHunkLine := (\" \" | \"-\" | \"+\") text NEWLINE\n\nA full patch can combine several operations:\n\n*** Begin Patch\n*** Add File: hello.txt\n+Hello world\n*** Update File: src/app.py\n*** Move to: src/main.py\n@@ def greet():\n-print(\"Hi\")\n+print(\"Hello, world!\")\n*** Delete File: obsolete.txt\n*** End Patch\n\nIt is important to remember:\n\n- You must include a header with your intended action (Add/Delete/Update)\n- You must prefix new lines with `+` even when creating a new file\n\n\nTips on a failure:\n\n- You only need enough context for a unique match!\n- The line(s) you replace are context too; if they’re unique, no additional context is needed.\n- Split bigger patches into smaller patches, i.e. if editing two functions, try each separately!\n- Watch out for whitespace differences, i.e. blank lines\n\nPlease be curteous:\n\n- NEVER leave comments about removed code, just get rid of it. This code lives in a git repo.\n- Check your work! Especially after a failure.\n\n### More Examples\n\nHere's a patch file to change the `win` property's type:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@ @dataclass\n-class GapContext:\n-    win: GapWindow\n-    gap_rms: TimeSeries\n-    analysis: AudioAnalysisResult\n+class GapContext:\n+    win: SilenceWindow\n+    gap_rms: TimeSeries\n+    analysis: AudioAnalysisResult\n*** End Patch\n```\n\nWhich can be simplified to:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-class GapContext:\n-    win: GapWindow\n+class GapContext:\n+    win: SilenceWindow\n*** End Patch\n```\n\nOr, this could work if the `win` property is unique:\n\n```diff\n*** Begin Patch\n*** Update File: src/gap.py\n@@\n-    win: GapWindow\n+    win: SilenceWindow\n*** End Patch\n```\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"do I have an abbr for fd -e ? in fish shell"
+      },{
+        "role":"assistant",
+        "tool_calls":[{
+            "function":{
+              "arguments":"{\"query\":\"fd -e\",\"top_k\":10}",
+              "name":"semantic_grep"
+            },
+            "type":"function",
+            "id":"q0HcVhYAdctUzvu0McvdwZk3PGnnmLCu"
+          }],
+        "content":"",
+        "reasoning_content":"The user asks: \"do I have an abbr for fd -e ? in fish shell\". They want to know if there's an abbreviation for fd -e (i.e., file extension filter). They are using fish shell. Probably they want to create an abbreviation or check existing. We need to look into their dotfiles repo to see if there's a fish config defining such abbreviation. Let's search."
+      },{
+        "role":"tool",
+        "tool_call_id":"q0HcVhYAdctUzvu0McvdwZk3PGnnmLCu",
+        "content":"{\"matches\":[{\"id_int\":\"8813570366848305087\",\"embed_rank\":0,\"end_column_base0\":66,\"start_column_base0\":0,\"end_line_base0\":184,\"start_line_base0\":165,\"signature\":\"\",\"embed_score\":0.6178103089332581,\"type\":\"lines\",\"rerank_score\":0.94482421875,\"text\":\"#  i.e. fd | fzf scenarios\\n\\n# *** fd general options\\nabbr fdnh 'fd --no-hidden' # include hidden\\nabbr fdu 'fd --unrestricted' # no ignores applied (can layer on excludes to remove things again)\\n# WIP diff fd files vs fd (non-egregious hidden files):\\n#   i.e. find repo ignored files like a csv... without filtering egregious dirs every time\\n#   also do the diff for you so you can see the difference\\nabbr fd_nonegregious 'fd --unrestricted --exclude .venv --exclude __pycache__ --exclude .rag --exclude .git --exclude node_modules | sort -h'\\nabbr fd_nonegregious_diff \\\"diff_two_commands 'fd --unrestricted --exclude .venv --exclude __pycache__ --exclude .rag --exclude .git --exclude node_modules | sort -h' 'fd | sort -h'\\\" # show diff in hidden vs\\nabbr fdi 'fd --ignore-case' # --ignore-case\\nabbr fdF 'fd --fixed-strings' # same as rg\\nabbr fd_ext 'fd --extension'\\nabbr fdE 'fd --exclude'\\nabbr --command fd --position anywhere -- and --and # expand and, mostly a reminder\\nabbr --command fd --position anywhere -- abs --absolute-path\\nabbr fdabs 'fd --absolute-path'\\nabbr fdls 'fd --list-details' # think => fd + ls -al\\nabbr fdfp 'fd --full-path' # default matches on basename only, this matches full path\\nabbr --set-cursor _fdX --regex 'fd\\\\d+' --function _abbr_expand_fdX\\n\",\"rerank_rank\":0,\"id\":\"7a50178d66e707bf\",\"file\":\"~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/files-search-specific.fish\"},{\"id_int\":\"1560927174706833168\",\"embed_rank\":1,\"end_column_base0\":111,\"start_column_base0\":0,\"end_line_base0\":214,\"start_line_base0\":195,\"signature\":\"\",\"embed_score\":0.5871797800064087,\"type\":\"lines\",\"rerank_score\":0.83349609375,\"text\":\"abbr --set-cursor fd_changed_within_years 'fd --changed-within \\\"% years\\\"'\\nabbr --set-cursor fd_changed_before 'fd --changed-before \\\"%\\\"'\\n# PRN do more with fd_changed_before if I use it\\n\\n# *** execution\\nabbr fdx 'fd --exec' # per result, in parallel\\nabbr fdxb 'fd --exec-batch' # per batch (basically not per result)\\n# PRN --batch-size\\n\\n# * --quiet\\nabbr fdq 'fd --quiet' # --quiet exits with 0 if finds a match... detect if a file exists (i.e. in any nested dir)\\n# if fd -q foo; echo \\\"foo exists\\\"; end\\n\\n# * expand abbrevated options? (don't do for super common and easily remembered ones)\\nabbr --command fd --position anywhere -- -F --fixed-strings\\n# for some of these, seeing what it is might help too, can undo or ctrl+w to delete expansion if its wrong, and this way if it is wrong I can see that!\\n\\n# FYI fd/rg/ag all have --hidden and --unrestricted concepts/impls that are nearly identical\\n# *** fd --type\\n# FYI using `fdt_` for niche expands... vs `fd_` for common ones... if that is confusing, move all to one/other\\n\",\"rerank_rank\":1,\"id\":\"15a986fec8a7a710\",\"file\":\"~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/files-search-specific.fish\"},{\"id_int\":\"2132503044142788259\",\"embed_rank\":3,\"end_column_base0\":24,\"start_column_base0\":0,\"end_line_base0\":229,\"start_line_base0\":210,\"signature\":\"\",\"embed_score\":0.5548423528671265,\"type\":\"lines\",\"rerank_score\":0.7578125,\"text\":\"# for some of these, seeing what it is might help too, can undo or ctrl+w to delete expansion if its wrong, and this way if it is wrong I can see that!\\n\\n# FYI fd/rg/ag all have --hidden and --unrestricted concepts/impls that are nearly identical\\n# *** fd --type\\n# FYI using `fdt_` for niche expands... vs `fd_` for common ones... if that is confusing, move all to one/other\\nabbr fdtb 'fd --type block-device'\\nabbr fdtc 'fd --type char-device'\\nabbr fdtd 'fd --type dir'\\nabbr fdte 'fd --type empty'\\nabbr fdtf 'fd --type file'\\nabbr fdtl 'fd --type symlink'\\nabbr fdtp 'fd --type pipe'\\nabbr fdts 'fd --type socket'\\nabbr fdtx 'fd --type executable'\\n\\n# skip directories (--type file)\\nabbr list_filetype_extensions 'fd --type file | path extension | sort | uniq -c | sort'\\n\\n# *** default args\\nif status is-interactive\\n\",\"rerank_rank\":2,\"id\":\"9d982c385c91eea3\",\"file\":\"~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/files-search-specific.fish\"},{\"id_int\":\"7883314759182172594\",\"embed_rank\":2,\"end_column_base0\":15,\"start_column_base0\":0,\"end_line_base0\":199,\"start_line_base0\":180,\"signature\":\"\",\"embed_score\":0.5635144710540771,\"type\":\"lines\",\"rerank_score\":0.55810546875,\"text\":\"abbr --command fd --position anywhere -- abs --absolute-path\\nabbr fdabs 'fd --absolute-path'\\nabbr fdls 'fd --list-details' # think => fd + ls -al\\nabbr fdfp 'fd --full-path' # default matches on basename only, this matches full path\\nabbr --set-cursor _fdX --regex 'fd\\\\d+' --function _abbr_expand_fdX\\nfunction _abbr_expand_fdX\\n    string replace --regex 'fd(\\\\d+)' 'fd --max-depth=\\\\1' $argv\\nend\\n\\n# *** by modification time\\nabbr --set-cursor fd_changed_within 'fd --changed-within \\\"%\\\"'\\nabbr --set-cursor fd_changed_within_hours 'fd --changed-within \\\"% h\\\"'\\nabbr --set-cursor fd_changed_within_days 'fd --changed-within \\\"% d\\\"'\\nabbr --set-cursor fd_changed_within_weeks 'fd --changed-within \\\"% weeks\\\"'\\nabbr --set-cursor fd_changed_within_months 'fd --changed-within \\\"% months\\\"'\\nabbr --set-cursor fd_changed_within_years 'fd --changed-within \\\"% years\\\"'\\nabbr --set-cursor fd_changed_before 'fd --changed-before \\\"%\\\"'\\n# PRN do more with fd_changed_before if I use it\\n\\n# *** execution\\n\",\"rerank_rank\":3,\"id\":\"ed67290181a5c1b2\",\"file\":\"~/repos/github/g0t4/dotfiles/fish/load_last_interactive_only/files-search-specific.fish\"},{\"id_int\":\"4556535643304563644\",\"embed_rank\":8,\"end_column_base0\":1,\"start_column_base0\":0,\"end_line_base0\":9,\"start_line_base0\":7,\"signature\":\"function a_to_e()\",\"embed_score\":0.4605796039104462,\"type\":\"ts\",\"rerank_score\":0.11920166015625,\"text\":\"function a_to_e() {\\n    echo -e \\\"a\\\\nb\\\\nc\\\\nd\\\\ne\\\"\\n}\",\"rerank_rank\":4,\"id\":\"bf3c1106a99313bc\",\"file\":\"~/repos/github/g0t4/dotfiles/bash/startup/vetted-benign/examples.bash\"},{\"id_int\":\"3549894708704967916\",\"embed_rank\":4,\"end_column_base0\":107,\"start_column_base0\":48,\"end_line_base0\":342,\"start_line_base0\":342,\"signature\":\"function()\",\"embed_score\":0.4990530908107758,\"type\":\"ts\",\"rerank_score\":0.0323486328125,\"text\":\"function() require('ask-openai.api').toggle_fim_model() end\",\"rerank_rank\":5,\"id\":\"3143c26dee65fcec\",\"file\":\"~/repos/github/g0t4/dotfiles/.config/nvim/lua/plugins/ai/copilot.lua\"},{\"id_int\":\"4304486598058717665\",\"embed_rank\":13,\"end_column_base0\":1,\"start_column_base0\":0,\"end_line_base0\":107,\"start_line_base0\":105,\"signature\":\"is_stderr_a_terminal()\",\"embed_score\":0.4490814208984375,\"type\":\"ts\",\"rerank_score\":0.02978515625,\"text\":\"is_stderr_a_terminal() {\\n    is_a_terminal \\\"$FD_STDERR\\\"\\n}\",\"rerank_rank\":6,\"id\":\"3bbc9bc139b831e1\",\"file\":\"~/repos/github/g0t4/dotfiles/bash/startup/vetted-benign/early/funcs.bash\"},{\"id_int\":\"8801690634043873633\",\"embed_rank\":5,\"end_column_base0\":116,\"start_column_base0\":48,\"end_line_base0\":343,\"start_line_base0\":343,\"signature\":\"function()\",\"embed_score\":0.4969887733459473,\"type\":\"ts\",\"rerank_score\":0.025177001953125,\"text\":\"function() require('ask-openai.api').cycle_fim_reasoning_level() end\",\"rerank_rank\":7,\"id\":\"7a25e2ff91115961\",\"file\":\"~/repos/github/g0t4/dotfiles/.config/nvim/lua/plugins/ai/copilot.lua\"},{\"id_int\":\"7183294221890465699\",\"embed_rank\":11,\"start_column_base0\":0,\"end_line_base0\":127,\"id\":\"e3b030093ce5afa3\",\"signature\":\"\",\"embed_score\":0.4580416083335876,\"type\":\"uncovered\",\"rerank_score\":0.010894775390625,\"text\":\", -- 100 default\\n                [\\\"<C-e>\\\"]      = \",\"rerank_rank\":8,\"start_line_base0\":126,\"file\":\"~/repos/github/g0t4/dotfiles/.config/nvim/lua/plugins/code.lua\"},{\"id_int\":\"4143078470103981236\",\"embed_rank\":9,\"start_column_base0\":0,\"end_line_base0\":19,\"id\":\"397f2beae71ddcb4\",\"signature\":\"\",\"embed_score\":0.460433304309845,\"type\":\"uncovered\",\"rerank_score\":0.01015472412109375,\"text\":\"import sys\\nfrom services import args_to_use\\nfrom suggest import get_openai_suggestion\\n\\n# TODO there seems to be some lag due to keyboard maestro (probabaly in calling fish => python overhead)\\n#    I found a few seettings for delays and set them to 0 and its sliightly helped but 200ms still fels like 1+ seconds (vs test at CLI where I run the test fish script that calls same thing)\\n#   FYI run test fish script like KM would run is 200ms overhead w/o import openai and generate_command... so smth else might be slowing down KM... though it is hard to say my perception of time is ridiculous :) ... half a second likely feels like 2 to me\\n\\nsystem_message = \\\"\\\"\\\"\\nYou are a chrome devtools expert.\\nThe user is working in the devtools Console in the Brave Beta Browser.\\nThe user needs help completing a javascript command.\\nWhatever they have typed into the Console's command line will be provided to you.\\nThey might also have a free-form question included, i.e. in a comment (after //).\\nRespond with a single, valid javascript command line. Their command line will be replaced with your response. So they can review and execute it.\\nNo explanation. No markdown. No markdown with backticks ` nor ```.\\n\\nAn example of a command line could be `find the first div on the page` and a valid response would be `document.querySelector('div')`\\n\\\"\\\"\\\"\\nmax_tokens = 200\\n\",\"rerank_rank\":9,\"start_line_base0\":0,\"file\":\"~/repos/github/g0t4/dotfiles/zsh/universals/3-last/ask-openai/devtools.py\"}]}"
+      },{
+        "role":"assistant",
+        "tool_calls":[],
+        "content":"Yes – you already have an abbreviation for the `fd --extension` (or `fd -e`) option.\n\nIn **`fish/load_last_interactive_only/files-search-specific.fish`** you’ll find:\n\n```fish\nabbr fd_ext 'fd --extension'\n```\n\nSo you can type:\n\n```fish\nfd_ext py   # expands to: fd --extension py\n```\n\nIf you prefer an even shorter name you can add your own abbreviation, e.g.:\n\n```fish\nabbr fde 'fd --extension'\n```\n\nand then use `fde` the same way. After adding it, reload your fish config (`source ~/.config/fish/config.fish` or open a new shell) and the new shortcut will be available.",
+        "reasoning_content":"The search result shows definitions of abbreviations in fish config: we see \"abbr fd_ext 'fd --extension'\". That's likely the abbreviation for fd -e (which is same as --extension). The user asks \"do I have an abbr for fd -e ? in fish shell\". So answer: Yes, there is an abbreviation \"fd_ext\" defined. Also there may be a short version like \"fdE\"? Actually \"fdE\" is exclude. So answer: The abbreviation is \"fd_ext\". Provide usage. Also note maybe they want a short alias for \"-e\". The file is fish/load_last_interactive_only/files-search-specific.fish. So respond with that info."
+      }]
+  }
+}
