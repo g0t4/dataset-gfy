@@ -1,0 +1,57 @@
+{
+  "last_sse":{
+    "created":1769752048,
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "timings":{
+      "cache_n":342,
+      "prompt_ms":333.652,
+      "prompt_per_token_ms":0.44785503355705,
+      "predicted_ms":1244.288,
+      "predicted_per_token_ms":5.6816803652968,
+      "predicted_n":219,
+      "prompt_per_second":2232.8653806961,
+      "predicted_per_second":176.00426910812,
+      "prompt_n":745
+    },
+    "object":"chat.completion.chunk",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-5pAZUhuZFImGlUdoy9jlXvXCj8NcG7hM",
+    "system_fingerprint":"b7785-1c7cf94b2"
+  },
+  "request_body":{
+    "top_p":1,
+    "stream":true,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## TypeScript Code Preferences\n\n- Use camelCase\n- Use PascalCase for classes and interfaces\n- Terminate with a semicolon.\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:15-34\n    // FYI always_log uses console.error (ignore it, or use test.only... do not remove the logging)\n\n    describe(\"when mode=shell+command_line is successful and using STDIN\", () => {\n        const request = runProcess({\n            mode: \"shell\",\n            command_line: \"cat\",\n            input: \"Hello World\",\n        });\n\n        test(\"should NOT set isError\", async () => {\n            const result = await request;\n\n            // *** tool response format  (isError only set if failure)\n            expect(result.isError).toBeUndefined();\n            //  https://modelcontextprotocol.io/docs/concepts/tools#error-handling-2\n        });\n\n        test(\"should include STDOUT from command (from STDIN)\", async () => {\n            const result = await request;\n            // console.log(result); // left these around as a convenience/reminder\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:0-19\nimport { runProcess } from \"../../src/run_process.js\";\njest.setTimeout(15000);\nimport { exec, spawn } from 'child_process';\nimport { once } from 'events';\nimport { promisify } from \"util\";\n\n// NOTES:\n// ? use JSONRPCError if it's not a command's failure?\n//   tool failures should be isError as below\n//    https://modelcontextprotocol.io/specification/2025-06-18/schema#jsonrpcerror\n//    right now I include failure of a command in the result\n//      non-zero exit code, STDOUT/STDERR, etc...\n//      feels richer way to explain problem with a command\n\n    describe(\"runProcess - validating argument parsing/validation and basic success/failure outputs\", () => {\n    // FYI always_log uses console.error (ignore it, or use test.only... do not remove the logging)\n\n    describe(\"when mode=shell+command_line is successful and using STDIN\", () => {\n        const request = runProcess({\n            mode: \"shell\",\n\n\n## ~/repos/github/g0t4/mcp-server-commands/tests/integration/run_process.test.ts:30-49\n        });\n\n        test(\"should include STDOUT from command (from STDIN)\", async () => {\n            const result = await request;\n            // console.log(result); // left these around as a convenience/reminder\n            //  console.log looks really nice with jest logging\n\n            expect(result.content).toEqual([\n                {\n                    name: \"EXIT_CODE\",\n                    type: \"text\",\n                    text: \"0\",\n                },\n                {\n                    name: \"STDOUT\",\n                    type: \"text\",\n                    text: \"Hello World\",\n                },\n            ]);\n        });\n\n\n## ~/repos/github/g0t4/mcp-server-commands/src/exec-utils.ts:14-16\n\n\nexport \n\n## ~/repos/github/g0t4/mcp-server-commands/tests/manual/test.ts:22-24\n\n\nconsole.log();\n\n"
+      },{
+        "role":"user",
+        "content":"can you detect if running in a jest test runner and if so, skip logging?\n\nHere is the code I selected:\n```src/always_log.ts:46-52\nexport function always_log(message: string, data?: any) {\n    if (data) {\n        console.error(message + \": \" + JSON.stringify(data));\n    } else {\n        console.error(message);\n    }\n}\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "model":"",
+    "max_tokens":8192
+  },
+  "response_message":{
+    "role":"assistant",
+    "content":"export function always_log(message: string, data?: any) {\n    const isJest = typeof process !== 'undefined' && !!process.env.JEST_WORKER_ID;\n    if (isJest) {\n        return;\n    }\n    if (data) {\n        console.error(message + \": \" + JSON.stringify(data));\n    } else {\n        console.error(message);\n    }\n}",
+    "finish_reason":"stop",
+    "reasoning_content":"We need to modify always_log to detect if running in jest test runner and skip logging. Typically we can check if process.env.JEST_WORKER_ID is defined. So add condition: if (process.env.JEST_WORKER_ID) return; before logging. Preserve indentation and other code. Ensure camelCase. Already function name always_log uses snake case but that's existing. Keep as is.\n\nAdd detection variable maybe isJest = typeof process !== 'undefined' && !!process.env.JEST_WORKER_ID; Then if isJest return.\n\nImplement without extra comments. Ensure semicolons.\n\nReturn early.\n\nProvide only modified code block, no markdown."
+  }
+}
