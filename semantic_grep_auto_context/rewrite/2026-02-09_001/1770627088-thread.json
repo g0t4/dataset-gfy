@@ -1,0 +1,57 @@
+{
+  "response_message":{
+    "role":"assistant",
+    "finish_reason":"stop",
+    "content":"function M.send_tool_call_router(tool_call, callback)\n    local tool_name = tool_call[\"function\"].name\n    -- local tool_name = \"no_way\" -- FYI test tool call failure plumbing (callbacks)\n\n    local function safe_call(fn)\n        local ok, err = pcall(fn)\n        if not ok then\n            callback(plumbing.create_tool_call_output_for_error_message(err))\n        end\n    end\n\n    if mcp.handles_tool(tool_name) then\n        safe_call(function() mcp.send_tool_call(tool_call, callback) end)\n        return\n    end\n\n    if inprocess.handles_tool(tool_name) then\n        safe_call(function() inprocess.send_tool_call(tool_call, callback) end)\n        return\n    end\n\n    callback(plumbing.create_tool_call_output_for_error_message(\"Invalid tool name: \" .. tool_name))\nend",
+    "reasoning_content":"User wants to catch unhandled exceptions in send_tool_call_router and create tool call error message if happens. Need to wrap calls in pcall and on error use plumbing.create_tool_call_output_for_error_message. Provide modified code preserving indentation. No markdown."
+  },
+  "request_body":{
+    "model":"",
+    "messages":[{
+        "role":"system",
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names."
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Lua Code Preferences\n\nNaming\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n\nType Hints\n- Prefer EmmyLua/LuaLS style annotations\n- Always annotate when type inference would be ambiguous, or for public APIs.\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/mcp/init.lua:212-241\n---@param tool_call table\n---@param callback ToolCallDoneCallback\nfunction M.send_tool_call(tool_call, callback)\n    -- tool call: {\n    --   [\"function\"] = {\n    --     arguments = '{\"command\":\"ls -la\",\"cwd\":\"\"}',\n    --     name = \"run_command\"\n    --   },\n    --   id = \"call_8yoj8qqo\",\n    --   index = 0,\n    --   type = \"function\"\n    -- }\n\n    local name = tool_call[\"function\"].name\n    local tool = M.tools_available[name]\n    if tool == nil then\n        callback(plumbing.create_tool_call_output_for_error_message(\"Invalid MCP tool name: \" .. name))\n        return\n    end\n\n    local args = tool_call[\"function\"].arguments\n    -- TODO ideally the caller would already transform json into lua tables\n    -- TODO and have parsed XML instead of JSON if that is what a model responds with\n    local args_decoded = vim.json.decode(args)\n    -- log:trace(\"args_decoded: \" .. vim.inspect(args_decoded))\n\n    -- PRN timeout mechanism? might be a good spot to wrap an async timer to check back (wait for the need to arise)\n\n    tool.server.tools_call(tool_call.id, name, args_decoded, vim.schedule_wrap(callback))\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/inprocess.lua:20-34\n---@param tool_call table\n---@param callback ToolCallDoneCallback\nfunction M.send_tool_call(tool_call, callback)\n    local args = tool_call[\"function\"].arguments\n    local parsed_args = vim.json.decode(args)\n\n    local name = tool_call[\"function\"].name\n    if name == \"semantic_grep\" then\n        semantic_grep_tool.call(parsed_args, callback)\n    elseif name == \"apply_patch\" then\n        apply_patch_tool.call(parsed_args, callback)\n    else\n        callback(plumbing.create_tool_call_output_for_error_message(\"Invalid in-process tool name: \" .. name))\n    end\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/mcp/init.lua:210-229\n\n\n---@param tool_call table\n---@param callback ToolCallDoneCallback\nfunction M.send_tool_call(tool_call, callback)\n    -- tool call: {\n    --   [\"function\"] = {\n    --     arguments = '{\"command\":\"ls -la\",\"cwd\":\"\"}',\n    --     name = \"run_command\"\n    --   },\n    --   id = \"call_8yoj8qqo\",\n    --   index = 0,\n    --   type = \"function\"\n    -- }\n\n    local name = tool_call[\"function\"].name\n    local tool = M.tools_available[name]\n    if tool == nil then\n        callback(plumbing.create_tool_call_output_for_error_message(\"Invalid MCP tool name: \" .. name))\n        return\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/plumbing.lua:0-19\nlocal log = require(\"ask-openai.logs.logger\").predictions()\n\nlocal M = {}\n\n---@param description string\n---@return MCPToolCallOutputResult\nfunction M.create_tool_call_output_for_error_message(description)\n    local caller = debug.getinfo(2)\n    log:error(\"tool_call plumbing failure: \" .. description, \"caller: \", vim.inspect(caller))\n\n    -- TODO review all of TOOLs pipeline for other spots to add this\n\n    return {\n        result = {\n            isError = true,\n            content = {\n                M.text_content(description, \"error\")\n            },\n        },\n    }\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools/mcp/init.lua:225-244\n    local name = tool_call[\"function\"].name\n    local tool = M.tools_available[name]\n    if tool == nil then\n        callback(plumbing.create_tool_call_output_for_error_message(\"Invalid MCP tool name: \" .. name))\n        return\n    end\n\n    local args = tool_call[\"function\"].arguments\n    -- TODO ideally the caller would already transform json into lua tables\n    -- TODO and have parsed XML instead of JSON if that is what a model responds with\n    local args_decoded = vim.json.decode(args)\n    -- log:trace(\"args_decoded: \" .. vim.inspect(args_decoded))\n\n    -- PRN timeout mechanism? might be a good spot to wrap an async timer to check back (wait for the need to arise)\n\n    tool.server.tools_call(tool_call.id, name, args_decoded, vim.schedule_wrap(callback))\nend\n\nM._cached_run_process_instructions = nil\n---@param tool_name string\n\n"
+      },{
+        "role":"user",
+        "content":"catch unhandled exceptions here and create a tool call error message if happens\n\nHere is the code I selected:\n```lua/ask-openai/tools/router.lua:34-50\nfunction M.send_tool_call_router(tool_call, callback)\n    local tool_name = tool_call[\"function\"].name\n    -- local tool_name = \"no_way\" -- FYI test tool call failure plumbing (callbacks)\n\n    if mcp.handles_tool(tool_name) then\n        mcp.send_tool_call(tool_call, callback)\n        return\n    end\n\n    if inprocess.handles_tool(tool_name) then\n        inprocess.send_tool_call(tool_call, callback)\n        return\n    end\n\n    callback(plumbing.create_tool_call_output_for_error_message(\"Invalid tool name: \" .. tool_name))\nend\n\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!"
+      }],
+    "stream":true,
+    "max_tokens":2048,
+    "chat_template_kwargs":{
+      "reasoning_effort":"off"
+    },
+    "temperature":1,
+    "top_p":1
+  },
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "created":1770627088,
+    "timings":{
+      "cache_n":0,
+      "predicted_per_second":246.69961523152,
+      "predicted_n":238,
+      "prompt_per_second":8412.1064955338,
+      "prompt_n":1649,
+      "prompt_per_token_ms":0.11887628865979,
+      "predicted_ms":964.736,
+      "predicted_per_token_ms":4.053512605042,
+      "prompt_ms":196.027
+    },
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-hxdWUMeq65M4TrO1YkUO0mHeRjrnaix1",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }]
+  }
+}
