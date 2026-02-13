@@ -1,0 +1,66 @@
+{
+  "request_body":{
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "model":"",
+    "messages":[{
+        "_logged":true,
+        "content":"## Ground rules:\n- Follow the user's instructions. \n- DO NOT wrap answers in markdown code blocks, which means no triple backticks like ``` nor single backtick like ` .\n- Do not explain answers, just give me code. \n- If changing existing code, preserve unrelated code and comments. \n- Never add comments to the end of a line. \n- Never add stupid comments.\n- Be considerate with indentation. \n- Prefer readable code over of comments. \n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.",
+        "role":"system"
+      },{
+        "_logged":true,
+        "content":"## Recent yanks (copy to clipboard):\n```auto_edit/new_silence/tests/integration_tests.py\n562.133s-562.267s\n```\n\n```auto_edit/fcpxml/builder.py\n            add_noise_gate(clip)\n```\n\n```auto_edit/ranges.py\n        new.dampen = self.dampen\n```\n\n```auto_edit/fcpxml/builder.py\n            # adjust_volume(clip, -96) # or just mute it\n```\n\n```auto_edit/fcpxml/builder_tests.py\n    def test_long_second_silence__keeps_first_15_frames(self, fcp_xml):\n        long_second = SilenceRange(start_frame=10, end_frame=100)\n\n        # preceding content range so the silence is treated as a non‑first silence\n        dummy_content = ContentRange(start_frame=0, end_frame=10)\n        fcp_xml.process_ranges([dummy_content, long_second])\n\n        clips = list(fcp_xml.spine)\n        assert len(clips) == 2\n        clip = clips[1]\n\n        assert clip.get(\"name\").startswith(\"trim-\")\n        assert clip.get(\"start\") == \"10/30s\"\n        assert clip.get(\"duration\") == \"15/30s\"\n\n```\n\n```auto_edit/fcpxml/builder.py\nSilenceRange(new_start_frame, silence.end_frame)\n```\n\n```auto_edit/fcpxml/builder.py\n                new_start_frame = round(silence.end_frame - max_silence_frames)\n                silence = SilenceRange(new_start_frame, silence.end_frame)\n```\n\n",
+        "role":"user"
+      },{
+        "_logged":true,
+        "content":"## General Code Preferences\n\n- When rewriting code, leave unrelated code and unrelated comments as is.\n- When an if statement has an AMBIGUOUS condition, extract a variable to meaningfully name it, for example:\n```lua\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "_logged":true,
+        "content":"## Python Code Preferences\n- Use snake_case for functions and variables.\n- Use PascalCase for classes.\n- Use type hints to clear up ambiguity and improve code completion.\n- prefer `list[]` over `List[]` to mimimize imports\n- Avoid docstrings, ABSOLUTELY NO trivial comments.\n\n",
+        "role":"user"
+      },{
+        "_logged":true,
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/range-tests.py:78-82\n    def test_trim_start_ask_to_keep_more_frames_than_original__raises(self):\n        silence = SilenceRange(0, 10)\n        keep_frames = 20\n        with pytest.raises(ValueError):\n            silence.trim_start(keep_frames)\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/range-tests.py:65-69\n    def test_trim_end_ask_to_keep_more_frames_than_original__raises(self):\n        silence = SilenceRange(0, 10)\n        keep_frames = 20\n        with pytest.raises(ValueError):\n            silence.trim_end(keep_frames)\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/range-tests.py:56-82\nclass TestSilenceRangeTrim:\n    # silence ranges get trimmed when they're long, this will help carefully create the trimmed result\n    def test_trim_end__keeps_first_15_frames(self):\n        silence = SilenceRange(10, 100)\n        keep_frames = 15\n        trimmed = silence.trim_end(keep_frames)\n        assert trimmed.start_frame == 10\n        assert trimmed.end_frame == 25\n\n    def test_trim_end_ask_to_keep_more_frames_than_original__raises(self):\n        silence = SilenceRange(0, 10)\n        keep_frames = 20\n        with pytest.raises(ValueError):\n            silence.trim_end(keep_frames)\n\n    def test_trim_start__keeps_last_15_frames(self):\n        silence = SilenceRange(0, 100)\n        keep_frames = 15\n        trimmed = silence.trim_start(keep_frames)\n        assert trimmed.start_frame == 85\n        assert trimmed.end_frame == 100\n\n    def test_trim_start_ask_to_keep_more_frames_than_original__raises(self):\n        silence = SilenceRange(0, 10)\n        keep_frames = 20\n        with pytest.raises(ValueError):\n            silence.trim_start(keep_frames)\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/range-tests.py:71-76\n    def test_trim_start__keeps_last_15_frames(self):\n        silence = SilenceRange(0, 100)\n        keep_frames = 15\n        trimmed = silence.trim_start(keep_frames)\n        assert trimmed.start_frame == 85\n        assert trimmed.end_frame == 100\n\n## ~/repos/github/g0t4/auto-edit-suggests/auto_edit/tests/aligned-tests.py:97-99\n    def test_negative_duration_frames(self):\n        aligned = AlignedSilencePeriod(50, 40)\n        assert aligned.duration_frames() == -10\n",
+        "role":"user"
+      },{
+        "_logged":true,
+        "content":"show the keep_frames value using f-string\n\nHere is the code I selected:\n```auto_edit/ranges.py:96-99\n        if keep_frames > self.duration_frames():\n            raise ValueError(\"keep_frames exceeds silence duration\")\n        if keep_frames < 0:\n            raise ValueError(\"keep_frames must be non‑negative\n```\n\nThis is not necessarily a complete selection of nearby code, this is just the part I want help with. Preserve indentation!",
+        "role":"user"
+      }],
+    "max_tokens":4096,
+    "top_p":1,
+    "temperature":1
+  },
+  "last_sse":{
+    "timings":{
+      "cache_n":1244,
+      "predicted_per_second":178.19304504798,
+      "prompt_per_second":1495.252833661,
+      "prompt_n":143,
+      "predicted_n":92,
+      "prompt_ms":95.636,
+      "prompt_per_token_ms":0.66878321678322,
+      "predicted_ms":516.294,
+      "predicted_per_token_ms":5.6118913043478
+    },
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b7785-1c7cf94b2",
+    "id":"chatcmpl-DPCAm6875TAvKyCYnip4Omes6znHmc5O",
+    "created":1770966209
+  },
+  "response_message":{
+    "content":"```auto_edit/ranges.py:96-99\n        if keep_frames > self.duration_frames():\n            raise ValueError(f\"keep_frames ({keep_frames}) exceeds silence duration\")\n        if keep_frames < 0:\n            raise ValueError(f\"keep_frames ({keep_frames}) must be non‑negative\")\n```",
+    "finish_reason":"stop",
+    "reasoning_content":"Need to modify raise to include f-string showing keep_frames. Provide code snippet with f-string.",
+    "role":"assistant"
+  }
+}
