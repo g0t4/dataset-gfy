@@ -1,0 +1,250 @@
+{
+  "request_body":{
+    "top_p":1,
+    "max_tokens":8192,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"medium"
+    },
+    "model":"",
+    "verbose":true,
+    "tools":[{
+        "function":{
+          "name":"semantic_grep",
+          "parameters":{
+            "type":"object",
+            "required":["query"],
+            "properties":{
+              "embed_top_k":{
+                "description":"number of embeddings matches to consider for reranking",
+                "type":"number"
+              },
+              "query":{
+                "description":"query text, what you are looking for",
+                "type":"string"
+              },
+              "instruct":{
+                "description":"instructions for the query, explain the type of query",
+                "type":"string"
+              },
+              "filetype":{
+                "description":"limit matches to a vim compatible filetype. default includes all filetypes",
+                "type":"string"
+              },
+              "top_k":{
+                "description":"number of matches, defaults to 5 which is usually plenty!",
+                "type":"number"
+              }
+            }
+          },
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results."
+        },
+        "type":"function"
+      }],
+    "stream":true,
+    "messages":[{
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/api.lua:5-9\n-- * predictions *\nfunction M.enable_predictions()\n    config.local_share.set_predictions_enabled()\n    require(\"ask-openai.predictions.frontend\").start_predictions()\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/integration.tests.lua:0-10\nrequire(\"ask-openai.helpers.test_setup\").modify_package_path()\nlocal rewrites_frontend = require(\"ask-openai.rewrites.frontend\")\nlocal assert = require(\"luassert\")\n\n-- TODO PORT TO WORK WITH inline2\n\n-- TODO find a test framework that doesn't have a dependency on my entire F'ing neovim config OR fix the paths for the tests to run\n--   right now it breaks on my werkspace plugin needing nvim-tree ... which I don't give a F about in these tests\n\ndescribe(\"test model responses\", function()\n    it(\"should give correct results for simple prompt\", \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/prediction.lua:0-19\nlocal dots = require(\"ask-openai.frontends.thinking.dots\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal CursorController = require \"ask-openai.predictions.cursor_controller\"\n\n---@class Prediction\n---@field id integer\n---@field buffer integer\n---@field prediction string\n---@field cursor_prefix: string,\n---@field first_line: string\n---@field rest_of_lines: string[]\n---@field has_duplicate_prefix: boolean\n---@field no_completion_yet: boolean\n---@field extmarks table\n---@field abandoned boolean         # user aborted prediction\n---@field disable_cursor_moved boolean\n---\n---@field has_reasoning boolean\n---@field private reasoning_chunks string[]\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/agents/frontend.lua:0-19\nlocal buffers = require(\"ask-openai.helpers.buffers\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal completion_logger = require(\"ask-openai.logs.completion_logger\")\nlocal tool_router = require(\"ask-openai.tools.router\")\nlocal curl = require(\"ask-openai.backends.curl\")\nlocal agentica = require(\"ask-openai.backends.models.agentica\")\nlocal AgentWindow = require(\"ask-openai.agents.viewer.window\")\nlocal AgentTrace = require(\"ask-openai.agents.trace\")\nlocal TracePager = require(\"ask-openai.agents.viewer.trace_pager\")\nlocal TxChatMessage = require(\"ask-openai.agents.messages.tx\")\nlocal Selection = require(\"ask-openai.helpers.selection\")\nlocal CurrentContext = require(\"ask-openai.frontends.context\")\nlocal api = require(\"ask-openai.api\")\nlocal rag_client = require(\"ask-openai.rag.client\")\nlocal files = require(\"ask-openai.helpers.files\")\nlocal model_params = require(\"ask-openai.agents.models.params\")\nlocal LinesBuilder = require(\"ask-openai.agents.viewer.lines_builder\")\nlocal MessageBuilder = require(\"ask-openai.rewrites.message_builder\")\nlocal prompt_parser = require(\"ask-openai.frontends.context.prompt_parser\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua:0-19\nlocal buffers = require(\"ask-openai.helpers.buffers\")\nlocal config = require(\"ask-openai.config\")\nlocal curl = require(\"ask-openai.backends.curl\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal agentica = require(\"ask-openai.backends.models.agentica\")\nlocal text_helpers = require(\"ask-openai.helpers.text\")\nlocal Selection = require(\"ask-openai.helpers.selection\")\nlocal Displayer = require(\"ask-openai.rewrites.displayer\")\nlocal CurrentContext = require(\"ask-openai.frontends.context\")\nlocal TxChatMessage = require(\"ask-openai.agents.messages.tx\")\nlocal files = require(\"ask-openai.helpers.files\")\nlocal api = require(\"ask-openai.api\")\nlocal rag_client = require(\"ask-openai.rag.client\")\nlocal CurlRequest = require(\"ask-openai.backends.curl_request\")\nlocal human = require(\"devtools.humanize\")\nlocal tool_router = require(\"ask-openai.tools.router\")\nlocal model_params = require(\"ask-openai.agents.models.params\")\nlocal MessageBuilder = require(\"ask-openai.rewrites.message_builder\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\nlocal harmony = require(\"ask-openai.backends.models.gptoss.tokenizer\").harmony\n\n",
+        "role":"user"
+      },{
+        "content":"test",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user has just typed \"test\" which appears to be a simple test message. They're testing if the plugin is working properly or just checking for a response. Since this is just \"test\" and nothing else, I should respond with a brief confirmation that I'm working properly. I don't need to use any tools for this simple test message.",
+        "content":"I'm working! What can I help you with in the `ask-openai.nvim` repository?",
+        "role":"assistant"
+      },{
+        "content":"what is your name?\n",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking for my name. I should respond directly with my name.",
+        "content":"I'm the AI assistant for the ask-openai.nvim plugin. I can help you with code, questions, and working with this repository.",
+        "role":"assistant"
+      },{
+        "content":"who trained you? LLM model ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking who trained me and which LLM model I am. They're being direct and asking about my origins. I should provide a clear, honest answer about my training.",
+        "content":"I'm GLM, a large language model trained by Z.ai. I'm designed to help with various tasks including answering questions, providing information, and assisting with different types of queries. I continuously learn and improve to better assist users.\n\nIs there something specific you'd like to know or discuss?",
+        "role":"assistant"
+      },{
+        "content":"what does z.ai do? ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking what Z.ai does. This is a factual question about a company/organization. I should provide information about Z.ai based on my knowledge.",
+        "content":"Z.ai is an AI research company that specializes in developing large language models and conversational AI systems. They're known for creating models like GLM (General Language Model) that can understand and generate human-like text.\n\nTheir work focuses on:\n- Developing advanced language models for various applications\n- Researching natural language processing\n- Creating AI chatbots and conversational agents\n- Building tools that can understand context and generate coherent responses\n\nThey aim to advance AI capabilities while making them more accessible for practical use in businesses, research, and everyday applications.\n\nIs there something specific about AI technology or language models you'd like to learn more about?",
+        "role":"assistant"
+      },{
+        "content":"which model are you? they have several models  ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking which specific model I am. I am GLM (General Language Model), which is a large language model trained by Z.ai. I should provide a clear, honest answer about my identity and capabilities.",
+        "content":"I am GLM (General Language Model), a large language model trained by Z.ai. I'm designed to understand and generate human-like text, assist with various tasks like answering questions, providing information, and helping with writing.\n\nThere are several models in the GLM family with different capabilities and sizes, optimized for various use cases. My architecture is based on transformer technology and trained on diverse text data to help with natural language understanding and generation.\n\nIs there something specific you'd like to know about my capabilities or how I can assist you?",
+        "role":"assistant"
+      },{
+        "content":"what are your strongsuits? ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking about my strengths or capabilities. I should provide a helpful overview of what I can do well as an AI assistant.",
+        "content":"I'm designed to excel at several key areas:\n\n- **Answering questions** - providing clear, accurate information on a wide range of topics\n- **Writing assistance** - helping with essays, emails, reports, creative writing, and more\n- **Code help** - explaining concepts, debugging, and generating code snippets\n- **Summarization** - condensing long texts into key points\n- **Problem-solving** - breaking down complex issues into manageable steps\n- **Learning** - explaining difficult concepts in simple terms\n- **Creative tasks** - brainstorming ideas, writing stories, poems, etc.\n\nWhat are you looking for help with today?",
+        "role":"assistant"
+      },{
+        "content":"I am test driving you! in my AI harness! ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is testing me in their \"AI harness\" - this seems like a testing or development environment for AI models. They're likely evaluating my capabilities or performance in some specific context. I should respond helpfully while being aware that they're using me within some kind of testing framework.\n\nI should keep my response concise and focused on being helpful, while acknowledging their testing context.",
+        "content":"Great! I'm here to help you test and evaluate my capabilities. What kind of testing scenario are you running? I can help with:\n\n- Code assistance and debugging\n- Answering questions\n- Writing and editing\n- Analysis and summarization\n- And any other tasks you'd like to try\n\nWhat would you like me to demonstrate or help with in this testing environment?",
+        "role":"assistant"
+      },{
+        "content":"you are fast! ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is saying \"you are fast!\" - they're complimenting the speed of my responses. I should acknowledge this positively and perhaps ask what they'd like to test next or if there's anything specific they want to try. I should keep it brief and conversational.",
+        "content":"Thanks! I'm designed to respond quickly and efficiently. I'm here to help you with whatever you need in your AI testing. What would you like to try next or test me on?",
+        "role":"assistant"
+      },{
+        "content":"tell me one thing about this project ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is asking me to tell them something about the current project. Looking at the context, I'm working in the ask-openai.nvim repository. From the semantic grep results, I can see this is a Neovim plugin that interfaces with OpenAI's API, providing features like:\n\n1. Predictions - using `M.enable_predictions()` and predictions frontend\n2. Rewrites - with a rewrite frontend\n3. Agents - with an agent frontend for more complex interactions\n4. Various components like buffers, text helpers, curl requests, etc.\n\nI should provide a concise, interesting fact about this project based on what I can see.",
+        "content":"This is **ask-openai.nvim**, a Neovim plugin that provides AI-powered features right in your editor. From the code I can see, it includes:\n\n- **Predictions** - AI-assisted completions and suggestions\n- **Rewrites** - AI-powered text rewriting capabilities  \n- **Agents** - More advanced AI interactions for complex tasks\n\nIt integrates OpenAI's API directly into Neovim to give you AI assistance while you code, without leaving your editor. The project uses components like buffers, text helpers, curl requests, and various frontend interfaces to deliver these features.",
+        "role":"assistant"
+      },{
+        "content":"very nice! wow ",
+        "role":"user"
+      },{
+        "tool_calls":[],
+        "reasoning_content":"The user is expressing enthusiasm about the project I just described. They're saying \"very nice! wow\" which seems like they're impressed with what they've learned about ask-openai.nvim. This seems like a conversational response rather than a request for specific work. I should acknowledge their positive reaction and maybe offer to help with something specific about the project if they'd like.",
+        "content":"Thanks! It's indeed a pretty impressive project. The integration of AI directly into Neovim like this can be really useful for developers - having AI assistance right at your fingertips while coding without leaving your editor.\n\nIs there something specific about the project you'd like to explore further, or would you like help with something else?",
+        "role":"assistant"
+      },{
+        "content":"where did you find that info? ",
+        "role":"user"
+      },{
+        "finish_reason":"stop",
+        "reasoning_content":"The user is asking where I found the information about the ask-openai.nvim project. I used the semantic_grep tool earlier to retrieve information about the project, which provided me with code snippets from various files in the repository. I can see from the semantic_grep results that I had access to files like:\n\n- lua/ask-openai/api.lua\n- lua/ask-openai/rewrites/integration.tests.lua\n- lua/ask-openai/predictions/prediction.lua\n- lua/ask-openai/agents/frontend.lua\n- lua/ask-openai/rewrites/frontend.lua\n\nThese files contain the information about the project structure and components that I mentioned in my previous response.",
+        "content":"I found that information from the semantic_grep tool results that were automatically provided to me earlier. It showed me code snippets from various files in the ask-openai.nvim repository, including:\n\n- `~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/api.lua`\n- `~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/integration.tests.lua`\n- `~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/prediction.lua`\n- `~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/agents/frontend.lua`\n- `~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua`\n\nFrom these code snippets, I could see the project structure, the different modules (api, rewrites, predictions, agents, etc.), and various functions that give insight into what the project does.",
+        "role":"assistant"
+      }]
+  },
+  "last_sse":{
+    "timings":{
+      "predicted_ms":1981.805,
+      "prompt_n":77,
+      "cache_n":2621,
+      "predicted_per_second":189.72603258141,
+      "predicted_n":376,
+      "prompt_per_second":2232.7253747789,
+      "predicted_per_token_ms":5.2707579787234,
+      "prompt_ms":34.487,
+      "prompt_per_token_ms":0.44788311688312
+    },
+    "model":"ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+    "__verbose":{
+      "prompt":"[gMASK]<sop><|system|>\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"semantic_grep\", \"description\": \"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.\", \"parameters\": {\"type\": \"object\", \"required\": [\"query\"], \"properties\": {\"embed_top_k\": {\"description\": \"number of embeddings matches to consider for reranking\", \"type\": \"number\"}, \"query\": {\"description\": \"query text, what you are looking for\", \"type\": \"string\"}, \"instruct\": {\"description\": \"instructions for the query, explain the type of query\", \"type\": \"string\"}, \"filetype\": {\"description\": \"limit matches to a vim compatible filetype. default includes all filetypes\", \"type\": \"string\"}, \"top_k\": {\"description\": \"number of matches, defaults to 5 which is usually plenty!\", \"type\": \"number\"}}}}}\n</tools>\n\nFor each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}<arg_key>{arg-key-1}</arg_key><arg_value>{arg-value-1}</arg_value><arg_key>{arg-key-2}</arg_key><arg_value>{arg-value-2}</arg_value>...</tool_call><|system|>You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n<|user|>## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    --...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    --...\nend\n```\n<|user|>## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n<|user|># Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/api.lua:5-9\n-- * predictions *\nfunction M.enable_predictions()\n    config.local_share.set_predictions_enabled()\n    require(\"ask-openai.predictions.frontend\").start_predictions()\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/integration.tests.lua:0-10\nrequire(\"ask-openai.helpers.test_setup\").modify_package_path()\nlocal rewrites_frontend = require(\"ask-openai.rewrites.frontend\")\nlocal assert = require(\"luassert\")\n\n-- TODO PORT TO WORK WITH inline2\n\n-- TODO find a test framework that doesn't have a dependency on my entire F'ing neovim config OR fix the paths for the tests to run\n--   right now it breaks on my werkspace plugin needing nvim-tree... which I don't give a F about in these tests\n\ndescribe(\"test model responses\", function()\n    it(\"should give correct results for simple prompt\", \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/prediction.lua:0-19\nlocal dots = require(\"ask-openai.frontends.thinking.dots\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal CursorController = require \"ask-openai.predictions.cursor_controller\"\n\n---@class Prediction\n---@field id integer\n---@field buffer integer\n---@field prediction string\n---@field cursor_prefix: string,\n---@field first_line: string\n---@field rest_of_lines: string[]\n---@field has_duplicate_prefix: boolean\n---@field no_completion_yet: boolean\n---@field extmarks table\n---@field abandoned boolean         # user aborted prediction\n---@field disable_cursor_moved boolean\n---\n---@field has_reasoning boolean\n---@field private reasoning_chunks string[]\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/agents/frontend.lua:0-19\nlocal buffers = require(\"ask-openai.helpers.buffers\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal completion_logger = require(\"ask-openai.logs.completion_logger\")\nlocal tool_router = require(\"ask-openai.tools.router\")\nlocal curl = require(\"ask-openai.backends.curl\")\nlocal agentica = require(\"ask-openai.backends.models.agentica\")\nlocal AgentWindow = require(\"ask-openai.agents.viewer.window\")\nlocal AgentTrace = require(\"ask-openai.agents.trace\")\nlocal TracePager = require(\"ask-openai.agents.viewer.trace_pager\")\nlocal TxChatMessage = require(\"ask-openai.agents.messages.tx\")\nlocal Selection = require(\"ask-openai.helpers.selection\")\nlocal CurrentContext = require(\"ask-openai.frontends.context\")\nlocal api = require(\"ask-openai.api\")\nlocal rag_client = require(\"ask-openai.rag.client\")\nlocal files = require(\"ask-openai.helpers.files\")\nlocal model_params = require(\"ask-openai.agents.models.params\")\nlocal LinesBuilder = require(\"ask-openai.agents.viewer.lines_builder\")\nlocal MessageBuilder = require(\"ask-openai.rewrites.message_builder\")\nlocal prompt_parser = require(\"ask-openai.frontends.context.prompt_parser\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua:0-19\nlocal buffers = require(\"ask-openai.helpers.buffers\")\nlocal config = require(\"ask-openai.config\")\nlocal curl = require(\"ask-openai.backends.curl\")\nlocal log = require(\"devtools.logs.logger\").universal()\nlocal agentica = require(\"ask-openai.backends.models.agentica\")\nlocal text_helpers = require(\"ask-openai.helpers.text\")\nlocal Selection = require(\"ask-openai.helpers.selection\")\nlocal Displayer = require(\"ask-openai.rewrites.displayer\")\nlocal CurrentContext = require(\"ask-openai.frontends.context\")\nlocal TxChatMessage = require(\"ask-openai.agents.messages.tx\")\nlocal files = require(\"ask-openai.helpers.files\")\nlocal api = require(\"ask-openai.api\")\nlocal rag_client = require(\"ask-openai.rag.client\")\nlocal CurlRequest = require(\"ask-openai.backends.curl_request\")\nlocal human = require(\"devtools.humanize\")\nlocal tool_router = require(\"ask-openai.tools.router\")\nlocal model_params = require(\"ask-openai.agents.models.params\")\nlocal MessageBuilder = require(\"ask-openai.rewrites.message_builder\")\nlocal HLGroups = require(\"ask-openai.hlgroups\")\nlocal harmony = require(\"ask-openai.backends.models.gptoss.tokenizer\").harmony\n\n<|user|>test<|assistant|></think>I'm working! What can I help you with in the `ask-openai.nvim` repository?<|user|>what is your name?\n<|assistant|></think>I'm the AI assistant for the ask-openai.nvim plugin. I can help you with code, questions, and working with this repository.<|user|>who trained you? LLM model <|assistant|></think>I'm GLM, a large language model trained by Z.ai. I'm designed to help with various tasks including answering questions, providing information, and assisting with different types of queries. I continuously learn and improve to better assist users.\n\nIs there something specific you'd like to know or discuss?<|user|>what does z.ai do? <|assistant|></think>Z.ai is an AI research company that specializes in developing large language models and conversational AI systems. They're known for creating models like GLM (General Language Model) that can understand and generate human-like text.\n\nTheir work focuses on:\n- Developing advanced language models for various applications\n- Researching natural language processing\n- Creating AI chatbots and conversational agents\n- Building tools that can understand context and generate coherent responses\n\nThey aim to advance AI capabilities while making them more accessible for practical use in businesses, research, and everyday applications.\n\nIs there something specific about AI technology or language models you'd like to learn more about?<|user|>which model are you? they have several models  <|assistant|></think>I am GLM (General Language Model), a large language model trained by Z.ai. I'm designed to understand and generate human-like text, assist with various tasks like answering questions, providing information, and helping with writing.\n\nThere are several models in the GLM family with different capabilities and sizes, optimized for various use cases. My architecture is based on transformer technology and trained on diverse text data to help with natural language understanding and generation.\n\nIs there something specific you'd like to know about my capabilities or how I can assist you?<|user|>what are your strongsuits? <|assistant|></think>I'm designed to excel at several key areas:\n\n- **Answering questions** - providing clear, accurate information on a wide range of topics\n- **Writing assistance** - helping with essays, emails, reports, creative writing, and more\n- **Code help** - explaining concepts, debugging, and generating code snippets\n- **Summarization** - condensing long texts into key points\n- **Problem-solving** - breaking down complex issues into manageable steps\n- **Learning** - explaining difficult concepts in simple terms\n- **Creative tasks** - brainstorming ideas, writing stories, poems, etc.\n\nWhat are you looking for help with today?<|user|>I am test driving you! in my AI harness! <|assistant|></think>Great! I'm here to help you test and evaluate my capabilities. What kind of testing scenario are you running? I can help with:\n\n- Code assistance and debugging\n- Answering questions\n- Writing and editing\n- Analysis and summarization\n- And any other tasks you'd like to try\n\nWhat would you like me to demonstrate or help with in this testing environment?<|user|>you are fast! <|assistant|></think>Thanks! I'm designed to respond quickly and efficiently. I'm here to help you with whatever you need in your AI testing. What would you like to try next or test me on?<|user|>tell me one thing about this project <|assistant|></think>This is **ask-openai.nvim**, a Neovim plugin that provides AI-powered features right in your editor. From the code I can see, it includes:\n\n- **Predictions** - AI-assisted completions and suggestions\n- **Rewrites** - AI-powered text rewriting capabilities  \n- **Agents** - More advanced AI interactions for complex tasks\n\nIt integrates OpenAI's API directly into Neovim to give you AI assistance while you code, without leaving your editor. The project uses components like buffers, text helpers, curl requests, and various frontend interfaces to deliver these features.<|user|>very nice! wow <|assistant|></think>Thanks! It's indeed a pretty impressive project. The integration of AI directly into Neovim like this can be really useful for developers - having AI assistance right at your fingertips while coding without leaving your editor.\n\nIs there something specific about the project you'd like to explore further, or would you like help with something else?<|user|>where did you find that info? <|assistant|><think>",
+      "stop_type":"eos",
+      "content":"",
+      "id_slot":1,
+      "tokens_predicted":376,
+      "tokens_evaluated":2698,
+      "generation_settings":{
+        "grammar_triggers":[{
+            "type":0,
+            "token":154843,
+            "value":"<tool_call>"
+          }],
+        "preserved_tokens":[154841,154842,154843,154844,154847,154848,154849,154850],
+        "top_p":1,
+        "stop":[],
+        "temperature":1,
+        "reasoning_in_content":false,
+        "generation_prompt":"<|assistant|><think>",
+        "samplers":["penalties","dry","top_n_sigma","top_k","typ_p","top_p","min_p","xtc","temperature"],
+        "grammar":"ac-129 ::= [<] ac-129-01 | [^<] ac-129\nac-129-01 ::= [<] ac-129-01 | [/] ac-129-02 | [^/<] ac-129\nac-129-02 ::= [<] ac-129-01 | [a] ac-129-03 | [^<a] ac-129\nac-129-03 ::= [<] ac-129-01 | [r] ac-129-04 | [^<r] ac-129\nac-129-04 ::= [<] ac-129-01 | [g] ac-129-05 | [^<g] ac-129\nac-129-05 ::= [<] ac-129-01 | [_] ac-129-06 | [^<_] ac-129\nac-129-06 ::= [<] ac-129-01 | [v] ac-129-07 | [^<v] ac-129\nac-129-07 ::= [<] ac-129-01 | [a] ac-129-08 | [^<a] ac-129\nac-129-08 ::= [<] ac-129-01 | [l] ac-129-09 | [^<l] ac-129\nac-129-09 ::= [<] ac-129-01 | [u] ac-129-10 | [^<u] ac-129\nac-129-10 ::= [<] ac-129-01 | [e] ac-129-11 | [^<e] ac-129\nac-129-11 ::= [>] | [<] ac-129-01 | [^<>] ac-129\nac-150 ::= [<] ac-150-01 | [^<] ac-150\nac-150-01 ::= [<] ac-150-01 | [/] ac-150-02 | [^/<] ac-150\nac-150-02 ::= [<] ac-150-01 | [a] ac-150-03 | [^<a] ac-150\nac-150-03 ::= [<] ac-150-01 | [r] ac-150-04 | [^<r] ac-150\nac-150-04 ::= [<] ac-150-01 | [g] ac-150-05 | [^<g] ac-150\nac-150-05 ::= [<] ac-150-01 | [_] ac-150-06 | [^<_] ac-150\nac-150-06 ::= [<] ac-150-01 | [v] ac-150-07 | [^<v] ac-150\nac-150-07 ::= [<] ac-150-01 | [a] ac-150-08 | [^<a] ac-150\nac-150-08 ::= [<] ac-150-01 | [l] ac-150-09 | [^<l] ac-150\nac-150-09 ::= [<] ac-150-01 | [u] ac-150-10 | [^<u] ac-150\nac-150-10 ::= [<] ac-150-01 | [e] ac-150-11 | [^<e] ac-150\nac-150-11 ::= [>] | [<] ac-150-01 | [^<>] ac-150\nac-171 ::= [<] ac-171-01 | [^<] ac-171\nac-171-01 ::= [<] ac-171-01 | [/] ac-171-02 | [^/<] ac-171\nac-171-02 ::= [<] ac-171-01 | [a] ac-171-03 | [^<a] ac-171\nac-171-03 ::= [<] ac-171-01 | [r] ac-171-04 | [^<r] ac-171\nac-171-04 ::= [<] ac-171-01 | [g] ac-171-05 | [^<g] ac-171\nac-171-05 ::= [<] ac-171-01 | [_] ac-171-06 | [^<_] ac-171\nac-171-06 ::= [<] ac-171-01 | [v] ac-171-07 | [^<v] ac-171\nac-171-07 ::= [<] ac-171-01 | [a] ac-171-08 | [^<a] ac-171\nac-171-08 ::= [<] ac-171-01 | [l] ac-171-09 | [^<l] ac-171\nac-171-09 ::= [<] ac-171-01 | [u] ac-171-10 | [^<u] ac-171\nac-171-10 ::= [<] ac-171-01 | [e] ac-171-11 | [^<e] ac-171\nac-171-11 ::= [>] | [<] ac-171-01 | [^<>] ac-171\ndecimal-part ::= [0-9]{1,16}\nintegral-part ::= [0] | [1-9] [0-9]{0,15}\njson-array ::= \"[\" space (\"]\" | json-value (space \",\" space json-value)* space \"]\")\njson-bool ::= \"true\" | \"false\"\njson-null ::= \"null\"\njson-number ::= \"-\"? (\"0\" | [1-9] [0-9]*) (\".\" [0-9]+)? ((\"e\" | \"E\") [+-]? [0-9]+)?\njson-object ::= \"{\" space (\"}\" | json-string space \":\" space json-value (space \",\" space json-string space \":\" space json-value)* space \"}\")\njson-string ::= \"\\\"\" ( [^\"\\\\] | \"\\\\\" ( [\"\\\\/ bfnrt] | \"u\" [0-9a-fA-F]{4} ) )* \"\\\"\"\njson-value ::= json-object | json-array | json-string | json-number | json-bool | json-null\nnumber ::= (\"-\"? integral-part) (\".\" decimal-part)? ([eE] [-+]? integral-part)?\nroot ::= tool-call\nspace ::= | \" \" | \"\\n\"{1,2} [ \\t]{0,20}\ntool-call ::= \"<tool_call>\" space (tool-semantic-grep) space \"</tool_call>\" (space \"<tool_call>\" space (tool-semantic-grep) space \"</tool_call>\")* space\ntool-semantic-grep ::= ((\"\" \"semantic_grep\" \"\") space) tool-semantic-grep-arg-query (space (tool-semantic-grep-arg-embed-top-k | tool-semantic-grep-arg-instruct | tool-semantic-grep-arg-filetype | tool-semantic-grep-arg-top-k))*\ntool-semantic-grep-arg-embed-top-k ::= (\"<arg_key>\" \"embed_top_k\" \"</arg_key>\") \"<arg_value>\" number \"</arg_value>\"\ntool-semantic-grep-arg-filetype ::= (\"<arg_key>\" \"filetype\" \"</arg_key>\") \"<arg_value>\" ac-171\ntool-semantic-grep-arg-instruct ::= (\"<arg_key>\" \"instruct\" \"</arg_key>\") \"<arg_value>\" ac-150\ntool-semantic-grep-arg-query ::= (\"<arg_key>\" \"query\" \"</arg_key>\") \"<arg_value>\" ac-129\ntool-semantic-grep-arg-top-k ::= (\"<arg_key>\" \"top_k\" \"</arg_key>\") \"<arg_value>\" number \"</arg_value>\"\nuntil-13 ::= | [<] until-13-01 | [^<] until-13\nuntil-13-01 ::= | [<] until-13-01 | [/] until-13-02 | [^/<] until-13\nuntil-13-02 ::= | [<] until-13-01 | [a] until-13-03 | [^<a] until-13\nuntil-13-03 ::= | [<] until-13-01 | [r] until-13-04 | [^<r] until-13\nuntil-13-04 ::= | [<] until-13-01 | [g] until-13-05 | [^<g] until-13\nuntil-13-05 ::= | [<] until-13-01 | [_] until-13-06 | [^<_] until-13\nuntil-13-06 ::= | [<] until-13-01 | [v] until-13-07 | [^<v] until-13\nuntil-13-07 ::= | [<] until-13-01 | [a] until-13-08 | [^<a] until-13\nuntil-13-08 ::= | [<] until-13-01 | [l] until-13-09 | [^<l] until-13\nuntil-13-09 ::= | [<] until-13-01 | [u] until-13-10 | [^<u] until-13\nuntil-13-10 ::= | [<] until-13-01 | [e] until-13-11 | [^<e] until-13\nuntil-13-11 ::= | [<] until-13-01 | [^<>] until-13\nuntil-suffix ::= until-13\n",
+        "speculative.types":"none",
+        "timings_per_token":false,
+        "post_sampling_probs":false,
+        "backend_sampling":false,
+        "lora":[],
+        "reasoning_format":"deepseek",
+        "chat_format":"peg-native",
+        "stream":true,
+        "frequency_penalty":0,
+        "n_discard":0,
+        "max_tokens":8192,
+        "n_keep":0,
+        "seed":4294967295,
+        "dynatemp_range":0,
+        "dynatemp_exponent":1,
+        "min_p":0.050000000745058,
+        "top_n_sigma":-1,
+        "xtc_probability":0,
+        "xtc_threshold":0.10000000149012,
+        "typical_p":1,
+        "repeat_last_n":64,
+        "presence_penalty":0,
+        "repeat_penalty":1,
+        "dry_multiplier":0,
+        "dry_base":1.75,
+        "dry_allowed_length":2,
+        "dry_penalty_last_n":202752,
+        "dry_sequence_breakers":["\n",":","\"","*"],
+        "mirostat":0,
+        "mirostat_tau":5,
+        "mirostat_eta":0.10000000149012,
+        "n_predict":8192,
+        "ignore_eos":false,
+        "logit_bias":[],
+        "n_probs":0,
+        "min_keep":0,
+        "top_k":40,
+        "grammar_lazy":true
+      },
+      "stopping_word":"",
+      "truncated":false,
+      "model":"ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+      "index":0,
+      "has_new_line":true,
+      "tokens":[],
+      "tokens_cached":3073,
+      "timings":{
+        "predicted_ms":1981.805,
+        "prompt_n":77,
+        "cache_n":2621,
+        "predicted_per_second":189.72603258141,
+        "predicted_n":376,
+        "prompt_per_second":2232.7253747789,
+        "predicted_per_token_ms":5.2707579787234,
+        "prompt_ms":34.487,
+        "prompt_per_token_ms":0.44788311688312
+      },
+      "stop":true
+    },
+    "id":"chatcmpl-y7D5JU3Im6dMo95If9NUFthgzghfiGT6",
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "system_fingerprint":"b10104-3565b4bd7",
+    "created":1784880412
+  }
+}
