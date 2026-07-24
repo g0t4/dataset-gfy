@@ -1,0 +1,29 @@
+notes:
+- SUPER CRITICAL TO KNOW... there was only ONE TOOL! `semantic_grep`
+  - I didn't realize I broke the rest of the tools (not even included in tools list to model)
+  - notably no `run_process` which means GLM had to do everything with semantic_grep!
+  - at first I was like wow GLM really likes `semantic_grep` ... turns out that was all I gave it! LOL
+  - one concern with RAG is it is not a guarantee that you will find all matches!
+    GLM did a ton of deep (big top_k values) queries (which is 100% the right thing to do in this case!)
+  - in light of that, this is good work
+
+  - TOO bad it didn't spot that I was using the wrong env var format for uv.spawn ... but then again my existing code was doing that and I didn't ask about it :)
+    needed to be KEY=VALUE... BUT, we did not modify or talk about that part so that was a tangent at best and I probably don't want AI models going on every tangent ever
+
+good:
+  - fast!
+  - updated imports for new uv.spawn (showed me change to top of mcp/init.lua file separate of other changes
+  - simple code changes
+
+minor_complaints:
+
+  - uv_spawn module is named same as the `uv_spawn` function (which is fine), but then usages should've been `uv_spawn.uv_spawn`
+    - but GLM updated usages to just `uv_spawn`
+    - mistake that luac probably catches...
+    - could've also required `local uv_spawn = require("...uv_spawn").uv_spawn`
+
+  - gave me the new spawn function for curl backend... called it `M.spawn`
+    - to replace `Curl.spawn`... so I renamed `M`=>`Curl`
+    - I should be using `M.` anyways
+      that is a common convention in lua modules
+      I actually like that convention too (names are easier)
