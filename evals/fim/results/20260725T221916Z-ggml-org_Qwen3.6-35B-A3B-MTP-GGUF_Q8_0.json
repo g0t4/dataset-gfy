@@ -1,0 +1,41 @@
+{
+  "model": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "||",
+      "candidate": "||",
+      "completion_tokens": 777,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "partial",
+      "reason": "Uses correct value $argv but variable name 'dots' does not match the expected 'typed_dots' naming convention",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "dots $argv",
+      "completion_tokens": 1845,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": "ggml-org/gpt-oss-120b-GGUF"
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "The candidate correctly inserts the $typed_dots variable, matching the reference and preserving the quoted argument.",
+      "expected": "$typed_dots",
+      "candidate": "$typed_dots",
+      "completion_tokens": 923,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": "ggml-org/gpt-oss-120b-GGUF"
+    }
+  ]
+}

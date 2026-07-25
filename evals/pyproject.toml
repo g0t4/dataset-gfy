@@ -8,6 +8,7 @@ dependencies = [
     "openai>=2.24.0",
     "langchain-openai>=1.1.10",
     "langchain-llama-server",
+    "rich>=13.9.4",
 ]
 
 [tool.uv.sources]

@@ -1,0 +1,41 @@
+{
+  "model": "ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "incorrect",
+      "reason": "expected one of ['||']",
+      "expected": "||",
+      "candidate": "|| trimmed.starts_with(';') {",
+      "completion_tokens": 427,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+      "judge_model_name": null
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "incorrect",
+      "reason": "truncated before emitting any content (4096 tokens spent, reasoning: 1.  **Analyze the Request:**\n    *   **Context:** The user is editing a Fish she...) -- try a higher --max-tokens",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "",
+      "completion_tokens": 4096,
+      "finish_reason": "length",
+      "model_name": "ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+      "judge_model_name": null
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "incorrect",
+      "reason": "The candidate inserts literal '...' instead of expanding the $typed_dots variable, breaking the intended functionality.",
+      "expected": "$typed_dots",
+      "candidate": "...",
+      "completion_tokens": 2440,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/GLM-4.7-Flash-GGUF:Q8_0",
+      "judge_model_name": "ggml-org/gpt-oss-120b-GGUF"
+    }
+  ]
+}

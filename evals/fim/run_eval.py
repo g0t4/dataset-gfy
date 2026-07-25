@@ -26,6 +26,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import rich
 from langchain_llama_server import ChatLlamaServer
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -97,7 +98,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 """
 
 
-def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str]:
+def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str, str]:
     fim_task = prompt_messages[-1]["content"]
     judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
         fim_task=fim_task,
@@ -106,19 +107,20 @@ def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], exp
         candidate=candidate,
     )
     ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
+    judge_model_name = ai_message.response_metadata.get("model_name") or "unknown"
     raw = (ai_message.content or "").strip()
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if not match:
-        return "incorrect", f"judge did not return JSON: {raw!r}"
+        return "incorrect", f"judge did not return JSON: {raw!r}", judge_model_name
     try:
         parsed = json.loads(match.group(0))
         verdict = parsed.get("verdict", "incorrect")
         reason = parsed.get("reason", "")
         if verdict not in ("correct", "partial", "incorrect"):
-            return "incorrect", f"judge returned unknown verdict {verdict!r}"
-        return verdict, reason
+            return "incorrect", f"judge returned unknown verdict {verdict!r}", judge_model_name
+        return verdict, reason, judge_model_name
     except json.JSONDecodeError:
-        return "incorrect", f"judge returned unparseable JSON: {raw!r}"
+        return "incorrect", f"judge returned unparseable JSON: {raw!r}", judge_model_name
 
 
 def main():
@@ -160,6 +162,7 @@ def main():
         completion_tokens = usage.get("output_tokens")
         reasoning_content = ai_message.additional_kwargs.get("reasoning_content") or ""
 
+        judge_model_name = None
         if not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
@@ -168,7 +171,7 @@ def main():
         elif case["grader"] == "exact_normalized":
             verdict, reason = grade_exact_normalized(candidate, case)
         elif case["grader"] == "llm_judge":
-            verdict, reason = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
+            verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
         else:
             verdict, reason = "incorrect", f"unknown grader {case['grader']!r}"
 
@@ -185,23 +188,34 @@ def main():
             "completion_tokens": completion_tokens,
             "finish_reason": finish_reason,
             "model_name": model_name,
+            "judge_model_name": judge_model_name,
         })
 
     model_names = {r["model_name"] for r in results}
     if len(model_names) > 1:
-        print(f"WARNING: port {args.port} answered with more than one model name across cases: {model_names} "
-              f"-- was the server restarted with a different model mid-run?", file=sys.stderr)
+        rich.print(f"[bold white on red] WARNING [/] port {args.port} answered with more than one model name "
+                   f"across cases: {model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_model = results[0]["model_name"] if results else "unknown"
 
-    print_report(resolved_model, args.port, results)
+    judge_model_names = {r["judge_model_name"] for r in results if r["judge_model_name"]}
+    if len(judge_model_names) > 1:
+        rich.print(f"[bold white on red] WARNING [/] judge port {args.judge_port} answered with more than one model "
+                   f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
+    resolved_judge_model = next(iter(judge_model_names), None)
+
+    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, results)
 
     if args.save:
         save_results(resolved_model, results)
 
 
-def print_report(model: str, port: int, results: list[dict]):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, results: list[dict]):
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
-    print(f"\nFIM eval -- model: {model} (port {port})\n" + "=" * 60)
+    print()
+    rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
+    if judge_model:
+        rich.print(f"           judge: [bold black on bright_cyan] {judge_model} [/]  (port {judge_port})")
+    print("=" * 60)
     for r in results:
         print(f"\n{icon.get(r['verdict'], '?')} [{r['verdict']}] {r['id']}  ({r['grader']}, {r['completion_tokens']} tokens, finish={r['finish_reason']})")
         print(f"   expected : {r['expected']!r}")
