@@ -1,0 +1,35 @@
+{
+  "model": "ggml-org/gpt-oss-120b-GGUF",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "||",
+      "candidate": "||",
+      "completion_tokens": 201,
+      "finish_reason": "stop"
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "The candidate completion exactly matches the reference and correctly assigns $argv[1] to the variable typed_dots, satisfying all rubric criteria.",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "typed_dots $argv[1]",
+      "completion_tokens": 599,
+      "finish_reason": "stop"
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "The candidate correctly expands the `typed_dots` variable, exactly matching the reference and fulfilling the intended logic.",
+      "expected": "$typed_dots",
+      "candidate": "$typed_dots",
+      "completion_tokens": 270,
+      "finish_reason": "stop"
+    }
+  ]
+}

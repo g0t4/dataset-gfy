@@ -1,0 +1,35 @@
+{
+  "model": "google/gemma-4-26B-A4B-it-qat-q4_0-gguf",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "||",
+      "candidate": "||",
+      "completion_tokens": 918,
+      "finish_reason": "stop"
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "incorrect",
+      "reason": "truncated before emitting any content (4096 tokens spent, likely on reasoning/thinking) -- try a higher --max-tokens",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "",
+      "completion_tokens": 4096,
+      "finish_reason": "length"
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "The candidate correctly expands the previously set variable $typed_dots within the quoted argument.",
+      "expected": "$typed_dots",
+      "candidate": "$typed_dots",
+      "completion_tokens": 997,
+      "finish_reason": "stop"
+    }
+  ]
+}

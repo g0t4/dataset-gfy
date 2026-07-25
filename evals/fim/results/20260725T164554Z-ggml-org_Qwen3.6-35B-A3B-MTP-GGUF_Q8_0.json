@@ -1,0 +1,35 @@
+{
+  "model": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "||",
+      "candidate": "||",
+      "completion_tokens": 643,
+      "finish_reason": "stop"
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "incorrect",
+      "reason": "It assigns $argv (the whole argument list) instead of the required $argv[1] and uses a non\u2011matching variable name",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "dots $argv",
+      "completion_tokens": 1845,
+      "finish_reason": "stop"
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "The candidate correctly expands the previously set variable $typed_dots within the quoted argument.",
+      "expected": "$typed_dots",
+      "candidate": "$typed_dots",
+      "completion_tokens": 923,
+      "finish_reason": "stop"
+    }
+  ]
+}
