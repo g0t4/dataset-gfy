@@ -37,12 +37,19 @@ PAXY_HOST = "paxy.lan"
 
 
 @dataclass
+class PartialAccepted:
+    value: str
+    reason: str
+
+
+@dataclass
 class Case:
     id: str
     source_trace: str
     language: str
     grader: str
     accepted: list[str] | None = None
+    partial_accepted: list[PartialAccepted] | None = None
     rubric: str | None = None
     notes: str | None = None
 
@@ -72,7 +79,12 @@ def load_cases(path: Path) -> list[Case]:
             line = line.strip()
             if not line:
                 continue
-            cases.append(Case(**json.loads(line)))
+            data = json.loads(line)
+            partial_accepted = data.pop("partial_accepted", None)
+            case = Case(**data)
+            if partial_accepted:
+                case.partial_accepted = [PartialAccepted(**p) for p in partial_accepted]
+            cases.append(case)
     return cases
 
 
@@ -91,9 +103,12 @@ def normalize(text: str) -> str:
 
 def grade_exact_normalized(candidate: str, case: Case) -> tuple[str, str]:
     candidate_n = normalize(candidate)
-    accepted = [normalize(a) for a in case.accepted]
+    accepted = [normalize(a) for a in (case.accepted or [])]
     if candidate_n in accepted:
         return "correct", "exact match"
+    for partial in case.partial_accepted or []:
+        if candidate_n == normalize(partial.value):
+            return "partial", partial.reason
     return "incorrect", f"expected one of {case.accepted!r}"
 
 
@@ -154,10 +169,11 @@ def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str
         verdict, reason = grade_exact_normalized(candidate, case)
         return verdict, reason, None
     if case.grader == "llm_judge":
-        if case.accepted:
-            verdict, reason = grade_exact_normalized(candidate, case)
-            if verdict == "correct":
-                return verdict, f"{reason} (skipped judge -- exact match in accepted list)", None
+        verdict, reason = grade_exact_normalized(candidate, case)
+        if verdict == "correct":
+            return verdict, f"{reason} (skipped judge -- exact match in accepted list)", None
+        if verdict == "partial":
+            return verdict, f"{reason} (skipped judge -- matched partial_accepted list)", None
         verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
         return verdict, reason, judge_model_name
     return "incorrect", f"unknown grader {case.grader!r}", None
