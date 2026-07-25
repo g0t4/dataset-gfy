@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -35,18 +36,43 @@ FIM_DIR = Path(__file__).resolve().parent
 PAXY_HOST = "paxy.lan"
 
 
+@dataclass
+class Case:
+    id: str
+    source_trace: str
+    language: str
+    grader: str
+    accepted: list[str] | None = None
+    rubric: str | None = None
+    notes: str | None = None
+
+
+@dataclass
+class Result:
+    id: str
+    grader: str
+    verdict: str
+    reason: str
+    expected: str
+    candidate: str
+    completion_tokens: int | None
+    finish_reason: str | None
+    model_name: str
+    judge_model_name: str | None = None
+
+
 def make_client(port: int) -> ChatLlamaServer:
     return ChatLlamaServer(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
 
 
-def load_cases(path: Path) -> list[dict]:
+def load_cases(path: Path) -> list[Case]:
     cases = []
     with path.open() as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
-            cases.append(json.loads(line))
+            cases.append(Case(**json.loads(line)))
     return cases
 
 
@@ -63,12 +89,12 @@ def normalize(text: str) -> str:
     return text.strip()
 
 
-def grade_exact_normalized(candidate: str, case: dict) -> tuple[str, str]:
+def grade_exact_normalized(candidate: str, case: Case) -> tuple[str, str]:
     candidate_n = normalize(candidate)
-    accepted = [normalize(a) for a in case["accepted"]]
+    accepted = [normalize(a) for a in case.accepted]
     if candidate_n in accepted:
         return "correct", "exact match"
-    return "incorrect", f"expected one of {case['accepted']!r}"
+    return "incorrect", f"expected one of {case.accepted!r}"
 
 
 JUDGE_PROMPT_TEMPLATE = """You are grading a code-completion (fill-in-the-middle) suggestion.
@@ -98,12 +124,12 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 """
 
 
-def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str, str]:
+def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str, str]:
     fim_task = prompt_messages[-1]["content"]
     judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
         fim_task=fim_task,
         expected=expected,
-        rubric=case["rubric"],
+        rubric=case.rubric,
         candidate=candidate,
     )
     ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
@@ -136,13 +162,13 @@ def main():
 
     cases = load_cases(Path(args.cases))
     if args.only:
-        cases = [c for c in cases if c["id"] == args.only]
+        cases = [c for c in cases if c.id == args.only]
         if not cases:
             sys.exit(f"no case with id {args.only!r}")
 
     model_client = make_client(args.port)
 
-    needs_judge = any(c["grader"] == "llm_judge" for c in cases)
+    needs_judge = any(c.grader == "llm_judge" for c in cases)
     judge_client = None
     if needs_judge:
         if args.judge_port is None:
@@ -150,9 +176,9 @@ def main():
                       "or rerun with --only on a non-judge case")
         judge_client = make_client(args.judge_port)
 
-    results = []
+    results: list[Result] = []
     for case in cases:
-        prompt_messages, expected = load_trace_prompt_and_expected(case["source_trace"])
+        prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
 
         ai_message = model_client.invoke(prompt_messages, temperature=args.temperature, max_tokens=args.max_tokens)
         candidate = ai_message.content or ""
@@ -168,36 +194,36 @@ def main():
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
                       f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
                       f") -- try a higher --max-tokens")
-        elif case["grader"] == "exact_normalized":
+        elif case.grader == "exact_normalized":
             verdict, reason = grade_exact_normalized(candidate, case)
-        elif case["grader"] == "llm_judge":
+        elif case.grader == "llm_judge":
             verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
         else:
-            verdict, reason = "incorrect", f"unknown grader {case['grader']!r}"
+            verdict, reason = "incorrect", f"unknown grader {case.grader!r}"
 
         if finish_reason == "length" and candidate.strip():
             reason += " [NOTE: hit max_tokens -- may be mid-completion]"
 
-        results.append({
-            "id": case["id"],
-            "grader": case["grader"],
-            "verdict": verdict,
-            "reason": reason,
-            "expected": expected,
-            "candidate": candidate,
-            "completion_tokens": completion_tokens,
-            "finish_reason": finish_reason,
-            "model_name": model_name,
-            "judge_model_name": judge_model_name,
-        })
+        results.append(Result(
+            id=case.id,
+            grader=case.grader,
+            verdict=verdict,
+            reason=reason,
+            expected=expected,
+            candidate=candidate,
+            completion_tokens=completion_tokens,
+            finish_reason=finish_reason,
+            model_name=model_name,
+            judge_model_name=judge_model_name,
+        ))
 
-    model_names = {r["model_name"] for r in results}
+    model_names = {r.model_name for r in results}
     if len(model_names) > 1:
         rich.print(f"[bold white on red] WARNING [/] port {args.port} answered with more than one model name "
                    f"across cases: {model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
-    resolved_model = results[0]["model_name"] if results else "unknown"
+    resolved_model = results[0].model_name if results else "unknown"
 
-    judge_model_names = {r["judge_model_name"] for r in results if r["judge_model_name"]}
+    judge_model_names = {r.judge_model_name for r in results if r.judge_model_name}
     if len(judge_model_names) > 1:
         rich.print(f"[bold white on red] WARNING [/] judge port {args.judge_port} answered with more than one model "
                    f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
@@ -209,7 +235,7 @@ def main():
         save_results(resolved_model, results)
 
 
-def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, results: list[dict]):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, results: list[Result]):
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
@@ -217,26 +243,26 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
         rich.print(f"           judge: [bold black on bright_cyan] {judge_model} [/]  (port {judge_port})")
     print("=" * 60)
     for r in results:
-        print(f"\n{icon.get(r['verdict'], '?')} [{r['verdict']}] {r['id']}  ({r['grader']}, {r['completion_tokens']} tokens, finish={r['finish_reason']})")
-        print(f"   expected : {r['expected']!r}")
-        print(f"   got      : {r['candidate']!r}")
-        if r["reason"]:
-            print(f"   reason   : {r['reason']}")
+        print(f"\n{icon.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}, {r.completion_tokens} tokens, finish={r.finish_reason})")
+        print(f"   expected : {r.expected!r}")
+        print(f"   got      : {r.candidate!r}")
+        if r.reason:
+            print(f"   reason   : {r.reason}")
 
     total = len(results)
-    correct = sum(1 for r in results if r["verdict"] == "correct")
-    partial = sum(1 for r in results if r["verdict"] == "partial")
-    incorrect = sum(1 for r in results if r["verdict"] == "incorrect")
+    correct = sum(1 for r in results if r.verdict == "correct")
+    partial = sum(1 for r in results if r.verdict == "partial")
+    incorrect = sum(1 for r in results if r.verdict == "incorrect")
     print("\n" + "-" * 60)
     print(f"{correct}/{total} correct, {partial}/{total} partial, {incorrect}/{total} incorrect")
 
 
-def save_results(model: str, results: list[dict]):
+def save_results(model: str, results: list[Result]):
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     safe_model = re.sub(r"[^A-Za-z0-9_.-]", "_", model)
     out_path = FIM_DIR / "results" / f"{ts}-{safe_model}.json"
     out_path.parent.mkdir(exist_ok=True)
-    out_path.write_text(json.dumps({"model": model, "results": results}, indent=2))
+    out_path.write_text(json.dumps({"model": model, "results": [asdict(r) for r in results]}, indent=2))
     print(f"\nsaved: {out_path}")
 
 
