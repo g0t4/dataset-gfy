@@ -8,10 +8,16 @@ The trace's messages[:-1] is the exact prompt that was sent; messages[-1]
 (the assistant message) is the human-approved completion that was actually
 shown/accepted, used here as the reference answer.
 
+Model selection is by port, not name: my llama-server instances are one
+model per port (static allocation), so which model you're testing is
+entirely a function of which port you point at. The model name itself is
+never sent in the request -- it's read back from the completion response
+afterwards, so the report/saved results always reflect whatever model
+actually answered (not whatever you assumed was running on that port).
+
 Usage:
-    source config-env-vars.sh   # or export OPENAI_BASE_URL etc yourself
-    uv run --project .. python run_eval.py --model my-model-name
-    uv run --project .. python run_eval.py --model my-model-name --save
+    uv run --project .. python run_eval.py --port 8012
+    uv run --project .. python run_eval.py --port 8012 --judge-port 8013 --save
 """
 import argparse
 import json
@@ -20,10 +26,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from openai import OpenAI
+from langchain_llama_server import ChatLlamaServer
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIM_DIR = Path(__file__).resolve().parent
+
+PAXY_HOST = "paxy.lan"
+
+
+def make_client(port: int) -> ChatLlamaServer:
+    return ChatLlamaServer(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
 
 
 def load_cases(path: Path) -> list[dict]:
@@ -85,7 +97,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 """
 
 
-def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], expected: str, judge_client: OpenAI, judge_model: str) -> tuple[str, str]:
+def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str]:
     fim_task = prompt_messages[-1]["content"]
     judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
         fim_task=fim_task,
@@ -93,12 +105,8 @@ def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], exp
         rubric=case["rubric"],
         candidate=candidate,
     )
-    response = judge_client.chat.completions.create(
-        model=judge_model,
-        messages=[{"role": "user", "content": judge_prompt}],
-        temperature=0,
-    )
-    raw = response.choices[0].message.content.strip()
+    ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
+    raw = (ai_message.content or "").strip()
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if not match:
         return "incorrect", f"judge did not return JSON: {raw!r}"
@@ -115,9 +123,9 @@ def grade_llm_judge(candidate: str, case: dict, prompt_messages: list[dict], exp
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--model", required=True, help="model name to request from OPENAI_BASE_URL (model under test)")
+    parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on {PAXY_HOST}")
+    parser.add_argument("--judge-port", type=int, default=None, help=f"port of the llama-server instance to use as judge, on {PAXY_HOST} (required if any case uses grader:llm_judge)")
     parser.add_argument("--cases", default=str(FIM_DIR / "cases.jsonl"), help="path to cases.jsonl")
-    parser.add_argument("--judge-model", default=None, help="overrides JUDGE_MODEL env var")
     parser.add_argument("--max-tokens", type=int, default=4096)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--save", action="store_true", help="write results JSON to results/<timestamp>-<model>.json")
@@ -130,44 +138,37 @@ def main():
         if not cases:
             sys.exit(f"no case with id {args.only!r}")
 
-    model_client = OpenAI()  # reads OPENAI_BASE_URL / OPENAI_API_KEY
+    model_client = make_client(args.port)
 
     needs_judge = any(c["grader"] == "llm_judge" for c in cases)
     judge_client = None
-    judge_model = None
     if needs_judge:
-        import os
-        judge_base_url = os.environ.get("JUDGE_BASE_URL")
-        judge_api_key = os.environ.get("JUDGE_API_KEY")
-        judge_model = args.judge_model or os.environ.get("JUDGE_MODEL")
-        if not (judge_base_url and judge_model):
-            sys.exit("one or more cases need grader:llm_judge -- set JUDGE_BASE_URL, JUDGE_API_KEY, JUDGE_MODEL "
-                      "(see config-env-vars.sh) or pass --judge-model, or rerun with --only on a non-judge case")
-        judge_client = OpenAI(base_url=judge_base_url, api_key=judge_api_key)
+        if args.judge_port is None:
+            sys.exit("one or more cases need grader:llm_judge -- pass --judge-port, "
+                      "or rerun with --only on a non-judge case")
+        judge_client = make_client(args.judge_port)
 
     results = []
     for case in cases:
         prompt_messages, expected = load_trace_prompt_and_expected(case["source_trace"])
 
-        response = model_client.chat.completions.create(
-            model=args.model,
-            messages=prompt_messages,
-            temperature=args.temperature,
-            max_tokens=args.max_tokens,
-        )
-        choice = response.choices[0]
-        candidate = choice.message.content or ""
-        finish_reason = choice.finish_reason
-        completion_tokens = response.usage.completion_tokens if response.usage else None
+        ai_message = model_client.invoke(prompt_messages, temperature=args.temperature, max_tokens=args.max_tokens)
+        candidate = ai_message.content or ""
+        finish_reason = ai_message.response_metadata.get("finish_reason")
+        model_name = ai_message.response_metadata.get("model_name") or "unknown"
+        usage = ai_message.usage_metadata or {}
+        completion_tokens = usage.get("output_tokens")
+        reasoning_content = ai_message.additional_kwargs.get("reasoning_content") or ""
 
         if not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
-                      f"likely on reasoning/thinking) -- try a higher --max-tokens")
+                      f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
+                      f") -- try a higher --max-tokens")
         elif case["grader"] == "exact_normalized":
             verdict, reason = grade_exact_normalized(candidate, case)
         elif case["grader"] == "llm_judge":
-            verdict, reason = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client, judge_model)
+            verdict, reason = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
         else:
             verdict, reason = "incorrect", f"unknown grader {case['grader']!r}"
 
@@ -183,17 +184,24 @@ def main():
             "candidate": candidate,
             "completion_tokens": completion_tokens,
             "finish_reason": finish_reason,
+            "model_name": model_name,
         })
 
-    print_report(args.model, results)
+    model_names = {r["model_name"] for r in results}
+    if len(model_names) > 1:
+        print(f"WARNING: port {args.port} answered with more than one model name across cases: {model_names} "
+              f"-- was the server restarted with a different model mid-run?", file=sys.stderr)
+    resolved_model = results[0]["model_name"] if results else "unknown"
+
+    print_report(resolved_model, args.port, results)
 
     if args.save:
-        save_results(args.model, results)
+        save_results(resolved_model, results)
 
 
-def print_report(model: str, results: list[dict]):
+def print_report(model: str, port: int, results: list[dict]):
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
-    print(f"\nFIM eval -- model: {model}\n" + "=" * 60)
+    print(f"\nFIM eval -- model: {model} (port {port})\n" + "=" * 60)
     for r in results:
         print(f"\n{icon.get(r['verdict'], '?')} [{r['verdict']}] {r['id']}  ({r['grader']}, {r['completion_tokens']} tokens, finish={r['finish_reason']})")
         print(f"   expected : {r['expected']!r}")

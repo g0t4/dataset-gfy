@@ -38,22 +38,36 @@ Two graders are supported, chosen per case in `cases.jsonl`:
   that case (e.g. right value, vague name -> partial; right name, wrong
   value -> partial).
 
-Judge model is intentionally a separate connection (`JUDGE_BASE_URL` /
-`JUDGE_MODEL`) from the model under test (`OPENAI_BASE_URL`) -- grading with
-the same small model you're evaluating is a weak signal.
+Judge model is intentionally a separate connection (`--judge-port`) from the
+model under test (`--port`) -- grading with the same small model you're
+evaluating is a weak signal.
 
 ## Running
 
+Model selection is by **port, not name**: `paxy.lan` runs one model per port
+(static allocation via systemd user services), so `--port` is all you need
+to pick which model to test. The model name itself is never sent in the
+request -- it's read back from `response_metadata["model_name"]` on the
+first completion and used to label the report and the saved results file,
+so a run always reflects whatever model actually answered on that port
+(not whatever you assumed was running there).
+
+Connects via `ChatLlamaServer` (from the sibling
+[`langchain-llama-server`](../../../langchain-llama-server) project) rather
+than a raw `openai` client, at `http://paxy.lan:<port>/v1`.
+
 ```sh
 cd evals
-source fim/config-env-vars.sh   # edit URLs/models first
-uv run python fim/run_eval.py --model <model-name-on-OPENAI_BASE_URL>
+uv run python fim/run_eval.py --port 8012
+
+# needed only if a case uses grader:llm_judge
+uv run python fim/run_eval.py --port 8012 --judge-port 8013
 
 # just one case, e.g. while iterating on a rubric
-uv run python fim/run_eval.py --model <model-name> --only fim-rust-boolean-or
+uv run python fim/run_eval.py --port 8012 --only fim-rust-boolean-or
 
 # save a results/<timestamp>-<model>.json for tracking across models/runs
-uv run python fim/run_eval.py --model <model-name> --save
+uv run python fim/run_eval.py --port 8012 --judge-port 8013 --save
 ```
 
 Runs at `temperature=0` by default (deterministic grading > sampling
