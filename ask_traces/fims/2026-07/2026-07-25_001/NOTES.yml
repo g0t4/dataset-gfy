@@ -1,0 +1,41 @@
+good:
+  - stellar FIM shows complexity of surrounding context
+    requires good understanding of abbrs in fish
+    and to imagine the command line state vs what is being expanded (current word only)
+    => then map that to a variable that is named like other surrounding logic uses! `typed_dots`
+       plus recognize the value comes from `$argv[1]`
+  - AND, requires recognizing that the next line of code is ALSO incomplete (next FIM logically)
+    and so you would fill typed_dots in that spot too!
+
+fim_evals:
+  - these are back to back FIMs on same code block
+  - 1784957362-trace.json
+    => should generate `typed_dots $argv[1]`
+  - 1784957365-trace.json
+    => should generate `$typed_dots`
+  - not sure if I'd want partial credit for other answers
+
+edits_evals:
+  - combine both FIMs into one edit prediction (think zed's edit predictions)
+    basically just have to give a diff response instead of just adding at cursor
+  - could accept partial credit if both variables are named the same
+    could ask LLM judge to decide if name is acceptable too (even if not typed_dots) in which case give full credit
+
+
+todos:
+  - TODO Edits Prediction tool would be awesome
+    - BASICALLY COMBINE AskRewrite WITH FIM
+        use FIM like triggering on cursor movements
+          might want to trigger with a key instead of always trigger
+          RACE in parallel to FIM (or after FIM run this)
+            can exploited cached prompt as far as auto context if the request for Edit vs FIM is at end of prompt
+        use AskRewrite type streaming diff replacement
+          (might stream in tokens like AskRewrite once thinking is done)
+          (might want a mode that waits for full model response before showing anything)
+    - as you type, you give so much context to the model to ask for an edit (could be only FIM)
+    - the model's response overlays surrounding code that it wants to replace
+    - shows diff to user! or allows jumping spots to approve subsets of changes
+    - challenge would be to show thinking indicator
+    - and then when thinking is done, find a way to rewrite what the user sees without jerking around the UI?
+
+
