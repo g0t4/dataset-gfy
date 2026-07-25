@@ -149,6 +149,20 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
         return "incorrect", f"judge returned unparseable JSON: {raw!r}", judge_model_name
 
 
+def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None) -> tuple[str, str, str | None]:
+    if case.grader == "exact_normalized":
+        verdict, reason = grade_exact_normalized(candidate, case)
+        return verdict, reason, None
+    if case.grader == "llm_judge":
+        if case.accepted:
+            verdict, reason = grade_exact_normalized(candidate, case)
+            if verdict == "correct":
+                return verdict, f"{reason} (skipped judge -- exact match in accepted list)", None
+        verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
+        return verdict, reason, judge_model_name
+    return "incorrect", f"unknown grader {case.grader!r}", None
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on {PAXY_HOST}")
@@ -188,18 +202,14 @@ def main():
         completion_tokens = usage.get("output_tokens")
         reasoning_content = ai_message.additional_kwargs.get("reasoning_content") or ""
 
-        judge_model_name = None
         if not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
                       f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
                       f") -- try a higher --max-tokens")
-        elif case.grader == "exact_normalized":
-            verdict, reason = grade_exact_normalized(candidate, case)
-        elif case.grader == "llm_judge":
-            verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
+            judge_model_name = None
         else:
-            verdict, reason = "incorrect", f"unknown grader {case.grader!r}"
+            verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client)
 
         if finish_reason == "length" and candidate.strip():
             reason += " [NOTE: hit max_tokens -- may be mid-completion]"
