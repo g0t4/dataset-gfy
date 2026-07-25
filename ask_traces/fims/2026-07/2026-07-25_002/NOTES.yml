@@ -1,0 +1,17 @@
+good:
+  - gptoss NAILED IT!
+  - highly specialized knowledge of fish abbrs!
+    enough to know that you need to swap `--command` for `--position anywhere` to make it work for any command in arg position!
+  - btw this also requires moving the registration for arg expands below because this will shadow `command_dotdot` but that's a separate concern
+    this would make for a good edit prediction eval!
+
+fim_evals:
+  - 1784958581-trace.json probably this is the only eval for FIM `position anywhere`
+    or `position=anywhere` works too
+    could try to get a FIM for moving `command_dotdot` abbr but that would probably be hard to judge
+      i.e. could put cursor on line after this last abbr and see if it duplicates the first line for `command_dotdot`
+  - one issue btw is that I am registering the same abbr name for this new abbr and that might be confusing, not sure, basically means some of the existing code is somewhat wrong-ish
+
+edits_evals:
+  - combine FIM on `position anywhere`
+  - move command_dotdot abbr + delete command_dotdot line (above) and put the command_dotdot line verbatim (below)
