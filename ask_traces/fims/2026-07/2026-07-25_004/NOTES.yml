@@ -1,0 +1,6 @@
+good:
+  - after adding `not` to the cursor line it became obvious I only wanted to generate the file if it doesn't already exist!
+language: fish
+fim_evals:
+  - this is probaly a llm_judge case.. where exact match is ok else fallback llm judge
+    I believe there are very few answers beyond the file not existing test but I could easily be myopic!

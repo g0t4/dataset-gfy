@@ -1,0 +1,52 @@
+{
+  "last_sse":{
+    "id":"chatcmpl-zFnZZMNUunhHsDdOj2cGkhLpm9b83ENc",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "created":1785040511,
+    "timings":{
+      "predicted_ms":422.977,
+      "cache_n":1482,
+      "predicted_per_second":257.69722703599,
+      "predicted_n":109,
+      "prompt_per_second":1662.7868307283,
+      "predicted_per_token_ms":3.8805229357798,
+      "prompt_ms":36.084,
+      "prompt_n":60,
+      "prompt_per_token_ms":0.6014
+    },
+    "system_fingerprint":"b10104-3565b4bd7",
+    "object":"chat.completion.chunk"
+  },
+  "request_body":{
+    "options":[],
+    "temperature":1,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: fim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Fish Shell\n\n- Use snake_case for names\n- Use long options, i.e. `--quiet` over `-q`, `--regex` over `-r`\n\nTake advantage of fish-isms:\n```fish\n\n# use `not`, avoid `!`\nif not test -f spoon\n    echo There is no spoon\nend\n\n# capture command output and react to its success/failure (exit status)\nif set some_output (some_command)\n    echo \"ok: $some_output\"\nelse\n    echo \"fail: $some_output\"\nend\n\n# prefer named arguments\nfunction show_variable --argument-names name value\n    echo \"$name = $value\"\nend\n\n# fish doesn't have heredocs, use mulit-line strings:\necho \"foo\nbar\" | string join \",\"\n\n# blocks combine the output of multiple commands:\nbegin\n    echo -n \"Hello Wes, the time is: \"\n    date\nend > welcome.txt\n\n# every variable is an array\nset names wes john bob jane\nfor name in $names\n    echo $name\nend\n\nstring match '*.lua' $files\nstring replace wrong right $in_this_text\nstring replace --regex '\\s+' ' ' $line\nset lines (string split '\\n' $text)\nstring join ',' $argv\nstring length $name\n\nstring escape $file_path\nstring unescape $escaped\n\npath change-extension mov ./foo.mp4 # ./foo.mov\npath sort 10-foo 2-bar # returns 2 before 10\n\nmath 10 / 5\nmath \"5 * 2\"\n\ncount *.txt\n\nif contains -- \"-q\" $argv\n    # ...\nend\n\nstatus filename # current script file\nstatus function # current function\n```\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```.config.fish\n# abbrs run from evals/fim -- expand into a full run_eval.py invocation\n# (port = model under test, judge-port = grader). Named by port, not model\n# name -- which model is actually on a given port on paxy.lan can change\n# (systemd --user services get swapped in/out), so run_eval.py itself\n# prints the real model name it got back from the response; trust that\n# over the abbr name.\nabbr eval_8010 \"fim_evals --port 8010 --judge-port 8013 --save\" # currently: glm47flash.service\nabbr eval_8011 \"fim_evals --port 8011 --judge-port 8013 --save\" # currently: gemma-4-26b-a4b-it.service\nabbr eval_8012 \"fim_evals --port 8012 --judge-port 8013 --save\" # currently: qwen3.6-35b-a3b-mtp-8bit.service\nabbr eval_8013 \"fim_evals --port 8013 --judge-port 8012 --save\" # currently: gptoss120b.service (judge swapped to 8012 to avoid self-judging)\n\nfunction fim_evals\n    uv run python3 run_eval.py $argv\nend\n\nif not <|CURSOR_IS_HERE|>\n    register-python-argcomplete --shell fish fim_evals > ~/.config/fish/completions/fim_evals.fish\nend\n```\n\n## Reminders about the cursor line:\nText before cursor: `if not `",
+        "role":"user"
+      },{
+        "content":"test -f ~/.config/fish/completions/fim_evals.fish",
+        "finish_reason":"stop",
+        "role":"assistant",
+        "reasoning_content":"We need to fill condition after if not. Likely check if file exists. Probably test -f ~/.config/fish/completions/fim_evals.fish. Use fish test command. So:\n\n`test -f ~/.config/fish/completions/fim_evals.fish`\n\nThus full line: `if not test -f ~/.config/fish/completions/fim_evals.fish`."
+      }],
+    "raw":false,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "max_tokens":4096,
+    "stream":true,
+    "top_p":1
+  },
+  "flags":[]
+}
