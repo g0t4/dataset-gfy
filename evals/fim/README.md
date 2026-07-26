@@ -73,6 +73,31 @@ uv run python fim/run_eval.py --port 8012 --judge-port 8013 --save
 Runs at `temperature=0` by default (deterministic grading > sampling
 fidelity to the original trace, which was captured at temperature=1).
 
+### Shell completions
+
+`run_eval.py` supports `argcomplete` (`--port <TAB>`, `--only <TAB>` for a
+live list of case IDs from `cases.jsonl`, `--cases <TAB>` for `.jsonl`
+files). Heavy imports (`rich`, `langchain_llama_server`) are deferred past
+the `argcomplete.autocomplete()` call specifically so completion stays fast
+(~60ms) instead of paying the langchain/openai import cost on every `<TAB>`.
+
+Register it directly, same as any other argcomplete script:
+
+```sh
+register-python-argcomplete --shell fish run_eval.py > ~/.config/fish/completions/run_eval.py.fish
+```
+
+That only fires when you type the literal command `run_eval.py`. If you
+wrap it in a fish function instead (e.g. to locate the venv, matching my
+usual pattern for wrapping python scripts), register completion under the
+wrapper's name with `-e`/`--external-argcomplete-script`, pointing at the
+real script while naming the registration for whatever you call the
+wrapper:
+
+```sh
+register-python-argcomplete --shell fish -e /path/to/run_eval.py fim_eval > ~/.config/fish/completions/fim_eval.fish
+```
+
 ## Adding a case
 
 1. Find or capture a trace in `ask_traces/fims/` -- see

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# PYTHON_ARGCOMPLETE_OK
 """
 Run FIM eval cases (cases.jsonl) against a model under test, grade the
 completions, and print a report.
@@ -19,17 +20,23 @@ Usage:
     uv run --project .. python run_eval.py --port 8012
     uv run --project .. python run_eval.py --port 8012 --judge-port 8013 --save
 """
+from __future__ import annotations
+
 import argparse
-import argcomplete
 import json
 import re
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-import rich
-from langchain_llama_server import ChatLlamaServer
+import argcomplete
+
+if TYPE_CHECKING:
+    # deferred for real (see make_client) -- keeps `--port 80<TAB>` fast by not
+    # eagerly importing langchain/openai (~200-300ms) just to generate completions
+    from langchain_llama_server import ChatLlamaServer
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIM_DIR = Path(__file__).resolve().parent
@@ -70,6 +77,7 @@ class Result:
 
 
 def make_client(port: int) -> ChatLlamaServer:
+    from langchain_llama_server import ChatLlamaServer
     return ChatLlamaServer(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
 
 
@@ -87,6 +95,14 @@ def load_cases(path: Path) -> list[Case]:
                 case.partial_accepted = [PartialAccepted(**p) for p in partial_accepted]
             cases.append(case)
     return cases
+
+
+def complete_case_ids(prefix: str, parsed_args: argparse.Namespace, **kwargs) -> list[str]:
+    cases_path = Path(getattr(parsed_args, "cases", None) or (FIM_DIR / "cases.jsonl"))
+    try:
+        return [c.id for c in load_cases(cases_path)]
+    except (OSError, json.JSONDecodeError, TypeError):
+        return []
 
 
 def load_trace_prompt_and_expected(source_trace: str) -> tuple[list[dict], str]:
@@ -184,13 +200,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on {PAXY_HOST}")
     parser.add_argument("--judge-port", type=int, default=None, help=f"port of the llama-server instance to use as judge, on {PAXY_HOST} (required if any case uses grader:llm_judge)")
-    parser.add_argument("--cases", default=str(FIM_DIR / "cases.jsonl"), help="path to cases.jsonl")
+    parser.add_argument("--cases", default=str(FIM_DIR / "cases.jsonl"), help="path to cases.jsonl").completer = argcomplete.completers.FilesCompleter(allowednames=[".jsonl"])
     parser.add_argument("--max-tokens", type=int, default=4096)
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--save", action="store_true", help="write results JSON to results/<timestamp>-<model>.json")
-    parser.add_argument("--only", default=None, help="only run the case with this id")
+    parser.add_argument("--only", default=None, help="only run the case with this id").completer = complete_case_ids
 
     argcomplete.autocomplete(parser)
+    import rich
     args = parser.parse_args()
 
     cases = load_cases(Path(args.cases))
@@ -265,6 +282,7 @@ def main():
 
 
 def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, results: list[Result]):
+    import rich
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
