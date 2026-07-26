@@ -1,0 +1,12 @@
+fim_evals:
+  - suggest variable defined on line above
+  - only one answer - `$project`
+    maybe allow whitespace differences (in this case at start/end of completion word)
+      could define regex to test for match if not exact?
+    or something to flag allowing variable number of spaces (in this case at start/end of completion) but in other cases... could allow extra whitespace within when that can happen
+    partial credit is fine for duplicating prefix/suffix
+  - tagging could include `simple` eval set to assess how well a model can do with very basic FIM tasks
+    or mark as "single word completions"
+    food for thought!
+  - tags: no_rag_matches (not using RAG in this repo, not yet anyways)
+language: fish
