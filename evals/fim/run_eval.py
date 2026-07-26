@@ -59,6 +59,13 @@ class Case:
     accepted: list[str] | None = None
     partial_accepted: list[PartialAccepted] | None = None
     rubric: str | None = None
+    # answer-constraint tightness, for slicing reports separately from verdict:
+    #   "sanity" = essentially one token/answer, near-zero domain knowledge needed
+    #   "tight"  = one (or a small enumerable set of) correct answer(s), but real
+    #              domain/context knowledge required to find it
+    #   "open"   = genuine judgment call -- multiple stylistically different but
+    #              valid answers (e.g. naming choices)
+    constraint: str | None = None
     notes: str | None = None
 
 
@@ -74,6 +81,7 @@ class Result:
     finish_reason: str | None
     model_name: str
     judge_model_name: str | None = None
+    constraint: str | None = None
 
 
 def make_client(port: int) -> ChatLlamaServer:
@@ -112,6 +120,25 @@ def load_trace_prompt_and_expected(source_trace: str) -> tuple[list[dict], str]:
     prompt_messages = messages[:-1]
     expected = messages[-1]["content"]
     return prompt_messages, expected
+
+
+DEFAULT_CURSOR_MARKER = "<|fim_middle|>"
+
+
+def swap_cursor_marker(prompt_messages: list[dict], marker: str) -> list[dict]:
+    if marker == DEFAULT_CURSOR_MARKER:
+        return prompt_messages
+    # NOTE: naive global string-replace across every message's content -- this
+    # correctly swaps both places the marker normally shows up (the "replace
+    # <|fim_middle|>:" instruction line, and the actual cursor position in the
+    # code block). BUT: if a trace's own surrounding code happens to contain a
+    # literal, real occurrence of DEFAULT_CURSOR_MARKER as source text (e.g. a
+    # FIM captured from within ask-openai.nvim's own codebase, which legitimately
+    # references this marker string as data), this will also swap that
+    # occurrence, subtly corrupting the "ground truth" code shown to the model.
+    # Not handled yet -- revisit (e.g. flag/skip such cases for this sweep) if
+    # it actually produces a surprising/broken result on one of those cases.
+    return [{**m, "content": m["content"].replace(DEFAULT_CURSOR_MARKER, marker)} for m in prompt_messages]
 
 
 def normalize(text: str) -> str:
@@ -205,6 +232,9 @@ def main():
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--save", action="store_true", help="write results JSON to results/<timestamp>-<model>.json")
     parser.add_argument("--only", default=None, help="only run the case with this id").completer = complete_case_ids
+    parser.add_argument("--cursor-marker", default=DEFAULT_CURSOR_MARKER,
+                         help=f"cursor marker to use instead of the trace's original {DEFAULT_CURSOR_MARKER!r} "
+                              f"(default), to sweep prompt-format sensitivity, e.g. --cursor-marker '<|CURSOR|>'")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -229,6 +259,7 @@ def main():
     results: list[Result] = []
     for case in cases:
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
+        prompt_messages = swap_cursor_marker(prompt_messages, args.cursor_marker)
 
         ai_message = model_client.invoke(prompt_messages, temperature=args.temperature, max_tokens=args.max_tokens)
         candidate = ai_message.content or ""
@@ -261,6 +292,7 @@ def main():
             finish_reason=finish_reason,
             model_name=model_name,
             judge_model_name=judge_model_name,
+            constraint=case.constraint,
         ))
 
     model_names = {r.model_name for r in results}
@@ -275,22 +307,25 @@ def main():
                    f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_judge_model = next(iter(judge_model_names), None)
 
-    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, results)
+    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, results)
 
     if args.save:
-        save_results(resolved_model, results)
+        save_results(resolved_model, args.cursor_marker, results)
 
 
-def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, results: list[Result]):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, results: list[Result]):
     import rich
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
     if judge_model:
         rich.print(f"           judge: [bold black on bright_cyan] {judge_model} [/]  (port {judge_port})")
+    if cursor_marker != DEFAULT_CURSOR_MARKER:
+        rich.print(f"    cursor marker: [bold black on bright_magenta] {cursor_marker} [/]  (swept from default {DEFAULT_CURSOR_MARKER!r})")
     print("=" * 60)
     for r in results:
-        print(f"\n{icon.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}, {r.completion_tokens} tokens, finish={r.finish_reason})")
+        constraint_tag = f", {r.constraint}" if r.constraint else ""
+        print(f"\n{icon.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}{constraint_tag}, {r.completion_tokens} tokens, finish={r.finish_reason})")
         print(f"   expected : {r.expected!r}")
         print(f"   got      : {r.candidate!r}")
         if r.reason:
@@ -304,12 +339,12 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
     print(f"{correct}/{total} correct, {partial}/{total} partial, {incorrect}/{total} incorrect")
 
 
-def save_results(model: str, results: list[Result]):
+def save_results(model: str, cursor_marker: str, results: list[Result]):
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     safe_model = re.sub(r"[^A-Za-z0-9_.-]", "_", model)
     out_path = FIM_DIR / "results" / f"{ts}-{safe_model}.json"
     out_path.parent.mkdir(exist_ok=True)
-    out_path.write_text(json.dumps({"model": model, "results": [asdict(r) for r in results]}, indent=2))
+    out_path.write_text(json.dumps({"model": model, "cursor_marker": cursor_marker, "results": [asdict(r) for r in results]}, indent=2))
     print(f"\nsaved: {out_path}")
 
 
