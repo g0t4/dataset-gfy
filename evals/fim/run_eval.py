@@ -241,7 +241,9 @@ def main():
     parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on {PAXY_HOST}")
     parser.add_argument("--judge-port", type=int, default=None, help=f"port of the llama-server instance to use as judge, on {PAXY_HOST} (required if any case uses grader:llm_judge)")
     parser.add_argument("--cases", default=str(FIM_DIR / "cases.jsonl"), help="path to cases.jsonl").completer = argcomplete.completers.FilesCompleter(allowednames=[".jsonl"])
-    parser.add_argument("--max-tokens", type=int, default=4096)
+    parser.add_argument("--max-tokens", type=int, default=4096,
+                         help="cap on generated tokens; 0 or -1 removes the cap entirely "
+                              "(useful when troubleshooting -- no more guessing a limit, hitting it, and rerunning)")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--save", action="store_true", help="write results JSON to results/<timestamp>-<model>.json")
     parser.add_argument("--only", default=None, help="only run the case with this id").completer = complete_case_ids
@@ -281,7 +283,10 @@ def main():
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
         prompt_messages = swap_cursor_marker(prompt_messages, args.cursor_marker)
 
-        ai_message = model_client.invoke(prompt_messages, temperature=args.temperature, max_tokens=args.max_tokens)
+        invoke_kwargs = {"temperature": args.temperature}
+        if args.max_tokens not in (0, -1):
+            invoke_kwargs["max_tokens"] = args.max_tokens
+        ai_message = model_client.invoke(prompt_messages, **invoke_kwargs)
         candidate = ai_message.content or ""
         finish_reason = ai_message.response_metadata.get("finish_reason")
         model_name = ai_message.response_metadata.get("model_name") or "unknown"
@@ -302,7 +307,7 @@ def main():
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
                       f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
-                      f") -- try a higher --max-tokens")
+                      f") -- try a higher --max-tokens, or --max-tokens -1 to remove the cap")
             judge_model_name = None
         else:
             verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client, dump_dir)
