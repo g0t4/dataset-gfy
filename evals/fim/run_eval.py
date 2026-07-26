@@ -20,6 +20,7 @@ Usage:
     uv run --project .. python run_eval.py --port 8012 --judge-port 8013 --save
 """
 import argparse
+import argcomplete
 import json
 import re
 import sys
@@ -188,6 +189,8 @@ def main():
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--save", action="store_true", help="write results JSON to results/<timestamp>-<model>.json")
     parser.add_argument("--only", default=None, help="only run the case with this id")
+
+    argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
     cases = load_cases(Path(args.cases))
