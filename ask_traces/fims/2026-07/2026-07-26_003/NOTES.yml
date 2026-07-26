@@ -1,4 +1,8 @@
 fim_evals:
+  - FYI the line above has a mistake in the code, missing `$` for a variable...
+    - line above has `set category split[1]`
+      should be `set category $split[1]`
+    - model shouldn't be thrown off by invalid code on another line (at least not with trivial mistakes)
   - answer was correct, however it duplicated the prefix
     - gptoss answered `        set rest (string join '/' $split[2..])`
     - should be `(string join '/' $split[2..])`
@@ -7,5 +11,6 @@ fim_evals:
       because what matters to me more than anything is a good FIM answer, and if tooling de-dupes then really the dup isn't relevant
 tags:
   - has_auto_rag_matches
+  - trivial_mistake_nearby
   - duplicate_prefix
 language: fish
