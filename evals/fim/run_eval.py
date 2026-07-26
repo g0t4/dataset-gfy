@@ -235,6 +235,7 @@ def main():
     parser.add_argument("--cursor-marker", default=DEFAULT_CURSOR_MARKER,
                          help=f"cursor marker to use instead of the trace's original {DEFAULT_CURSOR_MARKER!r} "
                               f"(default), to sweep prompt-format sensitivity, e.g. --cursor-marker '<|CURSOR|>'")
+    parser.add_argument("--verbose", "-v", action="store_true", help="print which case is running as each one starts")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -258,6 +259,9 @@ def main():
 
     results: list[Result] = []
     for case in cases:
+        if args.verbose:
+            print(f"running {case.id}...", file=sys.stderr)
+
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
         prompt_messages = swap_cursor_marker(prompt_messages, args.cursor_marker)
 

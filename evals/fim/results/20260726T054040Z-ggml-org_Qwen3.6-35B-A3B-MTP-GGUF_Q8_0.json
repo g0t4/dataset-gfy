@@ -1,0 +1,97 @@
+{
+  "model": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+  "cursor_marker": "<|fim_middle|>",
+  "results": [
+    {
+      "id": "fim-rust-boolean-or",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "||",
+      "candidate": "||",
+      "completion_tokens": 687,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null,
+      "constraint": "sanity"
+    },
+    {
+      "id": "fim-fish-typed-dots-set",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "exact match (skipped judge -- exact match in accepted list)",
+      "expected": "typed_dots $argv[1]",
+      "candidate": "dots $argv",
+      "completion_tokens": 1845,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null,
+      "constraint": "open"
+    },
+    {
+      "id": "fim-fish-typed-dots-expand",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "exact match (skipped judge -- exact match in accepted list)",
+      "expected": "$typed_dots",
+      "candidate": "$typed_dots",
+      "completion_tokens": 923,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null,
+      "constraint": "tight"
+    },
+    {
+      "id": "fim-fish-abbr-name-ggf",
+      "grader": "exact_normalized",
+      "verdict": "correct",
+      "reason": "exact match",
+      "expected": "f",
+      "candidate": "f",
+      "completion_tokens": 1586,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null,
+      "constraint": "tight"
+    },
+    {
+      "id": "fim-lua-tostring-still-thinking",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "human.comma_delimit is a defined stringification function in the file, suitable for converting the numeric argument into a display string.",
+      "expected": "tostring",
+      "candidate": "human.comma_delimit",
+      "completion_tokens": 1446,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": "ggml-org/gpt-oss-120b-GGUF",
+      "constraint": "tight"
+    },
+    {
+      "id": "fim-fish-reflog-close-quote",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "Provides the required closing brace argument, which satisfies the requirement",
+      "expected": "\"}\"",
+      "candidate": "}`",
+      "completion_tokens": 1593,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": "ggml-org/gpt-oss-120b-GGUF",
+      "constraint": "tight"
+    },
+    {
+      "id": "fim-fish-regex-or-head-used-to-be",
+      "grader": "llm_judge",
+      "verdict": "correct",
+      "reason": "exact match (skipped judge -- exact match in accepted list)",
+      "expected": "head_used_to_be_",
+      "candidate": "head_used_to_be_)",
+      "completion_tokens": 972,
+      "finish_reason": "stop",
+      "model_name": "ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "judge_model_name": null,
+      "constraint": "tight"
+    }
+  ]
+}
