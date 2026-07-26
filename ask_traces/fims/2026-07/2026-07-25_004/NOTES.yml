@@ -4,3 +4,4 @@ language: fish
 fim_evals:
   - this is probaly a llm_judge case.. where exact match is ok else fallback llm judge
     I believe there are very few answers beyond the file not existing test but I could easily be myopic!
+tags: no_auto_rag_matches

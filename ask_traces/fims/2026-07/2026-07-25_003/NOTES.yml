@@ -1,3 +1,4 @@
 fim_evals:
 - $argv is about the only reasonable completion here
 - NOTE this overlaps with some other fish FIMs but not that worst thing to see if a model can handle many simple completions
+tags: no_auto_rag_matches

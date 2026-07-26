@@ -8,5 +8,5 @@ fim_evals:
   - tagging could include `simple` eval set to assess how well a model can do with very basic FIM tasks
     or mark as "single word completions"
     food for thought!
-  - tags: no_rag_matches (not using RAG in this repo, not yet anyways)
+tags: no_auto_rag_matches
 language: fish
