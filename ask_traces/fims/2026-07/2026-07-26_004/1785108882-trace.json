@@ -1,0 +1,52 @@
+{
+  "request_body":{
+    "temperature":1,
+    "max_tokens":4096,
+    "options":[],
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "raw":false,
+    "top_p":1,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: 2026-07-26_003\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## YAML Preferences\n\n### ansible playbooks\n\n- use `true`/`false` for boolean values\n- always use FQCN for module names\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```NOTES.yml\nfim_evals:\n  - FYI the line above has a mistake in the code, missing `$` for a variable... \n    - line above has `set category split[1]`\n      should be `<|CURSOR_IS_HERE|>\n\n  - answer was correct, however it duplicated the prefix\n    - gptoss answered `        set rest (string join '/' $split[2..])`\n    - should be `(string join '/' $split[2..])`\n    - I don't mind giving most of the credit though for this answer because my FIM tooling handles duplicated prefix\n      maybe this is just a separate dimension to track instead of dinging the score given to a model?\n      because what matters to me more than anything is a good FIM answer, and if tooling de-dupes then really the dup isn't relevant\ntags:\n  - has_auto_rag_matches\n  - duplicate_prefix\nlanguage: fish\n```\n\n## Reminders about the cursor line:\nText before cursor: `      should be ``",
+        "role":"user"
+      },{
+        "content":"set category $split[1]",
+        "reasoning_content":"We need to replace cursor with appropriate text. The line: `      should be ```. Likely need the correct code: `set category $split[1]`? Earlier says missing `$` for variable, line above has `set category split[1]` should be ??? Probably `set category $split[1]`. So after backticks? The YAML uses backticks for inline code. So should be ``set category $split[1]``. Cursor inside backticks. Provide that.",
+        "role":"assistant",
+        "finish_reason":"stop"
+      }]
+  },
+  "flags":[],
+  "last_sse":{
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "created":1785108750,
+    "timings":{
+      "prompt_ms":61.939,
+      "cache_n":877,
+      "predicted_ms":442.772,
+      "predicted_per_token_ms":3.7207731092437,
+      "predicted_per_second":268.76134895612,
+      "predicted_n":119,
+      "prompt_per_second":3455.0121894122,
+      "prompt_n":214,
+      "prompt_per_token_ms":0.28943457943925
+    },
+    "id":"chatcmpl-pbwfOjR2pkKhls22ykC3Y5XQtbur07gl",
+    "object":"chat.completion.chunk",
+    "system_fingerprint":"b10104-3565b4bd7",
+    "model":"ggml-org/gpt-oss-120b-GGUF"
+  }
+}

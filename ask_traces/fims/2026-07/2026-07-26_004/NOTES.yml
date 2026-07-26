@@ -1,0 +1,13 @@
+fim_evals:
+  - this is a meta FIM ... a FIM while adding notes about another FIM :)
+    IOTW this might be kinda tricky
+  - exact match only
+    - I described the issue with the line of code
+      I show the line of code as-is
+      it is very easy to see what the corrected code should be
+    - at most we can do partial credit for spacing or prefix dupe, but let's wait on adding that until we see a model making this mistake
+domain: fim_evals
+# FYI I think domain might be a good way to categorize a trace when language itself isn't that important
+#  in this case `yml` doesn't describe the significance of this trace, instead the fact that it is a trace for FIM while adding notes about another FIM trace is more significant
+#  we could map language and/or domain to the grouping we use for any given fim trace
+#  no need to track separate dimensions, we can always add that later if within one domain we want to split on another aspect (i.e filetype)
