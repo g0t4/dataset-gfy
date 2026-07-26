@@ -1,0 +1,7 @@
+fim_evals:
+  - abbr for a function defined right below it
+  - pretty obvious answer if paying attention to how I do this for other functions nearby
+    thus `view_trace` is the sane guess (might make sense to add to the abbr but it should start with `view_trace`)
+    I could allow llm judged partial credit if you have `view_trace` in the completion and it makes sense
+language: fish
+tags: has_auto_rag_matches
