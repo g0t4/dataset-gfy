@@ -89,6 +89,11 @@ def make_client(port: int) -> ChatLlamaServer:
     return ChatLlamaServer(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
 
 
+def dump_json(dump_dir: Path, name: str, data: dict) -> None:
+    dump_dir.mkdir(parents=True, exist_ok=True)
+    (dump_dir / f"{name}.json").write_text(json.dumps(data, indent=2, default=str))
+
+
 def load_cases(path: Path) -> list[Case]:
     cases = []
     with path.open() as f:
@@ -183,7 +188,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 """
 
 
-def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer) -> tuple[str, str, str]:
+def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer, dump_dir: Path, case_id: str) -> tuple[str, str, str]:
     fim_task = prompt_messages[-1]["content"]
     judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
         fim_task=fim_task,
@@ -194,6 +199,14 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
     ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
     judge_model_name = ai_message.response_metadata.get("model_name") or "unknown"
     raw = (ai_message.content or "").strip()
+    dump_json(dump_dir, f"{case_id}.judge", {
+        "judge_prompt": judge_prompt,
+        "content": raw,
+        "reasoning_content": ai_message.additional_kwargs.get("reasoning_content"),
+        "finish_reason": ai_message.response_metadata.get("finish_reason"),
+        "model_name": judge_model_name,
+        "usage_metadata": ai_message.usage_metadata,
+    })
     match = re.search(r"\{.*\}", raw, re.DOTALL)
     if not match:
         return "incorrect", f"judge did not return JSON: {raw!r}", judge_model_name
@@ -208,7 +221,7 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
         return "incorrect", f"judge returned unparseable JSON: {raw!r}", judge_model_name
 
 
-def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None) -> tuple[str, str, str | None]:
+def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None, dump_dir: Path) -> tuple[str, str, str | None]:
     if case.grader == "exact_normalized":
         verdict, reason = grade_exact_normalized(candidate, case)
         return verdict, reason, None
@@ -218,7 +231,7 @@ def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str
             return verdict, f"{reason} (skipped judge -- exact match in accepted list)", None
         if verdict == "partial":
             return verdict, f"{reason} (skipped judge -- matched partial_accepted list)", None
-        verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client)
+        verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client, dump_dir, case.id)
         return verdict, reason, judge_model_name
     return "incorrect", f"unknown grader {case.grader!r}", None
 
@@ -257,6 +270,9 @@ def main():
                       "or rerun with --only on a non-judge case")
         judge_client = make_client(args.judge_port)
 
+    run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dump_dir = FIM_DIR / "debug_dumps" / run_ts
+
     results: list[Result] = []
     for case in cases:
         if args.verbose:
@@ -273,6 +289,15 @@ def main():
         completion_tokens = usage.get("output_tokens")
         reasoning_content = ai_message.additional_kwargs.get("reasoning_content") or ""
 
+        dump_json(dump_dir, f"{case.id}.model", {
+            "prompt_messages": prompt_messages,
+            "content": candidate,
+            "reasoning_content": reasoning_content,
+            "finish_reason": finish_reason,
+            "model_name": model_name,
+            "completion_tokens": completion_tokens,
+        })
+
         if not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
@@ -280,7 +305,7 @@ def main():
                       f") -- try a higher --max-tokens")
             judge_model_name = None
         else:
-            verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client)
+            verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client, dump_dir)
 
         if finish_reason == "length" and candidate.strip():
             reason += " [NOTE: hit max_tokens -- may be mid-completion]"
@@ -311,13 +336,13 @@ def main():
                    f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_judge_model = next(iter(judge_model_names), None)
 
-    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, results)
+    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, results, dump_dir)
 
     if args.save:
         save_results(resolved_model, args.cursor_marker, results)
 
 
-def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, results: list[Result]):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, results: list[Result], dump_dir: Path):
     import rich
     icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
     print()
@@ -326,6 +351,7 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
         rich.print(f"           judge: [bold black on bright_cyan] {judge_model} [/]  (port {judge_port})")
     if cursor_marker != DEFAULT_CURSOR_MARKER:
         rich.print(f"    cursor marker: [bold black on bright_magenta] {cursor_marker} [/]  (swept from default {DEFAULT_CURSOR_MARKER!r})")
+    print(f"trace dumps: {dump_dir}")
     print("=" * 60)
     for r in results:
         constraint_tag = f", {r.constraint}" if r.constraint else ""
