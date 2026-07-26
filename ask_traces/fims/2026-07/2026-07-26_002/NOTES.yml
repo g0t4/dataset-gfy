@@ -1,0 +1,6 @@
+fim_evals:
+  - combine two variables to emit the custom prompt I want (driven by comment above the cursor line)
+  - also if model can pay attention to `echo -n -s` above in the old (prior prompt) that I left commented out at top of if block
+tags: has_auto_rag_matches
+language: fish
+
