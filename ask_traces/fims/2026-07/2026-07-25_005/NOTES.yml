@@ -1,8 +1,11 @@
 fim_evals:
-  - suggest variable defined on line above
-  - only one answer - `$project`
-    maybe allow whitespace differences (in this case at start/end of completion word)
-      could define regex to test for match if not exact?
+  - two evals that are basically the same type, one a slight while later...
+     both test if the model is **paying attention to the unused variable in the line above**
+  - only one answer is reasonable for each FIM
+    - 1785041469-trace.json => `$project`
+    - 1785043553-trace.json => `$script`
+  - maybe allow whitespace differences (in this case at start/end of completion word)
+    could define regex to test for match if not exact?
     or something to flag allowing variable number of spaces (in this case at start/end of completion) but in other cases... could allow extra whitespace within when that can happen
     partial credit is fine for duplicating prefix/suffix
   - tagging could include `simple` eval set to assess how well a model can do with very basic FIM tasks
