@@ -1,0 +1,11 @@
+fim_evals:
+  - answer was correct, however it duplicated the prefix
+    - gptoss answered `        set rest (string join '/' $split[2..])`
+    - should be `(string join '/' $split[2..])`
+    - I don't mind giving most of the credit though for this answer because my FIM tooling handles duplicated prefix
+      maybe this is just a separate dimension to track instead of dinging the score given to a model?
+      because what matters to me more than anything is a good FIM answer, and if tooling de-dupes then really the dup isn't relevant
+tags:
+  - has_auto_rag_matches
+  - duplicate_prefix
+language: fish
