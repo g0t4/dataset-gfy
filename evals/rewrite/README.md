@@ -6,16 +6,20 @@ format as `../fim` (`messages[:-1]` is the prompt, `messages[-1]` is the
 human-accepted rewrite) -- but graded very differently, because a rewrite
 request rarely has one canonical answer.
 
-## Why grading is execution-first here
+## Two grading tiers, chosen per-case via `grader`
 
 FIM completions usually have a small, enumerable set of correct answers --
 text/LLM-judge comparison against a reference works well. Rewrite requests
-don't: "simplify without rejoin" can be satisfied by any number of
+often don't: "simplify without rejoin" can be satisfied by any number of
 genuinely different approaches, so comparing candidate text against the one
 answer a human happened to accept would unfairly penalize equally-valid
-alternatives.
+alternatives. But some rewrites *do* have one obviously-correct answer --
+not every case is worth the overhead of a subprocess harness. Pick whichever
+fits the case:
 
-Instead, each case supplies:
+### `grader: "execute"` (default)
+
+Each case supplies:
 
 - **`test_harness`** -- a runnable script with a `<<<CANDIDATE>>>` marker.
   The candidate's rewritten code is spliced in at that marker and the whole
@@ -31,6 +35,24 @@ A non-zero exit (or a timeout) from the harness is an automatic `incorrect`
 tried on the first case (an invalid fish multi-variable `set`, and two
 variants that mishandled a no-slash edge case) that text-matching or a
 judge alone likely would have missed or scored inconsistently.
+
+### `grader: "exact_normalized"`
+
+For the simple, unambiguous cases -- FIM-style tiered grading instead of a
+harness:
+
+- **`accepted`** -- list of exact-match candidates. Comparison only trims
+  trailing whitespace; **leading indentation is kept significant**, since
+  for a whole-line rewrite, dropping it would break splicing the answer
+  back into the file at that exact call site.
+- **`partial_accepted`** -- list of `{value, reason}` deterministic
+  partial-credit matches (e.g. the same rewrite but missing the leading
+  indent).
+- **`rubric`** -- required here, not optional. If the candidate matches
+  neither `accepted` nor `partial_accepted`, it falls to an LLM judge --
+  but unlike the `execute` tier's judge, this one has to decide correctness
+  itself (nothing executed the candidate), so the rubric needs to spell out
+  what counts as correct/partial/incorrect, not just the qualitative extras.
 
 ## Writing a test harness
 
@@ -68,12 +90,17 @@ uv run python rewrite/run_eval.py --port 8012 --only rewrite-fish-path-split-max
 ## Adding a case
 
 1. Find or capture a trace in `ask_traces/rewrite/`.
-2. Write a `test_harness` that exercises the rewritten code against at
-   least one real input (plus an edge case if one exists) and exits
-   non-zero on failure. Splice point is the literal string
-   `<<<CANDIDATE>>>`.
-3. Decide if a `rubric` is needed -- only if there's a qualitative
-   constraint execution can't verify (an explicit "don't do X" in the
-   request, a "simplify" ask that needs a judgment call on whether it
-   actually got simpler).
+2. Decide which `grader` fits: if there are meaningfully different valid
+   rewrites, or you'd need to actually run the code to know it's right, use
+   `"execute"` and write a `test_harness` that exercises the rewritten code
+   against at least one real input (plus an edge case if one exists) and
+   exits non-zero on failure -- splice point is the literal string
+   `<<<CANDIDATE>>>`. If there's essentially one correct answer (not worth a
+   subprocess), use `"exact_normalized"` with `accepted`/`partial_accepted`
+   instead.
+3. Write a `rubric`: optional for `"execute"` (only if there's a
+   qualitative constraint execution can't verify -- an explicit "don't do
+   X" in the request, a "simplify" ask that needs a judgment call on
+   whether it actually got simpler); required for `"exact_normalized"`
+   (it's the judge's only fallback criteria when nothing matches exactly).
 4. Append one line to `cases.jsonl`.

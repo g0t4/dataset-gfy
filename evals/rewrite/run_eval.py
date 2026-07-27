@@ -11,13 +11,23 @@ message) is the human-approved rewrite that was actually accepted, kept
 here only as a reference for the judge -- it is NOT compared textually,
 since a rewrite request rarely has one canonical answer.
 
-Grading is execution-first, not text-match: each case supplies a
-test_harness (a runnable script with a <<<CANDIDATE>>> marker) plus a
-runner command. The candidate's rewritten code is spliced into the marker
-and actually executed; a non-zero exit means incorrect, full stop. Only
-once execution passes does an optional rubric get handed to an LLM judge,
-to weigh in on qualitative stuff execution can't see (did it honor an
-explicit stylistic constraint, is it a genuine simplification, etc).
+Grading has two tiers, chosen per-case via `grader`:
+
+- "execute" (default): not text-match -- each case supplies a test_harness
+  (a runnable script with a <<<CANDIDATE>>> marker) plus a runner command.
+  The candidate's rewritten code is spliced into the marker and actually
+  executed; a non-zero exit means incorrect, full stop. Only once execution
+  passes does an optional rubric get handed to an LLM judge, to weigh in on
+  qualitative stuff execution can't see (did it honor an explicit
+  stylistic constraint, is it a genuine simplification, etc).
+- "exact_normalized": for rewrites simple enough to have one obviously
+  correct answer (not worth writing a subprocess harness for) -- FIM-style
+  exact match against `accepted`, then deterministic `partial_accepted`
+  credit, then an LLM judge fallback that (unlike the execute tier's judge)
+  has to decide correctness itself, since nothing executed the candidate.
+  Comparison only trims trailing whitespace -- leading indentation is kept
+  significant, since for a whole-line rewrite, missing it would break
+  splicing the answer back into the file.
 
 Model selection is by port, not name -- see evals/fim/run_eval.py for the
 rationale (copied verbatim here, this file started as a copy of that one).
@@ -54,13 +64,22 @@ EXEC_TIMEOUT_SECONDS = 10
 
 
 @dataclass
+class PartialAccepted:
+    value: str
+    reason: str
+
+
+@dataclass
 class Case:
     id: str
     source_trace: str
     language: str
-    runner: list[str]  # command used to execute the harness script, e.g. ["fish"]
-    test_harness: str  # runnable script; CANDIDATE_MARKER gets replaced with the model's rewrite
-    rubric: str | None = None  # optional qualitative check, only run if execution passes
+    grader: str = "execute"  # "execute" or "exact_normalized" -- see module docstring
+    runner: list[str] | None = None  # required for grader="execute": command to run test_harness, e.g. ["fish"]
+    test_harness: str | None = None  # required for grader="execute": runnable script; CANDIDATE_MARKER gets replaced with the model's rewrite
+    accepted: list[str] | None = None  # required for grader="exact_normalized": exact-match candidates (trailing whitespace ignored, leading indentation significant)
+    partial_accepted: list[PartialAccepted] | None = None  # optional for grader="exact_normalized": deterministic partial-credit matches
+    rubric: str | None = None  # grader="execute": optional qualitative check, only run if execution passes. grader="exact_normalized": required judge fallback criteria
     # answer-constraint tightness, for slicing reports separately from verdict (see fim/run_eval.py for the scale)
     constraint: str | None = None
     notes: str | None = None
@@ -71,10 +90,10 @@ class Result:
     id: str
     verdict: str
     reason: str
-    graded_by: str  # "execute" or "execute+llm_judge"
+    graded_by: str  # "execute", "execute+llm_judge", "exact_normalized", or "exact_normalized+llm_judge"
     reference: str
     candidate: str
-    exec_passed: bool
+    exec_passed: bool | None  # None when grader="exact_normalized" -- nothing executed
     exec_returncode: int | None
     completion_tokens: int | None
     finish_reason: str | None
@@ -101,7 +120,11 @@ def load_cases(path: Path) -> list[Case]:
             if not line:
                 continue
             data = json.loads(line)
-            cases.append(Case(**data))
+            partial_accepted = data.pop("partial_accepted", None)
+            case = Case(**data)
+            if partial_accepted:
+                case.partial_accepted = [PartialAccepted(**p) for p in partial_accepted]
+            cases.append(case)
     return cases
 
 
@@ -161,6 +184,25 @@ def run_harness(case: Case, candidate: str, dump_dir: Path) -> tuple[bool, str, 
     return True, "executed successfully", returncode
 
 
+def normalize(text: str) -> str:
+    # unlike fim's normalize, don't strip leading whitespace -- for a
+    # whole-line rewrite, indentation is part of the answer (missing it
+    # would break splicing the candidate back into the file at this call
+    # site), so only trim incidental trailing whitespace/newlines.
+    return text.rstrip()
+
+
+def grade_exact_normalized(candidate: str, case: Case) -> tuple[str, str]:
+    candidate_n = normalize(candidate)
+    accepted = [normalize(a) for a in (case.accepted or [])]
+    if candidate_n in accepted:
+        return "correct", "exact match"
+    for partial in case.partial_accepted or []:
+        if candidate_n == normalize(partial.value):
+            return "partial", partial.reason
+    return "incorrect", "no exact/partial match"
+
+
 JUDGE_PROMPT_TEMPLATE = """You are grading a code-rewrite suggestion. A separate execution-based test
 harness already ran this candidate and confirmed it produces correct output -- your job is NOT to
 re-check functional correctness, that's already settled. Judge only the qualitative aspects called out
@@ -191,10 +233,37 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 {{"verdict": "correct" | "partial" | "incorrect", "reason": "<one sentence>"}}
 """
 
+CORRECTNESS_JUDGE_PROMPT_TEMPLATE = """You are grading a code-rewrite suggestion. Nothing has verified
+this candidate yet -- unlike an execution-graded case, you need to judge BOTH whether it's functionally
+correct (does what was asked, doesn't change behavior it shouldn't) AND the qualitative rubric below.
 
-def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], reference: str, judge_client: ChatLlamaServer, dump_dir: Path) -> tuple[str, str, str]:
+Task given to the model under test (their instructions plus the original code they selected):
+---
+{rewrite_task}
+---
+
+Reference (human-approved) rewrite that was actually accepted for this request, for context only --
+the candidate does NOT need to match this exactly, other valid rewrites exist:
+<<<REFERENCE>>>
+{reference}
+<<<END REFERENCE>>>
+
+Rubric for this specific case:
+{rubric}
+
+Candidate rewrite to grade:
+<<<CANDIDATE>>>
+{candidate}
+<<<END CANDIDATE>>>
+
+Respond with ONLY a JSON object, no markdown fences, no extra commentary:
+{{"verdict": "correct" | "partial" | "incorrect", "reason": "<one sentence>"}}
+"""
+
+
+def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], reference: str, judge_client: ChatLlamaServer, dump_dir: Path, prompt_template: str) -> tuple[str, str, str]:
     rewrite_task = prompt_messages[-1]["content"]
-    judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
+    judge_prompt = prompt_template.format(
         rewrite_task=rewrite_task,
         reference=reference,
         rubric=case.rubric,
@@ -266,13 +335,21 @@ def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict]
     return message, timings, error
 
 
-def grade(candidate: str, case: Case, prompt_messages: list[dict], reference: str, judge_client: ChatLlamaServer | None, dump_dir: Path) -> tuple[str, str, str, str | None, bool, int | None]:
+def grade(candidate: str, case: Case, prompt_messages: list[dict], reference: str, judge_client: ChatLlamaServer | None, dump_dir: Path) -> tuple[str, str, str, str | None, bool | None, int | None]:
+    if case.grader == "exact_normalized":
+        verdict, reason = grade_exact_normalized(candidate, case)
+        if verdict in ("correct", "partial"):
+            return verdict, reason, "exact_normalized", None, None, None
+        verdict, reason, judge_model_name = grade_llm_judge(
+            candidate, case, prompt_messages, reference, judge_client, dump_dir, CORRECTNESS_JUDGE_PROMPT_TEMPLATE)
+        return verdict, f"{reason} (no exact/partial match)", "exact_normalized+llm_judge", judge_model_name, None, None
+
     exec_passed, exec_reason, exec_returncode = run_harness(case, candidate, dump_dir)
     if not exec_passed:
         return "incorrect", f"execution failed -- {exec_reason}", "execute", None, exec_passed, exec_returncode
     if not case.rubric:
         return "correct", f"execution passed -- {exec_reason} (no rubric on this case, skipping qualitative check)", "execute", None, exec_passed, exec_returncode
-    verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, reference, judge_client, dump_dir)
+    verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, reference, judge_client, dump_dir, JUDGE_PROMPT_TEMPLATE)
     return verdict, f"execution passed; judge: {reason}", "execute+llm_judge", judge_model_name, exec_passed, exec_returncode
 
 
@@ -306,12 +383,12 @@ def main():
 
     model_client = make_client(args.port)
 
-    needs_judge = any(c.rubric for c in cases)
+    needs_judge = any(c.rubric for c in cases) or any(c.grader == "exact_normalized" for c in cases)
     judge_client = None
     if needs_judge:
         if args.judge_port is None:
-            sys.exit("one or more cases have a rubric (qualitative judge check) -- pass --judge-port, "
-                      "or rerun with --only on a case without one")
+            sys.exit("one or more cases have a rubric or use grader=exact_normalized (both can fall back to "
+                      "an LLM judge) -- pass --judge-port, or rerun with --only on a case without either")
         judge_client = make_client(args.judge_port)
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -349,17 +426,17 @@ def main():
             verdict = "incorrect"
             reason = (f"client error/timeout mid-stream: {stream_error} -- partial content dumped "
                       f"({len(candidate)} chars content, {len(reasoning_content)} chars reasoning)")
-            graded_by = "execute"
+            graded_by = case.grader
             judge_model_name = None
-            exec_passed, exec_returncode = False, None
+            exec_passed, exec_returncode = None, None
         elif not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
                       f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
                       f") -- try a higher --max-tokens, or --max-tokens -1 to remove the cap")
-            graded_by = "execute"
+            graded_by = case.grader
             judge_model_name = None
-            exec_passed, exec_returncode = False, None
+            exec_passed, exec_returncode = None, None
         else:
             verdict, reason, graded_by, judge_model_name, exec_passed, exec_returncode = grade(
                 candidate, case, prompt_messages, reference, judge_client, dump_dir)
@@ -412,7 +489,12 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
     print("=" * 60)
     for r in results:
         constraint_tag = f", {r.constraint}" if r.constraint else ""
-        exec_tag = "exec ok" if r.exec_passed else f"exec failed (rc={r.exec_returncode})"
+        if r.exec_passed is None:
+            exec_tag = "no exec (text/judge graded)"
+        elif r.exec_passed:
+            exec_tag = "exec ok"
+        else:
+            exec_tag = f"exec failed (rc={r.exec_returncode})"
         print(f"\n{icon.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.graded_by}{constraint_tag}, {exec_tag}, {r.completion_tokens} tokens, finish={r.finish_reason})")
         print(f"   reference: {r.reference!r}")
         print(f"   candidate: {r.candidate!r}")
