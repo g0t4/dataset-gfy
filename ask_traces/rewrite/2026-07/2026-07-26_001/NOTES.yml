@@ -1,0 +1,32 @@
+notes:
+  - GLM did a stellar job on this rewrite! I was vague about what I wanted
+    I did not mention using `string split --max 1` ... but that is what I had in mind!
+rewrite_evals:
+  - in this case I asked the model to rewrite a fish function to remove some unecessary bloat in path splitting on / to get first path component (category) vs rest...
+    - original code split on all / => thus it had to rejoin with /
+    - new code (what I wanted and did not describe though) was to use `string slit --max 1 '/'`
+    - a perfect grade here should use `--max`
+      use llm judge to flag if a model comes up with another novel "simplification"
+    - FYI could change my rewrite prompt to include using `string split --max` to give a hint if we wanted to test if a model understands this approach
+  - in this case one good way to evaluate might be to run the generated code?
+    we can do an exact match check but there's some subjectivity involved
+    probably best to ask llm to judge if the code does what it was originally designed to do
+      after the executes test works?
+tags:
+  - verify_by_running?
+  - has_auto_rag_matches
+language: fish
+runnable_template: |
+  ```
+  # just an idea, I think we can generate these when we select an eval for inclusion into the dataset
+  set relative_path "fim/foo/bar"
+
+  # INSERT GENERATED CODE (indenting won't matter)
+  # HERE IS THE GENERATED CODE from this trace:
+set path_parts (string split --max 1 "/" $relative_path)
+set category $path_parts[1]
+set rest $path_parts[2]
+
+  # assertions with test? or otherwise?
+  test $rest = "foo/bar"; and test $category = "fim"
+  ```
