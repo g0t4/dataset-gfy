@@ -12,3 +12,10 @@ GLM-4.7-Flash traces adding virtual text for FIM prediction reasoning and then c
    - otherwise mostly ok code
    - it also changed some comments that weren't related (non-destructive changes) but still WTH!
 - 1785141975-trace.json - make thinking dots green
+  - FREAKY => has same problem as Qwen3.6 with git commit (first tries to commit w/o adding files)?!
+    I almost feel like there must be a shared dataset used by both Qwen and GLM for training on agent behaviors? OR?
+    this looks like what I'd see Qwen do!!!!
+        - sometimes just rewrite full files
+        - git commit before add mistake
+           wait wait... the first trace GLM used add before commit so nah! lol Qwen3.6 almost never adds before committing (the first commit in a trace)
+        - luac verify!
