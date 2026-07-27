@@ -1,0 +1,4 @@
+fim_evals:
+  - could be a good eval of a model's ability to pay attention to a code comment above the cursor line to guide what the user wants
+  - answer is relatively straight forward (AND I intentionally put my cursor at the start of the line so no indent issues)
+    could do an exact match (short of whitespace differences) to validate generated code
