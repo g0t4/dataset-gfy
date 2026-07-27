@@ -1,0 +1,7 @@
+fim_evals:
+  - great FIM! I am in the middle of migrating to all models supporting reasoning levels (on/off at a minimum) and so this is a great FIM b/c most of the surrounding code still has gptoss only levels
+  - exact match only, must be `model` IMO and no judging needed
+  - could allow extra spaces indent though yuck... this is such an easy FIM lets do `model` only right answer
+language: lua
+tags: has_auto_rag_matches
+
