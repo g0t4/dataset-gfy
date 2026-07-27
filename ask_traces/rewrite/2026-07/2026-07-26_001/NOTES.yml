@@ -1,6 +1,7 @@
 notes:
   - GLM did a stellar job on this rewrite! I was vague about what I wanted
     I did not mention using `string split --max 1` ... but that is what I had in mind!
+    FTR... I did mention `without rejoin`
 rewrite_evals:
   - in this case I asked the model to rewrite a fish function to remove some unecessary bloat in path splitting on / to get first path component (category) vs rest...
     - original code split on all / => thus it had to rejoin with /
