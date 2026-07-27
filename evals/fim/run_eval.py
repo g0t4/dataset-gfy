@@ -221,6 +221,47 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
         return "incorrect", f"judge returned unparseable JSON: {raw!r}", judge_model_name
 
 
+def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict], invoke_kwargs: dict, trace: bool):
+    """Stream a completion, optionally echoing tokens to stderr as they arrive.
+
+    Passes extra_body={"verbose": True} so llama-server attaches its own
+    "timings" block (predicted_n, predicted_per_second, draft accept stats,
+    etc) to the finish-reason chunk -- richer than the standard OpenAI
+    "usage" field, and unlike usage it doesn't require a separate trailing
+    chunk with an empty choices list (which older llama-server responses
+    could send with stream_options.include_usage, tripping up naive chunk
+    parsing).
+
+    Returns (message, timings, error). `message` is whatever was
+    accumulated -- possibly partial, if `error` is set -- so callers can
+    read .content / .additional_kwargs["reasoning_content"] off it either
+    way instead of getting nothing on a client-side timeout/connection drop
+    mid-stream. `timings` is the raw dict off the finish-reason chunk, or
+    None if the stream broke before reaching it.
+    """
+    import openai
+    message = None
+    timings = None
+    error = None
+    try:
+        for chunk in model_client.stream(prompt_messages, extra_body={"verbose": True}, **invoke_kwargs):
+            debug_info = getattr(chunk, "debug", None)
+            if debug_info is not None and debug_info.timings:
+                timings = debug_info.timings
+            if trace:
+                reasoning_delta = chunk.additional_kwargs.get("reasoning_content") or ""
+                if reasoning_delta:
+                    print(reasoning_delta, end="", flush=True, file=sys.stderr)
+                if chunk.content:
+                    print(chunk.content, end="", flush=True, file=sys.stderr)
+            message = chunk if message is None else message + chunk
+    except openai.APIConnectionError as e:
+        error = e
+    if trace:
+        print(file=sys.stderr)
+    return message, timings, error
+
+
 def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None, dump_dir: Path) -> tuple[str, str, str | None]:
     if case.grader == "exact_normalized":
         verdict, reason = grade_exact_normalized(candidate, case)
@@ -251,6 +292,11 @@ def main():
                          help=f"cursor marker to use instead of the trace's original {DEFAULT_CURSOR_MARKER!r} "
                               f"(default), to sweep prompt-format sensitivity, e.g. --cursor-marker '<|CURSOR|>'")
     parser.add_argument("--verbose", "-v", action="store_true", help="print which case is running as each one starts")
+    parser.add_argument("--trace", action="store_true",
+                         help="stream the completion and print tokens (content + reasoning_content) to stderr "
+                              "as they arrive, instead of waiting for the full response -- also means a "
+                              "client-side timeout still leaves you with whatever was streamed so far, dumped "
+                              "to debug_dumps, instead of nothing")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -277,7 +323,7 @@ def main():
 
     results: list[Result] = []
     for case in cases:
-        if args.verbose:
+        if args.verbose or args.trace:
             print(f"running {case.id}...", file=sys.stderr)
 
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
@@ -286,13 +332,12 @@ def main():
         invoke_kwargs = {"temperature": args.temperature}
         if args.max_tokens not in (0, -1):
             invoke_kwargs["max_tokens"] = args.max_tokens
-        ai_message = model_client.invoke(prompt_messages, **invoke_kwargs)
-        candidate = ai_message.content or ""
-        finish_reason = ai_message.response_metadata.get("finish_reason")
-        model_name = ai_message.response_metadata.get("model_name") or "unknown"
-        usage = ai_message.usage_metadata or {}
-        completion_tokens = usage.get("output_tokens")
-        reasoning_content = ai_message.additional_kwargs.get("reasoning_content") or ""
+        ai_message, timings, stream_error = stream_completion(model_client, prompt_messages, invoke_kwargs, args.trace)
+        candidate = (ai_message.content if ai_message else "") or ""
+        finish_reason = ai_message.response_metadata.get("finish_reason") if ai_message else None
+        model_name = (ai_message.response_metadata.get("model_name") if ai_message else None) or "unknown"
+        completion_tokens = timings.get("predicted_n") if timings else None
+        reasoning_content = (ai_message.additional_kwargs.get("reasoning_content") if ai_message else None) or ""
 
         dump_json(dump_dir, f"{case.id}.model", {
             "prompt_messages": prompt_messages,
@@ -301,9 +346,16 @@ def main():
             "finish_reason": finish_reason,
             "model_name": model_name,
             "completion_tokens": completion_tokens,
+            "timings": timings,
+            "stream_error": str(stream_error) if stream_error else None,
         })
 
-        if not candidate.strip() and finish_reason == "length":
+        if stream_error is not None:
+            verdict = "incorrect"
+            reason = (f"client error/timeout mid-stream: {stream_error} -- partial content dumped "
+                      f"({len(candidate)} chars content, {len(reasoning_content)} chars reasoning)")
+            judge_model_name = None
+        elif not candidate.strip() and finish_reason == "length":
             verdict = "incorrect"
             reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
                       f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
