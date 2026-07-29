@@ -1,0 +1,68 @@
+known_issues: qwen3.6-loop
+model: ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0 (port 8012 on paxy.lan)
+source_case: evals/fim/cases.jsonl -> fim-yaml-ansible-ignore-errors
+source_trace: ask_traces/fims/2026-07/2026-07-29_003/1785306547-trace.json
+
+problem: |
+  Discovered while adding fim-yaml-ansible-ignore-errors to evals/fim -- an easy,
+  arguably one-right-answer FIM (`i<CURSOR>` -> `gnore_errors: true`). Instead of
+  converging, the model gets stuck re-litigating the same handful of candidate
+  answers (ignore_errors / update_cache / install_weak_deps) inside
+  reasoning_content, forever, never emitting any `content`. Confirmed with
+  --max-tokens 4096, 8192, and uncapped (-1, killed by a 300s wall-clock timeout) --
+  same loop every time, so it isn't a "just needed more budget" truncation, it's
+  genuine non-convergence. This trace.json is the 8192-token-capped run
+  (debug dump from evals/fim/run_eval.py's debug_dumps mechanism); finish_reason
+  is "length" because run_eval.py's own token cap cut it off, not because the
+  model reached a natural stopping point.
+
+signal_analysis: |
+  Split reasoning_content on sentence boundaries (749 sentences total, 29171 chars).
+  The exact sentence "I'll suggest \`gnore_errors: true\`." recurs 78 times.
+  Several other near-identical sentences recur 20-60+ times each (see below).
+  After an initial ~240-sentence "exploration" phase, it locks into a steady-state
+  cycle repeating the same ~5-sentence sequence with a stable period (gaps between
+  repeats of the anchor sentence settle into a repeating 6,4,6,6,14 pattern).
+
+  Top repeated exact sentences (count, text):
+    84  "No."
+    78  "I'll suggest `gnore_errors: true`."
+    57  "I'll just suggest `pdate_cache: true`?"
+    33  "Actually, `update_cache: true` is standard."
+    32  "Wait, `i` could be `install_weak_deps: false`."
+    32  "I'll output `gnore_errors: true`."
+    31  "I'll go with `gnore_errors: true`."
+    24  "I'll suggest `pdate_cache: true`?"
+    21  "Maybe `ignore_errors: true`?"
+    21  "Or maybe `install_weak_deps: false`?"
+    20  "The commented line is `# update_cache: true`."
+    19  "But `update_cache: true` is right above."
+
+detection_signal_ideas: |
+  - Exact-sentence (or exact n-gram / hash-of-sliding-window) repetition count within
+    reasoning_content, above some threshold (e.g. same sentence seen 5+ times) --
+    cheap, works retroactively on a finished/truncated trace like this one.
+  - Streaming version: hash each sentence (or fixed-size token window) as it arrives,
+    keep a rolling set/count; if a hash repeats more than N times within a W-token
+    lookback, that's the trigger to intervene mid-stream (abort, inject a forcing
+    nudge like "stop deliberating, answer now", or just cut reasoning and force
+    content to start).
+  - Periodicity check: once 3+ repeats of the same sentence are seen, measure the
+    gap (in sentences or tokens) between them -- a near-constant gap is a much
+    stronger loop signal than raw repetition count alone (rules out cases where a
+    model legitimately restates something once or twice while genuinely reasoning
+    forward). Here the gap stabilizes into a repeating 6,4,6,6,14 cycle.
+  - The model DOES contain the right answer inside the loop (`gnore_errors: true`
+    appears verbatim, unprompted, dozens of times) -- so one mitigation angle: if a
+    candidate answer keeps recurring identically across repeats, just trust it and
+    force-emit that as content once repetition is detected, rather than only
+    aborting/retrying.
+
+next_steps: |
+  Catalog more qwen3.6 loop traces here as they turn up (see also the earlier,
+  more severe agent-mode case at
+  ask_traces/agents/problems/qwen3.6-thinking-loop/2026-07-19_001 -- tens of
+  thousands of lines before being caught manually -- and the untracked
+  ask_traces/agents/2026-07/problem-qwen-tool-use-loop/ trace, a tool-call-loop
+  variant, not yet triaged/moved into a problems/ folder) to build a real
+  catalog for detection-heuristic tuning in the harness.
