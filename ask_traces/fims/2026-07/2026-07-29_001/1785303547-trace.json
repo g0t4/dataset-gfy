@@ -1,0 +1,52 @@
+{
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "timings":{
+      "cache_n":1109,
+      "prompt_ms":46.175,
+      "prompt_per_token_ms":0.5188202247191,
+      "predicted_ms":524.381,
+      "predicted_n":139,
+      "prompt_per_second":1927.4499187872,
+      "predicted_per_second":265.07444014943,
+      "prompt_n":89,
+      "predicted_per_token_ms":3.7725251798561
+    },
+    "created":1785303412,
+    "system_fingerprint":"b10104-3565b4bd7",
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-BKhCr1xewjWPOKaFPcFQkDxFwktLr7ko",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }]
+  },
+  "request_body":{
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: testing_lab\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Recent yanks (copy to clipboard):\n```playbooks/llama.yml\n        creates: \"{{ build }}/bin/llama-server\"\n```\n\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```playbooks/llama.yml\n---\n- name: Build llama.cpp\n  hosts: arch*\n\n  vars:\n    repo: https://github.com/ggml-org/llama.cpp.git\n    src: \"{{ ansible_facts['env'].HOME }}/repos/llama.cpp\"\n    build: \"{{ src }}/build\"\n    cmake_flags:\n      - -DCMAKE_BUILD_TYPE=Release\n\n  tasks:\n    - name: Install dependencies\n      become: true\n      tags: deps\n      pacman:\n        name:\n          - git\n          - cmake\n          - ninja\n          - gcc\n        state: present\n        update_cache: true\n\n    - name: Clone repository\n      tags: clone\n      git:\n        repo: \"{{ repo }}\"\n        dest: \"{{ src }}\"\n        version: master\n        update: true\n\n    - name: Configure\n      tags: config\n      ansible.builtin.command:\n        argv: \"{{ ['cmake', '-B', build, '-G', 'Ninja'] + cmake_flags }}\"\n        chdir: \"{{ src }}\"\n        # creates: \"{{ build }}\"\n\n    - name: Build\n      tags: build\n      ansible.bui<|CURSOR_IS_HERE|>command:\n        argv:\n          - cmake\n          - --build\n          - \"{{ build }}\"\n          - --parallel\n        chdir: \"{{ src }}\"\n        # creates: \"{{ build }}/bin/llama-server\"\n```\n\n## Reminders about the cursor line:\nText before cursor: `      ansible.bui`\nText after cursor: `command:`",
+        "role":"user"
+      },{
+        "finish_reason":"stop",
+        "reasoning_content":"Need to complete module name: ansible.builtin.command. So replace with \"ltin\". Actually cursor after \"ansible.bui\". Need to insert \"ltin.\"? Wait full should be \"ansible.builtin.command\". Already have \"ansible.bui\". So need \"ltin.command\". But after cursor we have \"command:\". So we should insert \"ltin.\" before \"command:\". The line becomes \"      ansible.builtin.command:\" with proper spacing. Currently line: \"      ansible.bui<|CURSOR_IS_HERE|>command:\" So insert \"ltin.\" .",
+        "content":"ltin.",
+        "role":"assistant"
+      }],
+    "max_tokens":4096,
+    "stream":true,
+    "raw":false,
+    "options":[],
+    "top_p":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "temperature":1
+  },
+  "flags":[]
+}
