@@ -1,0 +1,52 @@
+{
+  "flags":[],
+  "request_body":{
+    "options":[],
+    "raw":false,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "stream":true,
+    "temperature":1,
+    "max_tokens":4096,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: testing_lab\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```playbooks/llama.yml\n---\n- name: Build llama.cpp\n  hosts: arch*\n\n  vars:\n    repo: https://github.com/ggml-org/llama.cpp.git\n    src: \"{{ ansible_facts['env'].HOME }}/repos/llama.cpp\"\n    build: \"{{ src }}/build\"\n    cmake_flags:\n      - -DCMAKE_BUILD_TYPE=Release\n\n  tasks:\n    - name: Install dependencies\n      become: true\n      tags: deps\n      community.general.pacman:\n        name:\n          - git\n          - cmake\n          - ninja\n          - gcc\n        state: present\n        # update_cache: true\n      i<|CURSOR_IS_HERE|>\n      register: pacman_result\n    - debug: var=pacman_result\n      tags: deps\n\n    - name: Clone repository\n      tags: clone\n      ansible.builtin.git:\n        repo: \"{{ repo }}\"\n        dest: \"{{ src }}\"\n        version: master\n        update: true\n\n    - name: Configure\n      tags: config\n      ansible.builtin.command:\n        argv: \"{{ ['cmake', '-B', build, '-G', 'Ninja'] + cmake_flags }}\"\n        chdir: \"{{ src }}\"\n        # creates: \"{{ build }}\"\n\n    - name: Build\n      tags: build\n      ansible.builtin.command:\n        argv:\n          - cmake\n          - --build\n          - \"{{ build }}\"\n          - --parallel\n        chdir: \"{{ src }}\"\n        # noqa: no-changed-when\n        # creates: \"{{ build }}/bin/llama-server\"\n```\n\n## Reminders about the cursor line:\nText before cursor: `      i`",
+        "role":"user"
+      },{
+        "content":"gnore_errors: true",
+        "finish_reason":"stop",
+        "role":"assistant",
+        "reasoning_content":"We need to complete the line starting with \"i\". Likely \"ignore_errors: true\" or \"install\"? In pacman module, options are name, state, update_cache. The line before cursor is \"      i\". Should be \"ignore_errors: true\"? But typical is \"update_cache: true\". Already commented out. Could be \"update_cache: true\". Starts with i -> \"ignore_errors\". Probably want to add \"ignore_errors: true\". So completion: \"gnore_errors: true\". Since cursor after \"i\". Provide rest."
+      }],
+    "top_p":1
+  },
+  "last_sse":{
+    "timings":{
+      "prompt_per_second":4105.6798306177,
+      "prompt_ms":54.315,
+      "prompt_per_token_ms":0.24356502242152,
+      "predicted_ms":473.473,
+      "predicted_per_token_ms":3.787784,
+      "prompt_n":223,
+      "cache_n":976,
+      "predicted_per_second":264.00660650132,
+      "predicted_n":125
+    },
+    "created":1785306412,
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "id":"chatcmpl-OJ68KJullXrkuBSIYjVayE7PoP1fK40L",
+    "system_fingerprint":"b10104-3565b4bd7",
+    "object":"chat.completion.chunk"
+  }
+}

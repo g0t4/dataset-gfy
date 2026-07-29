@@ -1,0 +1,5 @@
+fim_evals:
+  - IMO only one viable completion here, given I have a debug task below that is tied to the result of this task, which I'd want debug for if this task fails...
+    then that makes this a no-brainer that I want `gnore_errors: true` to complete this (ignore_errors)
+    the `i` at start is the give away vs the entire spectrum of task level options that might be suggested, to hone in on `i` prefixed options only
+  - given `i` at start then I'd grade this with exact match (sans maybe whitespace on end) ... and maybe credit if duplicate i in prefix and/or whitespace before
