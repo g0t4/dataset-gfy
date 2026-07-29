@@ -1,0 +1,5 @@
+notes: This is the type of FIM that I swear is like mind reading! I could've added just about anything here
+fim_evals:
+  - how could I make this into a subjective eval that shows a "mind reading" capability?
+  - lets score this as successful if it sets a comment string (preferrably the typical style in yaml)... but partial credit for any valid comment string set statement
+  - lets use llm judge fallback
