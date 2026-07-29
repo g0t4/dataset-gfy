@@ -1,0 +1,5 @@
+rewrite_evals:
+  - this is all about setting a global variable on first use, and use it to block subsequent use
+    that way I only get warned one time about not having lsd installed
+  - combination of llm-judged and execution eval?
+    could setup env where lsd is not in path + ls increments a ticker and we track STDOUT to count instances of the warning?
