@@ -1,0 +1,4 @@
+notes: stellar completion thanks to comment on line above
+fim_evals:
+  - in this case both `import` and argcomplete call are needed, so we could do an exact match + llm judge the fallback for also valid combinations of these two steps
+    the comment on the line above is what makes me feel comfortable using exact match (or llm-judge if the suggestion is effectively the same)
