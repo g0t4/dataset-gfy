@@ -1,0 +1,5 @@
+notes:
+  - gptoss nailed it on this FIM!
+fim_evals:
+  - basically one "right" answer here and that is to call the locate function with .nvmrc as the filename
+  - exact match only for now
