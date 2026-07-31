@@ -1,0 +1,3 @@
+fim_evals:
+  - exact match only b/c `argcomplete` is in prefix and so it is expected that the answer is `.autocomplete(parser)`
+language: python
