@@ -1,0 +1,9 @@
+fim_evals:
+  - exact match only on `import argcomplete`
+  - this is indeed a tricky FIM though, because the model has to suss out what import is missing
+    that said, it is obvious that we need an import b/c we have the cursor at start of file next to other imports
+    the FIM suffix clearly has a call to `argcomplete.autocomplete(parser)`
+    AFAICT nothing else is missing an import (code loads and runs fine as-is)
+      I can always flag invalid generations and review for other legitimate imports
+      so use exact only for now
+
