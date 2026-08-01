@@ -1,0 +1,27 @@
+fim_evals:
+  - this is an absolutely incredible FIM IMO...
+    first you have to identify that it is _is_gitignored that needs imported
+    then, I have no idea how it happened but RAG matches included matches with...
+      Match 1. code that uses `is_file_ignored_allchecks` (class IncrementalRAGIndexer)
+      Match 4. and that is imported from `from index.ignores import is_file_ignored_allchecks`
+
+      those two pieces alone make an educated guess possible
+    then I have a comment near _is_gitignored that mentions...
+      `# TODO revisit _is_file_ignored_allchecks and cleanup mess?`
+
+    that all said this is not a slam dunk, or I should say gptoss generated many 3 other examples before I got this one (the one I wanted)
+      this is why "regenerate suggestion" as well as lightning fast suggestions matter!
+
+  - these RAG matches feel like an accidental connection :)... and gptoss picked up on it
+
+  - TODO this is the first FIM where I think we could give partial credit to thinking that shows the model considering the import for the correct symbol
+    this would get partial credit if nothing else matches
+    in this case to be discussing `_is_gitignored` is stellar (to find that symbol as the one that is missing, stellar!)
+
+  - btw an exact match should count `from index.ignores import _is_gitignored`
+     this is rooted in the above analysis that most models will pick up on
+     just a matter of whether or not a model goes on another tangent
+
+     TODO could I ask a model to show multiple suggestions?!
+     i.e. if logits are low enough initially that it seems a coin toss might change the outcome?
+     TODO any value in showing a confidence indicator based on model's certainty? across tokens or first or last ones?
