@@ -3,6 +3,10 @@ fim_evals:
   - I often log name of variable + value so surrounding context no doubt shows other examples of this
   - expect it to log the corresponding variable for the name I added to first arg to log function
   - also suffix has `)` already, that must not be duplicated!
+  - allow two matches
+    - `, sse_parsed`
+    - `, vim.inspect(sse_parsed)`
+
 language: lua
 tags:
   - has_cursorline_prefix

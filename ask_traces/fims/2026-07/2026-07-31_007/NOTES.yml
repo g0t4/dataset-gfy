@@ -25,3 +25,7 @@ fim_evals:
      TODO could I ask a model to show multiple suggestions?!
      i.e. if logits are low enough initially that it seems a coin toss might change the outcome?
      TODO any value in showing a confidence indicator based on model's certainty? across tokens or first or last ones?
+language: python
+tags:
+  - educated_guess
+  - empty_cursorline
