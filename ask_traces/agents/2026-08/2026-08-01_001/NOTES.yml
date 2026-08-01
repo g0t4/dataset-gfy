@@ -1,0 +1,6 @@
+agent_evals:
+  - scoring - could ask LLM judge if any useless tool calls were made
+    could new up class and see if method exhibits expected behavior?
+    small enough change + very few (if any) tool calls needed to read file
+  - FYI could modify this same scenario (git reset to before this point) and ask the model to do the same thing but without providing the file contents and expect it to read the file first
+    - scoring could give points for reading the right file (or parts of it) - add to a checklist of files to read
