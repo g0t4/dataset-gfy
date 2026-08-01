@@ -1,0 +1,11 @@
+fim_evals:
+  - previously I had `from index import workspace` and then I used `workspace.get_relative_path_to(...)`
+    this FIM was the start of refactoring
+    - from `workspace.`
+    - to `from index.workspace import get_relative_path_to, RagConfig`
+      so I can just call get_relative_path_to() w/o workspace module qualifier
+  - so the import here expects the model to understand what I intend to do
+    but, the hint is that the prefix makes this all but explicit with...
+       `from index.workspace import <|CURSOR_IS_HERE|>`
+       ... in this case what else would my intent be?
+language: python
