@@ -1,0 +1,10 @@
+fim_evals:
+  - exact match is fine
+  - I often log name of variable + value so surrounding context no doubt shows other examples of this
+  - expect it to log the corresponding variable for the name I added to first arg to log function
+  - also suffix has `)` already, that must not be duplicated!
+language: lua
+tags:
+  - has_cursorline_prefix
+  - has_cursorline_suffix
+  - pattern
