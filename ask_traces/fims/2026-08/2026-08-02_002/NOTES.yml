@@ -1,0 +1,3 @@
+fim_evals:
+  - exact match only `describe` nothing else counts
+language: lua
