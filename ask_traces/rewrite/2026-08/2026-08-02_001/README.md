@@ -1,0 +1,3 @@
+pulling teeth to get the LLMs to not simplify the moved condition :)...
+
+but finally a prompt worked with Qwen3.6!
