@@ -42,6 +42,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FIM_DIR = Path(__file__).resolve().parent
 
 PAXY_HOST = "paxy.lan"
+PAXY_HARDWARE = "2x NVIDIA RTX PRO 6000 Blackwell 96GB"
 
 
 @dataclass
@@ -82,6 +83,7 @@ class Result:
     model_name: str
     judge_model_name: str | None = None
     constraint: str | None = None
+    attempt: int = 1
 
 
 def make_client(port: int) -> ChatLlamaServer:
@@ -263,7 +265,7 @@ def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict]
     return message, timings, error
 
 
-def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None, dump_dir: Path) -> tuple[str, str, str | None]:
+def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None, dump_dir: Path, dump_id: str) -> tuple[str, str, str | None]:
     if case.grader == "exact_normalized":
         verdict, reason = grade_exact_normalized(candidate, case)
         return verdict, reason, None
@@ -273,7 +275,7 @@ def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str
             return verdict, f"{reason} (skipped judge -- exact match in accepted list)", None
         if verdict == "partial":
             return verdict, f"{reason} (skipped judge -- matched partial_accepted list)", None
-        verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client, dump_dir, case.id)
+        verdict, reason, judge_model_name = grade_llm_judge(candidate, case, prompt_messages, expected, judge_client, dump_dir, dump_id)
         return verdict, reason, judge_model_name
     return "incorrect", f"unknown grader {case.grader!r}", None
 
@@ -308,6 +310,17 @@ def main():
                               "on vs off. No effect on models/templates that don't support the toggle (llama-server "
                               "just ignores the unrecognized template kwarg). Only affects the model under test, "
                               "never the judge.")
+    parser.add_argument("--repeat", type=int, default=1,
+                         help="run each case N times and report a per-case stability breakdown (correct/partial/"
+                              "incorrect counts, flagged FLAKY if the verdict isn't the same every time) -- use "
+                              "this to tell whether a result (or an on/off comparison) is real or just sampling "
+                              "noise before trusting it, even at --temperature 0 (llama-server batching/MTP/"
+                              "speculative decoding can still make runs non-deterministic)")
+    parser.add_argument("--hardware", default=PAXY_HARDWARE,
+                         help=f"free-text note on what {PAXY_HOST} is running on, stamped into the report header "
+                              f"and --save output -- GPU/backend numerics (and other processes sharing the same "
+                              f"GPU concurrently) can affect run-to-run determinism, so it's worth recording "
+                              f"alongside results (default: {PAXY_HARDWARE!r})")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -334,67 +347,71 @@ def main():
 
     results: list[Result] = []
     for case in cases:
-        if args.verbose or args.trace:
-            print(f"running {case.id}...", file=sys.stderr)
-
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
         prompt_messages = swap_cursor_marker(prompt_messages, args.cursor_marker)
 
-        invoke_kwargs = {"temperature": args.temperature}
-        if args.max_tokens not in (0, -1):
-            invoke_kwargs["max_tokens"] = args.max_tokens
-        extra_body = {"chat_template_kwargs": {"enable_thinking": False}} if args.reasoning == "off" else None
-        ai_message, timings, stream_error = stream_completion(model_client, prompt_messages, invoke_kwargs, args.trace, extra_body)
-        candidate = (ai_message.content if ai_message else "") or ""
-        finish_reason = ai_message.response_metadata.get("finish_reason") if ai_message else None
-        model_name = (ai_message.response_metadata.get("model_name") if ai_message else None) or "unknown"
-        completion_tokens = timings.get("predicted_n") if timings else None
-        reasoning_content = (ai_message.additional_kwargs.get("reasoning_content") if ai_message else None) or ""
+        for attempt in range(1, args.repeat + 1):
+            dump_id = case.id if args.repeat == 1 else f"{case.id}.attempt{attempt}"
+            if args.verbose or args.trace:
+                attempt_tag = f" (attempt {attempt}/{args.repeat})" if args.repeat > 1 else ""
+                print(f"running {case.id}{attempt_tag}...", file=sys.stderr)
 
-        dump_json(dump_dir, f"{case.id}.model", {
-            "prompt_messages": prompt_messages,
-            "content": candidate,
-            "reasoning_content": reasoning_content,
-            "finish_reason": finish_reason,
-            "model_name": model_name,
-            "completion_tokens": completion_tokens,
-            "timings": timings,
-            "stream_error": str(stream_error) if stream_error else None,
-        })
+            invoke_kwargs = {"temperature": args.temperature}
+            if args.max_tokens not in (0, -1):
+                invoke_kwargs["max_tokens"] = args.max_tokens
+            extra_body = {"chat_template_kwargs": {"enable_thinking": False}} if args.reasoning == "off" else None
+            ai_message, timings, stream_error = stream_completion(model_client, prompt_messages, invoke_kwargs, args.trace, extra_body)
+            candidate = (ai_message.content if ai_message else "") or ""
+            finish_reason = ai_message.response_metadata.get("finish_reason") if ai_message else None
+            model_name = (ai_message.response_metadata.get("model_name") if ai_message else None) or "unknown"
+            completion_tokens = timings.get("predicted_n") if timings else None
+            reasoning_content = (ai_message.additional_kwargs.get("reasoning_content") if ai_message else None) or ""
 
-        if stream_error is not None:
-            verdict = "incorrect"
-            reason = (f"client error/timeout mid-stream: {stream_error} -- partial content dumped "
-                      f"({len(candidate)} chars content, {len(reasoning_content)} chars reasoning)")
-            judge_model_name = None
-        elif not candidate.strip() and finish_reason == "length":
-            verdict = "incorrect"
-            reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
-                      f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
-                      f") -- try a higher --max-tokens, or --max-tokens -1 to remove the cap")
-            judge_model_name = None
-        else:
-            verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client, dump_dir)
+            dump_json(dump_dir, f"{dump_id}.model", {
+                "prompt_messages": prompt_messages,
+                "content": candidate,
+                "reasoning_content": reasoning_content,
+                "finish_reason": finish_reason,
+                "model_name": model_name,
+                "completion_tokens": completion_tokens,
+                "timings": timings,
+                "stream_error": str(stream_error) if stream_error else None,
+            })
 
-        if finish_reason == "length" and candidate.strip():
-            reason += " [NOTE: hit max_tokens -- may be mid-completion]"
+            if stream_error is not None:
+                verdict = "incorrect"
+                reason = (f"client error/timeout mid-stream: {stream_error} -- partial content dumped "
+                          f"({len(candidate)} chars content, {len(reasoning_content)} chars reasoning)")
+                judge_model_name = None
+            elif not candidate.strip() and finish_reason == "length":
+                verdict = "incorrect"
+                reason = (f"truncated before emitting any content ({completion_tokens} tokens spent, "
+                          f"{'reasoning: ' + reasoning_content[:80] + '...' if reasoning_content else 'likely on reasoning/thinking'}"
+                          f") -- try a higher --max-tokens, or --max-tokens -1 to remove the cap")
+                judge_model_name = None
+            else:
+                verdict, reason, judge_model_name = grade(candidate, case, prompt_messages, expected, judge_client, dump_dir, dump_id)
 
-        result = Result(
-            id=case.id,
-            grader=case.grader,
-            verdict=verdict,
-            reason=reason,
-            expected=expected,
-            candidate=candidate,
-            completion_tokens=completion_tokens,
-            finish_reason=finish_reason,
-            model_name=model_name,
-            judge_model_name=judge_model_name,
-            constraint=case.constraint,
-        )
-        results.append(result)
-        if args.verbose:
-            print_result_block(result)
+            if finish_reason == "length" and candidate.strip():
+                reason += " [NOTE: hit max_tokens -- may be mid-completion]"
+
+            result = Result(
+                id=case.id,
+                grader=case.grader,
+                verdict=verdict,
+                reason=reason,
+                expected=expected,
+                candidate=candidate,
+                completion_tokens=completion_tokens,
+                finish_reason=finish_reason,
+                model_name=model_name,
+                judge_model_name=judge_model_name,
+                constraint=case.constraint,
+                attempt=attempt,
+            )
+            results.append(result)
+            if args.verbose:
+                print_result_block(result, show_attempt=args.repeat > 1)
 
     model_names = {r.model_name for r in results}
     if len(model_names) > 1:
@@ -408,25 +425,29 @@ def main():
                    f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_judge_model = next(iter(judge_model_names), None)
 
-    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, args.reasoning, results, dump_dir)
+    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, args.reasoning, args.hardware, results, dump_dir)
+
+    if args.repeat > 1:
+        print_stability_report(results, args.repeat)
 
     if args.save:
-        save_results(resolved_model, args.cursor_marker, args.reasoning, results)
+        save_results(resolved_model, args.cursor_marker, args.reasoning, args.hardware, results)
 
 
 RESULT_ICON = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
 
 
-def print_result_block(r: Result) -> None:
+def print_result_block(r: Result, show_attempt: bool = False) -> None:
     constraint_tag = f", {r.constraint}" if r.constraint else ""
-    print(f"\n{RESULT_ICON.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}{constraint_tag}, {r.completion_tokens} tokens, finish={r.finish_reason})")
+    attempt_tag = f"  [attempt {r.attempt}]" if show_attempt else ""
+    print(f"\n{RESULT_ICON.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}{constraint_tag}, {r.completion_tokens} tokens, finish={r.finish_reason}){attempt_tag}")
     print(f"   expected : {r.expected!r}")
     print(f"   got      : {r.candidate!r}")
     if r.reason:
         print(f"   reason   : {r.reason}")
 
 
-def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, reasoning: str, results: list[Result], dump_dir: Path):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, reasoning: str, hardware: str, results: list[Result], dump_dir: Path):
     import rich
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
@@ -436,26 +457,56 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
         rich.print(f"    cursor marker: [bold black on bright_magenta] {cursor_marker} [/]  (swept from default {DEFAULT_CURSOR_MARKER!r})")
     if reasoning == "off":
         rich.print(f"        reasoning: [bold black on bright_red] off [/]  (chat_template_kwargs.enable_thinking=false)")
+    rich.print(f"         hardware: [bold black on bright_green] {hardware} [/]")
     print(f"trace dumps: {dump_dir}")
     print("=" * 60)
+    show_attempt = len({r.attempt for r in results}) > 1
     for r in results:
-        print_result_block(r)
+        print_result_block(r, show_attempt=show_attempt)
 
     total = len(results)
     correct = sum(1 for r in results if r.verdict == "correct")
     partial = sum(1 for r in results if r.verdict == "partial")
     incorrect = sum(1 for r in results if r.verdict == "incorrect")
     print("\n" + "-" * 60)
-    print(f"{correct}/{total} correct, {partial}/{total} partial, {incorrect}/{total} incorrect")
+    print(f"{correct}/{total} correct, {partial}/{total} partial, {incorrect}/{total} incorrect"
+          + (" (across all attempts)" if show_attempt else ""))
 
 
-def save_results(model: str, cursor_marker: str, reasoning: str, results: list[Result]):
+def print_stability_report(results: list[Result], repeat: int) -> None:
+    from collections import defaultdict
+    by_case: dict[str, list[Result]] = defaultdict(list)
+    for r in results:
+        by_case[r.id].append(r)
+
+    print(f"\nStability across {repeat} attempts/case:")
+    print("=" * 60)
+    flaky_count = 0
+    for case_id, rs in by_case.items():
+        n = len(rs)
+        c = sum(1 for r in rs if r.verdict == "correct")
+        p = sum(1 for r in rs if r.verdict == "partial")
+        i = sum(1 for r in rs if r.verdict == "incorrect")
+        flaky = len({r.verdict for r in rs}) > 1
+        flag = "  ⚠️  FLAKY -- verdict changed across attempts" if flaky else ""
+        if flaky:
+            flaky_count += 1
+        print(f"  {case_id:<45} {c}/{n} correct, {p}/{n} partial, {i}/{n} incorrect{flag}")
+    print("-" * 60)
+    if flaky_count:
+        print(f"{flaky_count}/{len(by_case)} cases had a verdict that changed across attempts -- "
+              f"treat single-run comparisons (e.g. --reasoning on vs off) on those cases with caution.")
+    else:
+        print(f"all {len(by_case)} cases gave the same verdict on every attempt -- single-run results look stable.")
+
+
+def save_results(model: str, cursor_marker: str, reasoning: str, hardware: str, results: list[Result]):
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     safe_model = re.sub(r"[^A-Za-z0-9_.-]", "_", model)
     suffix = "-noreasoning" if reasoning == "off" else ""
     out_path = FIM_DIR / "results" / f"{ts}-{safe_model}{suffix}.json"
     out_path.parent.mkdir(exist_ok=True)
-    out_path.write_text(json.dumps({"model": model, "cursor_marker": cursor_marker, "reasoning": reasoning, "results": [asdict(r) for r in results]}, indent=2))
+    out_path.write_text(json.dumps({"model": model, "cursor_marker": cursor_marker, "reasoning": reasoning, "hardware": hardware, "results": [asdict(r) for r in results]}, indent=2))
     print(f"\nsaved: {out_path}")
 
 
