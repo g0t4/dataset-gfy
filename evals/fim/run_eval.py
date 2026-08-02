@@ -291,7 +291,10 @@ def main():
     parser.add_argument("--cursor-marker", default=DEFAULT_CURSOR_MARKER,
                          help=f"cursor marker to use instead of the trace's original {DEFAULT_CURSOR_MARKER!r} "
                               f"(default), to sweep prompt-format sensitivity, e.g. --cursor-marker '<|CURSOR|>'")
-    parser.add_argument("--verbose", "-v", action="store_true", help="print which case is running as each one starts")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                         help="print each case's full result (verdict/expected/got/reason) as soon as it's "
+                              "graded, instead of only at the end -- lets you catch something amiss or Ctrl-C "
+                              "early without waiting for the whole run")
     parser.add_argument("--trace", action="store_true",
                          help="stream the completion and print tokens (content + reasoning_content) to stderr "
                               "as they arrive, instead of waiting for the full response -- also means a "
@@ -367,7 +370,7 @@ def main():
         if finish_reason == "length" and candidate.strip():
             reason += " [NOTE: hit max_tokens -- may be mid-completion]"
 
-        results.append(Result(
+        result = Result(
             id=case.id,
             grader=case.grader,
             verdict=verdict,
@@ -379,7 +382,10 @@ def main():
             model_name=model_name,
             judge_model_name=judge_model_name,
             constraint=case.constraint,
-        ))
+        )
+        results.append(result)
+        if args.verbose:
+            print_result_block(result)
 
     model_names = {r.model_name for r in results}
     if len(model_names) > 1:
@@ -399,9 +405,20 @@ def main():
         save_results(resolved_model, args.cursor_marker, results)
 
 
+RESULT_ICON = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
+
+
+def print_result_block(r: Result) -> None:
+    constraint_tag = f", {r.constraint}" if r.constraint else ""
+    print(f"\n{RESULT_ICON.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}{constraint_tag}, {r.completion_tokens} tokens, finish={r.finish_reason})")
+    print(f"   expected : {r.expected!r}")
+    print(f"   got      : {r.candidate!r}")
+    if r.reason:
+        print(f"   reason   : {r.reason}")
+
+
 def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, results: list[Result], dump_dir: Path):
     import rich
-    icon = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
     if judge_model:
@@ -411,12 +428,7 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
     print(f"trace dumps: {dump_dir}")
     print("=" * 60)
     for r in results:
-        constraint_tag = f", {r.constraint}" if r.constraint else ""
-        print(f"\n{icon.get(r.verdict, '?')} [{r.verdict}] {r.id}  ({r.grader}{constraint_tag}, {r.completion_tokens} tokens, finish={r.finish_reason})")
-        print(f"   expected : {r.expected!r}")
-        print(f"   got      : {r.candidate!r}")
-        if r.reason:
-            print(f"   reason   : {r.reason}")
+        print_result_block(r)
 
     total = len(results)
     correct = sum(1 for r in results if r.verdict == "correct")
