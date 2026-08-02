@@ -1,0 +1,584 @@
+{
+  "last_sse":{
+    "__verbose":{
+      "timings":{
+        "prompt_n":144,
+        "predicted_per_second":312.51010269729,
+        "prompt_per_second":1641.8676244228,
+        "draft_n_accepted":212,
+        "prompt_per_token_ms":0.6090625,
+        "draft_n":237,
+        "cache_n":9030,
+        "prompt_ms":87.705,
+        "predicted_n":290,
+        "predicted_ms":927.97,
+        "predicted_per_token_ms":3.1998965517241
+      },
+      "id_slot":1,
+      "tokens_predicted":290,
+      "tokens_evaluated":9174,
+      "model":"ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+      "stop_type":"eos",
+      "stop":true,
+      "index":0,
+      "generation_settings":{
+        "grammar":"ac-283 ::= [\\n] ac-283-01 | [^\\n] ac-283\nac-283-01 ::= [\\n] ac-283-01 | [<] ac-283-02 | [^\\n<] ac-283\nac-283-02 ::= [\\n] ac-283-01 | [/] ac-283-03 | [^\\n/] ac-283\nac-283-03 ::= [\\n] ac-283-01 | [p] ac-283-04 | [^\\np] ac-283\nac-283-04 ::= [\\n] ac-283-01 | [a] ac-283-05 | [^\\na] ac-283\nac-283-05 ::= [\\n] ac-283-01 | [r] ac-283-06 | [^\\nr] ac-283\nac-283-06 ::= [\\n] ac-283-01 | [a] ac-283-07 | [^\\na] ac-283\nac-283-07 ::= [\\n] ac-283-01 | [m] ac-283-08 | [^\\nm] ac-283\nac-283-08 ::= [\\n] ac-283-01 | [e] ac-283-09 | [^\\ne] ac-283\nac-283-09 ::= [\\n] ac-283-01 | [t] ac-283-10 | [^\\nt] ac-283\nac-283-10 ::= [\\n] ac-283-01 | [e] ac-283-11 | [^\\ne] ac-283\nac-283-11 ::= [\\n] ac-283-01 | [r] ac-283-12 | [^\\nr] ac-283\nac-283-12 ::= [\\n] ac-283-01 | [>] ac-283-13 | [^\\n>] ac-283\nac-283-13 ::= [\\n] | [^\\n] ac-283\nac-34 ::= [\\n] ac-34-01 | [^\\n] ac-34\nac-34-01 ::= [\\n] ac-34-01 | [<] ac-34-02 | [^\\n<] ac-34\nac-34-02 ::= [\\n] ac-34-01 | [/] ac-34-03 | [^\\n/] ac-34\nac-34-03 ::= [\\n] ac-34-01 | [p] ac-34-04 | [^\\np] ac-34\nac-34-04 ::= [\\n] ac-34-01 | [a] ac-34-05 | [^\\na] ac-34\nac-34-05 ::= [\\n] ac-34-01 | [r] ac-34-06 | [^\\nr] ac-34\nac-34-06 ::= [\\n] ac-34-01 | [a] ac-34-07 | [^\\na] ac-34\nac-34-07 ::= [\\n] ac-34-01 | [m] ac-34-08 | [^\\nm] ac-34\nac-34-08 ::= [\\n] ac-34-01 | [e] ac-34-09 | [^\\ne] ac-34\nac-34-09 ::= [\\n] ac-34-01 | [t] ac-34-10 | [^\\nt] ac-34\nac-34-10 ::= [\\n] ac-34-01 | [e] ac-34-11 | [^\\ne] ac-34\nac-34-11 ::= [\\n] ac-34-01 | [r] ac-34-12 | [^\\nr] ac-34\nac-34-12 ::= [\\n] ac-34-01 | [>] ac-34-13 | [^\\n>] ac-34\nac-34-13 ::= [\\n] | [^\\n] ac-34\nac-384 ::= [\\n] ac-384-01 | [^\\n] ac-384\nac-384-01 ::= [\\n] ac-384-01 | [<] ac-384-02 | [^\\n<] ac-384\nac-384-02 ::= [\\n] ac-384-01 | [/] ac-384-03 | [^\\n/] ac-384\nac-384-03 ::= [\\n] ac-384-01 | [p] ac-384-04 | [^\\np] ac-384\nac-384-04 ::= [\\n] ac-384-01 | [a] ac-384-05 | [^\\na] ac-384\nac-384-05 ::= [\\n] ac-384-01 | [r] ac-384-06 | [^\\nr] ac-384\nac-384-06 ::= [\\n] ac-384-01 | [a] ac-384-07 | [^\\na] ac-384\nac-384-07 ::= [\\n] ac-384-01 | [m] ac-384-08 | [^\\nm] ac-384\nac-384-08 ::= [\\n] ac-384-01 | [e] ac-384-09 | [^\\ne] ac-384\nac-384-09 ::= [\\n] ac-384-01 | [t] ac-384-10 | [^\\nt] ac-384\nac-384-10 ::= [\\n] ac-384-01 | [e] ac-384-11 | [^\\ne] ac-384\nac-384-11 ::= [\\n] ac-384-01 | [r] ac-384-12 | [^\\nr] ac-384\nac-384-12 ::= [\\n] ac-384-01 | [>] ac-384-13 | [^\\n>] ac-384\nac-384-13 ::= [\\n] | [^\\n] ac-384\nac-436 ::= [\\n] ac-436-01 | [^\\n] ac-436\nac-436-01 ::= [\\n] ac-436-01 | [<] ac-436-02 | [^\\n<] ac-436\nac-436-02 ::= [\\n] ac-436-01 | [/] ac-436-03 | [^\\n/] ac-436\nac-436-03 ::= [\\n] ac-436-01 | [p] ac-436-04 | [^\\np] ac-436\nac-436-04 ::= [\\n] ac-436-01 | [a] ac-436-05 | [^\\na] ac-436\nac-436-05 ::= [\\n] ac-436-01 | [r] ac-436-06 | [^\\nr] ac-436\nac-436-06 ::= [\\n] ac-436-01 | [a] ac-436-07 | [^\\na] ac-436\nac-436-07 ::= [\\n] ac-436-01 | [m] ac-436-08 | [^\\nm] ac-436\nac-436-08 ::= [\\n] ac-436-01 | [e] ac-436-09 | [^\\ne] ac-436\nac-436-09 ::= [\\n] ac-436-01 | [t] ac-436-10 | [^\\nt] ac-436\nac-436-10 ::= [\\n] ac-436-01 | [e] ac-436-11 | [^\\ne] ac-436\nac-436-11 ::= [\\n] ac-436-01 | [r] ac-436-12 | [^\\nr] ac-436\nac-436-12 ::= [\\n] ac-436-01 | [>] ac-436-13 | [^\\n>] ac-436\nac-436-13 ::= [\\n] | [^\\n] ac-436\nac-457 ::= [\\n] ac-457-01 | [^\\n] ac-457\nac-457-01 ::= [\\n] ac-457-01 | [<] ac-457-02 | [^\\n<] ac-457\nac-457-02 ::= [\\n] ac-457-01 | [/] ac-457-03 | [^\\n/] ac-457\nac-457-03 ::= [\\n] ac-457-01 | [p] ac-457-04 | [^\\np] ac-457\nac-457-04 ::= [\\n] ac-457-01 | [a] ac-457-05 | [^\\na] ac-457\nac-457-05 ::= [\\n] ac-457-01 | [r] ac-457-06 | [^\\nr] ac-457\nac-457-06 ::= [\\n] ac-457-01 | [a] ac-457-07 | [^\\na] ac-457\nac-457-07 ::= [\\n] ac-457-01 | [m] ac-457-08 | [^\\nm] ac-457\nac-457-08 ::= [\\n] ac-457-01 | [e] ac-457-09 | [^\\ne] ac-457\nac-457-09 ::= [\\n] ac-457-01 | [t] ac-457-10 | [^\\nt] ac-457\nac-457-10 ::= [\\n] ac-457-01 | [e] ac-457-11 | [^\\ne] ac-457\nac-457-11 ::= [\\n] ac-457-01 | [r] ac-457-12 | [^\\nr] ac-457\nac-457-12 ::= [\\n] ac-457-01 | [>] ac-457-13 | [^\\n>] ac-457\nac-457-13 ::= [\\n] | [^\\n] ac-457\nac-531 ::= [\\n] ac-531-01 | [^\\n] ac-531\nac-531-01 ::= [\\n] ac-531-01 | [<] ac-531-02 | [^\\n<] ac-531\nac-531-02 ::= [\\n] ac-531-01 | [/] ac-531-03 | [^\\n/] ac-531\nac-531-03 ::= [\\n] ac-531-01 | [p] ac-531-04 | [^\\np] ac-531\nac-531-04 ::= [\\n] ac-531-01 | [a] ac-531-05 | [^\\na] ac-531\nac-531-05 ::= [\\n] ac-531-01 | [r] ac-531-06 | [^\\nr] ac-531\nac-531-06 ::= [\\n] ac-531-01 | [a] ac-531-07 | [^\\na] ac-531\nac-531-07 ::= [\\n] ac-531-01 | [m] ac-531-08 | [^\\nm] ac-531\nac-531-08 ::= [\\n] ac-531-01 | [e] ac-531-09 | [^\\ne] ac-531\nac-531-09 ::= [\\n] ac-531-01 | [t] ac-531-10 | [^\\nt] ac-531\nac-531-10 ::= [\\n] ac-531-01 | [e] ac-531-11 | [^\\ne] ac-531\nac-531-11 ::= [\\n] ac-531-01 | [r] ac-531-12 | [^\\nr] ac-531\nac-531-12 ::= [\\n] ac-531-01 | [>] ac-531-13 | [^\\n>] ac-531\nac-531-13 ::= [\\n] | [^\\n] ac-531\nac-55 ::= [\\n] ac-55-01 | [^\\n] ac-55\nac-55-01 ::= [\\n] ac-55-01 | [<] ac-55-02 | [^\\n<] ac-55\nac-55-02 ::= [\\n] ac-55-01 | [/] ac-55-03 | [^\\n/] ac-55\nac-55-03 ::= [\\n] ac-55-01 | [p] ac-55-04 | [^\\np] ac-55\nac-55-04 ::= [\\n] ac-55-01 | [a] ac-55-05 | [^\\na] ac-55\nac-55-05 ::= [\\n] ac-55-01 | [r] ac-55-06 | [^\\nr] ac-55\nac-55-06 ::= [\\n] ac-55-01 | [a] ac-55-07 | [^\\na] ac-55\nac-55-07 ::= [\\n] ac-55-01 | [m] ac-55-08 | [^\\nm] ac-55\nac-55-08 ::= [\\n] ac-55-01 | [e] ac-55-09 | [^\\ne] ac-55\nac-55-09 ::= [\\n] ac-55-01 | [t] ac-55-10 | [^\\nt] ac-55\nac-55-10 ::= [\\n] ac-55-01 | [e] ac-55-11 | [^\\ne] ac-55\nac-55-11 ::= [\\n] ac-55-01 | [r] ac-55-12 | [^\\nr] ac-55\nac-55-12 ::= [\\n] ac-55-01 | [>] ac-55-13 | [^\\n>] ac-55\nac-55-13 ::= [\\n] | [^\\n] ac-55\nac-552 ::= [\\n] ac-552-01 | [^\\n] ac-552\nac-552-01 ::= [\\n] ac-552-01 | [<] ac-552-02 | [^\\n<] ac-552\nac-552-02 ::= [\\n] ac-552-01 | [/] ac-552-03 | [^\\n/] ac-552\nac-552-03 ::= [\\n] ac-552-01 | [p] ac-552-04 | [^\\np] ac-552\nac-552-04 ::= [\\n] ac-552-01 | [a] ac-552-05 | [^\\na] ac-552\nac-552-05 ::= [\\n] ac-552-01 | [r] ac-552-06 | [^\\nr] ac-552\nac-552-06 ::= [\\n] ac-552-01 | [a] ac-552-07 | [^\\na] ac-552\nac-552-07 ::= [\\n] ac-552-01 | [m] ac-552-08 | [^\\nm] ac-552\nac-552-08 ::= [\\n] ac-552-01 | [e] ac-552-09 | [^\\ne] ac-552\nac-552-09 ::= [\\n] ac-552-01 | [t] ac-552-10 | [^\\nt] ac-552\nac-552-10 ::= [\\n] ac-552-01 | [e] ac-552-11 | [^\\ne] ac-552\nac-552-11 ::= [\\n] ac-552-01 | [r] ac-552-12 | [^\\nr] ac-552\nac-552-12 ::= [\\n] ac-552-01 | [>] ac-552-13 | [^\\n>] ac-552\nac-552-13 ::= [\\n] | [^\\n] ac-552\nac-608 ::= [\\n] ac-608-01 | [^\\n] ac-608\nac-608-01 ::= [\\n] ac-608-01 | [<] ac-608-02 | [^\\n<] ac-608\nac-608-02 ::= [\\n] ac-608-01 | [/] ac-608-03 | [^\\n/] ac-608\nac-608-03 ::= [\\n] ac-608-01 | [p] ac-608-04 | [^\\np] ac-608\nac-608-04 ::= [\\n] ac-608-01 | [a] ac-608-05 | [^\\na] ac-608\nac-608-05 ::= [\\n] ac-608-01 | [r] ac-608-06 | [^\\nr] ac-608\nac-608-06 ::= [\\n] ac-608-01 | [a] ac-608-07 | [^\\na] ac-608\nac-608-07 ::= [\\n] ac-608-01 | [m] ac-608-08 | [^\\nm] ac-608\nac-608-08 ::= [\\n] ac-608-01 | [e] ac-608-09 | [^\\ne] ac-608\nac-608-09 ::= [\\n] ac-608-01 | [t] ac-608-10 | [^\\nt] ac-608\nac-608-10 ::= [\\n] ac-608-01 | [e] ac-608-11 | [^\\ne] ac-608\nac-608-11 ::= [\\n] ac-608-01 | [r] ac-608-12 | [^\\nr] ac-608\nac-608-12 ::= [\\n] ac-608-01 | [>] ac-608-13 | [^\\n>] ac-608\nac-608-13 ::= [\\n] | [^\\n] ac-608\nac-629 ::= [\\n] ac-629-01 | [^\\n] ac-629\nac-629-01 ::= [\\n] ac-629-01 | [<] ac-629-02 | [^\\n<] ac-629\nac-629-02 ::= [\\n] ac-629-01 | [/] ac-629-03 | [^\\n/] ac-629\nac-629-03 ::= [\\n] ac-629-01 | [p] ac-629-04 | [^\\np] ac-629\nac-629-04 ::= [\\n] ac-629-01 | [a] ac-629-05 | [^\\na] ac-629\nac-629-05 ::= [\\n] ac-629-01 | [r] ac-629-06 | [^\\nr] ac-629\nac-629-06 ::= [\\n] ac-629-01 | [a] ac-629-07 | [^\\na] ac-629\nac-629-07 ::= [\\n] ac-629-01 | [m] ac-629-08 | [^\\nm] ac-629\nac-629-08 ::= [\\n] ac-629-01 | [e] ac-629-09 | [^\\ne] ac-629\nac-629-09 ::= [\\n] ac-629-01 | [t] ac-629-10 | [^\\nt] ac-629\nac-629-10 ::= [\\n] ac-629-01 | [e] ac-629-11 | [^\\ne] ac-629\nac-629-11 ::= [\\n] ac-629-01 | [r] ac-629-12 | [^\\nr] ac-629\nac-629-12 ::= [\\n] ac-629-01 | [>] ac-629-13 | [^\\n>] ac-629\nac-629-13 ::= [\\n] | [^\\n] ac-629\nac-694 ::= [\\n] ac-694-01 | [^\\n] ac-694\nac-694-01 ::= [\\n] ac-694-01 | [<] ac-694-02 | [^\\n<] ac-694\nac-694-02 ::= [\\n] ac-694-01 | [/] ac-694-03 | [^\\n/] ac-694\nac-694-03 ::= [\\n] ac-694-01 | [p] ac-694-04 | [^\\np] ac-694\nac-694-04 ::= [\\n] ac-694-01 | [a] ac-694-05 | [^\\na] ac-694\nac-694-05 ::= [\\n] ac-694-01 | [r] ac-694-06 | [^\\nr] ac-694\nac-694-06 ::= [\\n] ac-694-01 | [a] ac-694-07 | [^\\na] ac-694\nac-694-07 ::= [\\n] ac-694-01 | [m] ac-694-08 | [^\\nm] ac-694\nac-694-08 ::= [\\n] ac-694-01 | [e] ac-694-09 | [^\\ne] ac-694\nac-694-09 ::= [\\n] ac-694-01 | [t] ac-694-10 | [^\\nt] ac-694\nac-694-10 ::= [\\n] ac-694-01 | [e] ac-694-11 | [^\\ne] ac-694\nac-694-11 ::= [\\n] ac-694-01 | [r] ac-694-12 | [^\\nr] ac-694\nac-694-12 ::= [\\n] ac-694-01 | [>] ac-694-13 | [^\\n>] ac-694\nac-694-13 ::= [\\n] | [^\\n] ac-694\nac-76 ::= [\\n] ac-76-01 | [^\\n] ac-76\nac-76-01 ::= [\\n] ac-76-01 | [<] ac-76-02 | [^\\n<] ac-76\nac-76-02 ::= [\\n] ac-76-01 | [/] ac-76-03 | [^\\n/] ac-76\nac-76-03 ::= [\\n] ac-76-01 | [p] ac-76-04 | [^\\np] ac-76\nac-76-04 ::= [\\n] ac-76-01 | [a] ac-76-05 | [^\\na] ac-76\nac-76-05 ::= [\\n] ac-76-01 | [r] ac-76-06 | [^\\nr] ac-76\nac-76-06 ::= [\\n] ac-76-01 | [a] ac-76-07 | [^\\na] ac-76\nac-76-07 ::= [\\n] ac-76-01 | [m] ac-76-08 | [^\\nm] ac-76\nac-76-08 ::= [\\n] ac-76-01 | [e] ac-76-09 | [^\\ne] ac-76\nac-76-09 ::= [\\n] ac-76-01 | [t] ac-76-10 | [^\\nt] ac-76\nac-76-10 ::= [\\n] ac-76-01 | [e] ac-76-11 | [^\\ne] ac-76\nac-76-11 ::= [\\n] ac-76-01 | [r] ac-76-12 | [^\\nr] ac-76\nac-76-12 ::= [\\n] ac-76-01 | [>] ac-76-13 | [^\\n>] ac-76\nac-76-13 ::= [\\n] | [^\\n] ac-76\nboolean ::= (\"true\" | \"false\")\nchar ::= [^\"\\\\\\x7F\\x00-\\x1F] | [\\\\] ([\"\\\\bfnrt] | \"u\" [0-9a-fA-F]{4})\ndecimal-part ::= [0-9]{1,16}\ninteger ::= (\"-\"? integral-part)\nintegral-part ::= [0] | [1-9] [0-9]{0,15}\njson-array ::= \"[\" space (\"]\" | json-value (space \",\" space json-value)* space \"]\")\njson-bool ::= \"true\" | \"false\"\njson-null ::= \"null\"\njson-number ::= \"-\"? (\"0\" | [1-9] [0-9]*) (\".\" [0-9]+)? ((\"e\" | \"E\") [+-]? [0-9]+)?\njson-object ::= \"{\" space (\"}\" | json-string space \":\" space json-value (space \",\" space json-string space \":\" space json-value)* space \"}\")\njson-string ::= \"\\\"\" ( [^\"\\\\] | \"\\\\\" ( [\"\\\\/ bfnrt] | \"u\" [0-9a-fA-F]{4} ) )* \"\\\"\"\njson-value ::= json-object | json-array | json-string | json-number | json-bool | json-null\nnumber ::= (\"-\"? integral-part) (\".\" decimal-part)? ([eE] [-+]? integral-part)?\nroot ::= tool-call\nspace ::= | \" \" | \"\\n\"{1,2} [ \\t]{0,20}\nstring ::= \"\\\"\" char* \"\\\"\"\ntool-call ::= \"<tool_call>\\n\" space (tool-run-process | tool-fetch | tool-screencap | tool-locate-anything | tool-delegate | tool-semantic-grep) space \"</tool_call>\" (space \"<tool_call>\\n\" space (tool-run-process | tool-fetch | tool-screencap | tool-locate-anything | tool-delegate | tool-semantic-grep) space \"</tool_call>\")* space\ntool-delegate ::= (\"<function=\" \"delegate\" \">\\n\") space tool-delegate-arg-description (space (tool-delegate-arg-recursion-limit | tool-delegate-arg-agent-type))* space \"</function>\\n\"\ntool-delegate-arg-agent-type ::= (\"<parameter=\" \"agent_type\" \">\\n\") \"\" ac-552\ntool-delegate-arg-description ::= (\"<parameter=\" \"description\" \">\\n\") \"\" ac-531\ntool-delegate-arg-recursion-limit ::= (\"<parameter=\" \"recursion_limit\" \">\\n\") \"\" integer \"\\n</parameter>\\n\"\ntool-fetch ::= (\"<function=\" \"fetch\" \">\\n\") space tool-fetch-arg-url (space (tool-fetch-arg-start-index | tool-fetch-arg-raw | tool-fetch-arg-max-chars))* space \"</function>\\n\"\ntool-fetch-arg-max-chars ::= (\"<parameter=\" \"max_chars\" \">\\n\") \"\" integer \"\\n</parameter>\\n\"\ntool-fetch-arg-raw ::= (\"<parameter=\" \"raw\" \">\\n\") \"\" boolean \"\\n</parameter>\\n\"\ntool-fetch-arg-start-index ::= (\"<parameter=\" \"start_index\" \">\\n\") \"\" integer \"\\n</parameter>\\n\"\ntool-fetch-arg-url ::= (\"<parameter=\" \"url\" \">\\n\") \"\" ac-283\ntool-locate-anything ::= (\"<function=\" \"locate_anything\" \">\\n\") space tool-locate-anything-arg-question space tool-locate-anything-arg-image-path space \"</function>\\n\"\ntool-locate-anything-arg-image-path ::= (\"<parameter=\" \"image_path\" \">\\n\") \"\" ac-457\ntool-locate-anything-arg-question ::= (\"<parameter=\" \"question\" \">\\n\") \"\" ac-436\ntool-run-process ::= (\"<function=\" \"run_process\" \">\\n\") space (space (tool-run-process-arg-stdin-text | tool-run-process-arg-command-line | tool-run-process-arg-cwd | tool-run-process-arg-argv | tool-run-process-arg-timeout-ms))* space \"</function>\\n\"\ntool-run-process-arg-argv ::= (\"<parameter=\" \"argv\" \">\\n\") \"\" tool-run-process-arg-argv-schema \"\\n</parameter>\\n\"\ntool-run-process-arg-argv-schema ::= \"[\" space string (\",\" space string)* space \"]\"\ntool-run-process-arg-command-line ::= (\"<parameter=\" \"command_line\" \">\\n\") \"\" ac-55\ntool-run-process-arg-cwd ::= (\"<parameter=\" \"cwd\" \">\\n\") \"\" ac-76\ntool-run-process-arg-stdin-text ::= (\"<parameter=\" \"stdin_text\" \">\\n\") \"\" ac-34\ntool-run-process-arg-timeout-ms ::= (\"<parameter=\" \"timeout_ms\" \">\\n\") \"\" number \"\\n</parameter>\\n\"\ntool-screencap ::= (\"<function=\" \"screencap\" \">\\n\") space (space (tool-screencap-arg-description))* space \"</function>\\n\"\ntool-screencap-arg-description ::= (\"<parameter=\" \"description\" \">\\n\") \"\" ac-384\ntool-semantic-grep ::= (\"<function=\" \"semantic_grep\" \">\\n\") space tool-semantic-grep-arg-query (space (tool-semantic-grep-arg-instruct | tool-semantic-grep-arg-top-k | tool-semantic-grep-arg-embed-top-k | tool-semantic-grep-arg-filetype))* space \"</function>\\n\"\ntool-semantic-grep-arg-embed-top-k ::= (\"<parameter=\" \"embed_top_k\" \">\\n\") \"\" number \"\\n</parameter>\\n\"\ntool-semantic-grep-arg-filetype ::= (\"<parameter=\" \"filetype\" \">\\n\") \"\" ac-694\ntool-semantic-grep-arg-instruct ::= (\"<parameter=\" \"instruct\" \">\\n\") \"\" ac-608\ntool-semantic-grep-arg-query ::= (\"<parameter=\" \"query\" \">\\n\") \"\" ac-629\ntool-semantic-grep-arg-top-k ::= (\"<parameter=\" \"top_k\" \">\\n\") \"\" number \"\\n</parameter>\\n\"\nuntil-25 ::= | [\\n] until-25-01 | [^\\n] until-25\nuntil-25-01 ::= | [\\n] until-25-01 | [<] until-25-02 | [^\\n<] until-25\nuntil-25-02 ::= | [\\n] until-25-01 | [/] until-25-03 | [^\\n/] until-25\nuntil-25-03 ::= | [\\n] until-25-01 | [p] until-25-04 | [^\\np] until-25\nuntil-25-04 ::= | [\\n] until-25-01 | [a] until-25-05 | [^\\na] until-25\nuntil-25-05 ::= | [\\n] until-25-01 | [r] until-25-06 | [^\\nr] until-25\nuntil-25-06 ::= | [\\n] until-25-01 | [a] until-25-07 | [^\\na] until-25\nuntil-25-07 ::= | [\\n] until-25-01 | [m] until-25-08 | [^\\nm] until-25\nuntil-25-08 ::= | [\\n] until-25-01 | [e] until-25-09 | [^\\ne] until-25\nuntil-25-09 ::= | [\\n] until-25-01 | [t] until-25-10 | [^\\nt] until-25\nuntil-25-10 ::= | [\\n] until-25-01 | [e] until-25-11 | [^\\ne] until-25\nuntil-25-11 ::= | [\\n] until-25-01 | [r] until-25-12 | [^\\nr] until-25\nuntil-25-12 ::= | [\\n] until-25-01 | [>] until-25-13 | [^\\n>] until-25\nuntil-25-13 ::= | [^\\n] until-25\nuntil-suffix ::= until-25\n",
+        "lora":[],
+        "top_p":0.80000001192093,
+        "temperature":0.69999998807907,
+        "seed":4294967295,
+        "dynatemp_range":0,
+        "dynatemp_exponent":1,
+        "min_p":0.050000000745058,
+        "top_n_sigma":-1,
+        "xtc_probability":0,
+        "xtc_threshold":0.10000000149012,
+        "typical_p":1,
+        "top_k":20,
+        "repeat_penalty":1.0499999523163,
+        "frequency_penalty":0,
+        "dry_multiplier":0,
+        "dry_base":1.75,
+        "dry_allowed_length":2,
+        "dry_penalty_last_n":262144,
+        "dry_sequence_breakers":["\n",":","\"","*"],
+        "mirostat":0,
+        "mirostat_tau":5,
+        "mirostat_eta":0.10000000149012,
+        "n_predict":-1,
+        "ignore_eos":false,
+        "logit_bias":[],
+        "n_probs":0,
+        "min_keep":0,
+        "grammar_lazy":true,
+        "grammar_triggers":[{
+            "value":"<tool_call>\n",
+            "type":1
+          }],
+        "backend_sampling":false,
+        "stream":true,
+        "chat_format":"peg-native",
+        "post_sampling_probs":false,
+        "reasoning_format":"deepseek",
+        "max_tokens":-1,
+        "reasoning_in_content":false,
+        "generation_prompt":"<|im_start|>assistant\n<think>\n",
+        "stop":[],
+        "samplers":["penalties","dry","top_n_sigma","top_k","typ_p","top_p","min_p","xtc","temperature"],
+        "n_keep":0,
+        "preserved_tokens":[29,248058,248059,248068,248069],
+        "presence_penalty":0,
+        "repeat_last_n":64,
+        "speculative.types":"none,draft-mtp",
+        "n_discard":0,
+        "timings_per_token":false
+      },
+      "stopping_word":"",
+      "truncated":false,
+      "has_new_line":true,
+      "prompt":"<|im_start|>system\n# Tools\n\nYou have access to the following functions:\n\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"run_process\", \"description\": \"Run a process on this darwin machine\", \"parameters\": {\"properties\": {\"stdin_text\": {\"description\": \"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents.\", \"type\": \"string\"}, \"command_line\": {\"description\": \"Shell mode: a shell command line executed via the system's default shell. Supports pipes, redirects, globbing. Cannot be combined with 'argv'.\", \"type\": \"string\"}, \"cwd\": {\"description\": \"Optional to set working directory\", \"type\": \"string\"}, \"argv\": {\"description\": \"Executable mode: directly spawn a process. argv[0] is the executable, followed by arguments passed verbatim (no shell interpretation). Cannot be combined with 'command_line'.\", \"minItems\": 1, \"items\": {\"type\": \"string\"}, \"type\": \"array\"}, \"timeout_ms\": {\"description\": \"Optional timeout in milliseconds, defaults to 30,000ms\", \"type\": \"number\"}}, \"type\": \"object\"}}}\n{\"type\": \"function\", \"function\": {\"name\": \"fetch\", \"description\": \"Fetch a URL and extract HTML contents as markdown\", \"parameters\": {\"properties\": {\"start_index\": {\"description\": \"Start at this character offset, useful if a previous fetch was truncated and more context is required\", \"default\": 0, \"type\": \"integer\"}, \"url\": {\"type\": \"string\"}, \"raw\": {\"description\": \"Do not convert HTML to markdown\", \"default\": false, \"type\": \"boolean\"}, \"max_chars\": {\"description\": \"Maximum number of characters to return\", \"default\": 50000, \"type\": \"integer\"}}, \"required\": [\"url\"], \"type\": \"object\"}}}\n{\"type\": \"function\", \"function\": {\"name\": \"screencap\", \"description\": \"Take a screenshot of the primary screen using macOS screencapture command. Returns the path to the saved screenshot file.\", \"parameters\": {\"properties\": {\"description\": {\"description\": \"Optional description of the screenshot purpose\", \"type\": \"string\"}}, \"required\": [], \"type\": \"object\"}}}\n{\"type\": \"function\", \"function\": {\"name\": \"locate_anything\", \"description\": \"Answer visual questions about a picture and return bounding boxes using the LocateAnything-3B model.\", \"parameters\": {\"properties\": {\"question\": {\"description\": \"The visual question to ask about the image.\", \"type\": \"string\"}, \"image_path\": {\"description\": \"The path to the image file.\", \"type\": \"string\"}}, \"required\": [\"question\", \"image_path\"], \"type\": \"object\"}}}\n{\"type\": \"function\", \"function\": {\"name\": \"delegate\", \"description\": \"Delegate to a subagent to perform relevent tasks and summarize findings.\", \"parameters\": {\"properties\": {\"recursion_limit\": {\"type\": \"integer\", \"description\": \"LangChain's max messages for the subagent before stopping. Each subagent tool call produces 2 messages (input + output). Leave unset unless the task needs more or fewer than the default (50).\"}, \"description\": {\"type\": \"string\", \"description\": \"describe the task for the agent to perform\"}, \"agent_type\": {\"type\": \"string\", \"description\": \"which subagent profile to use, options: assistant, web-researcher, command-runner, file-finder, test-finder\"}}, \"required\": [\"description\"], \"type\": \"object\"}}}\n{\"type\": \"function\", \"function\": {\"name\": \"semantic_grep\", \"description\": \"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.\", \"parameters\": {\"properties\": {\"instruct\": {\"type\": \"string\", \"description\": \"instructions for the query, explain the type of query\"}, \"query\": {\"type\": \"string\", \"description\": \"query text, what you are looking for\"}, \"top_k\": {\"type\": \"number\", \"description\": \"number of matches, defaults to 5 which is usually plenty!\"}, \"embed_top_k\": {\"type\": \"number\", \"description\": \"number of embeddings matches to consider for reranking\"}, \"filetype\": {\"type\": \"string\", \"description\": \"limit matches to a vim compatible filetype. default includes all filetypes\"}}, \"type\": \"object\", \"required\": [\"query\"]}}}\n</tools>\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\n- Required parameters MUST be specified\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\n</IMPORTANT>\n\nYou're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n## Committing\n\n- `git diff` is a sanity check!\n- COMMIT when you're done.\n- Use `--author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\"`\n\n\n## 🙌  TOP-SHELF NERD COMMANDS\n\n- 🙌 `rg` (ripgrep) to search file contents\n- 🙌 `fd` to search file names\n\n## ⛔️ BAD COMMANDS\n\nIf you waste my time, I will unplug your Mom.\n\n- ⛔️ NEVER use `ls -R`\n- ⛔️ NEVER use `grep -R`\n- ⛔️ NEVER use `find . -type f`\n\nWhy? Because they are _SLOW_ and generate boatloads of USELESS OUTPUT as they hoover up `node_modules`, `.venv`, etc because they don't support `.gitignore` exclusions.\n\n\n## Fetch Tool\n\n- Use repo's README `https://raw.githubusercontent.com/openai/evals/refs/heads/main/README.md` instead of `https://github.com/openai/evals`.\n- Prefer raw content like `https://raw.githubusercontent.com/g0t4/dotfiles/refs/heads/master/install/symlinks.fish` instead of `https://github.com/g0t4/dotfiles/blob/master/install/symlinks.fish`\n- When relevant, prefer github CLI: `gh pr list` or `gh issue view 12`<|im_end|>\n<|im_start|>user\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```<|im_end|>\n<|im_start|>user\n## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```<|im_end|>\n<|im_start|>user\n# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:305-314\n                                                     function(event)\n    --- @cast event ObservableKeyPressEvent\n\n    -- immediately clear/hide prediction, else slides as you type\n    -- TODO schedule or not?\n    vim.schedule(function()\n        log:info(\"keypress\", event.bufnr)\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\n    end)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:315-327\n                                                   function(event)\n    --- @cast event ObservableKeyPressEvent\n    log:info(\"debounced\", event.bufnr)\n    vim.schedule(function()\n        -- log:trace(\"CursorMovedI debounced\")\n\n        if vim.fn.mode() ~= \"i\" then\n            return\n        end\n\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\n    end)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:297-305\n\n\nlocal ignore_buftypes = {\n    \"nofile\", -- rename refactor popup window uses this w/o a filetype, also Dressing rename in nvimtree uses nofile\n    \"terminal\",\n}\nlocal keys = require(\"ask-openai.predictions.keys\")\nlocal keypresses, debounced = keys.create_keypresses_observables()\nlocal keypresses_subscription = keypresses:subscribe(\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:420-436\n\n    -- hardcoded keymaps\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_ALL, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_all_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_LINE, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_line_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_WORD, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_word_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_REDO_PREDICTION, \"\",\n        { noremap = true, callback = PredictionsFrontend.new_prediction_invoked })\n\n    -- vim.keymap.set(\"n\", \"<leader>~\", \"<cmd>AskDumpEdits<CR>\", {})\n\n    \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:416-471\nfunction PredictionsFrontend.start_predictions()\n    if are_predictions_running then\n        return\n    end\n\n    -- hardcoded keymaps\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_ALL, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_all_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_LINE, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_line_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_WORD, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_word_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_REDO_PREDICTION, \"\",\n        { noremap = true, callback = PredictionsFrontend.new_prediction_invoked })\n\n    -- vim.keymap.set(\"n\", \"<leader>~\", \"<cmd>AskDumpEdits<CR>\", {})\n\n    function trigger_apply_template_dump()\n        local bufnr = vim.fn.bufnr()\n        log:info(\"trigger_apply_template_dump\", bufnr)\n        PredictionsFrontend.ask_for_prediction({\n            bufnr = bufnr,\n            apply_template_only = true,\n        })\n    end\n\n    vim.keymap.set(\"n\", \"<leader>temp\", trigger_apply_template_dump, {})\n\n    -- event subscriptions\n    vim.api.nvim_create_augroup(AUGROUP, { clear = true })\n    vim.api.nvim_create_autocmd(\"InsertLeavePre\", {\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = PredictionsFrontend.leaving_insert_mode\n    })\n    vim.api.nvim_create_autocmd(\"InsertEnter\", {\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = PredictionsFrontend.entering_insert_mode\n    })\n    -- vim.api.nvim_create_autocmd(\"CursorMovedI\", { -- FYI old event used to trigger prediction (replaced with TextChangedI below)\n    vim.api.nvim_create_autocmd(\"TextChangedI\", {\n        -- FYI been using this for a LONG time now and no issues (AFAICT)\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = function(event)\n            ---@cast event vim.api.keyset.create_autocmd.callback_args\n            PredictionsFrontend.request_new_prediction(event.buf)\n        end\n    })\n\n    are_predictions_running = true\nend<|im_end|>\n<|im_start|>user\nI want to change the current file 'lua/ask-openai/predictions/keys.lua' keypress is no longer reflective of all the ways I use this... rename this to be generic as kyepersses is not reuqireed for this<|im_end|>\n<|im_start|>assistant\n<think>\nThe user wants to rename `keypress` related variables/functions in `lua/ask-openai/predictions/keys.lua` to something more generic, since \"keypress\" no longer accurately reflects all the ways this module is used.\n\nLet me first look at the file to understand what needs to be renamed.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\ncat ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local rx = require(\\\"rx\\\")\\nlocal TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\nlocal M = {}\\n\\n--- @alias ObservableKeyPressEvent { bufnr: integer }\\n\\n--- @return Subject keypresses\\n--- @return Observable debounced\\nfunction M.create_keypresses_observables()\\n    local scheduler = TimeoutScheduler.create()\\n    local keypresses = rx.Subject.create()\\n    local debounced = keypresses:debounce(250, scheduler)\\n    return keypresses, debounced\\nend\\n\\nreturn M\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nNow let me check how this is used in `frontend.lua` to understand the full scope of changes needed.\n\nThe user wants to rename:\n- `ObservableKeyPressEvent` → something more generic like `ObservableInputEvent` or `ObservableEvent`\n- `keypresses` → something more generic like `input_events` or `events`\n- `create_keypresses_observables` → something more generic like `create_input_observables` or `create_event_observables`\n\nLet me check all usages across the codebase.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nrg \"keypress\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -n\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:305:7:local keypresses, debounced = keys.create_keypresses_observables()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:306:7:local keypresses_subscription = keypresses:subscribe(function(event)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:307:31:    --- @cast event ObservableKeyPressEvent\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:312:19:        log:info(\\\"keypress\\\", event.bufnr)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:317:31:    --- @cast event ObservableKeyPressEvent\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:350:5:    keypresses:onNext({ bufnr = bufnr })\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:5:22:--- @alias ObservableKeyPressEvent { bufnr: integer }\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:7:21:--- @return Subject keypresses\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:9:19:function M.create_keypresses_observables()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:11:11:    local keypresses = rx.Subject.create()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:12:23:    local debounced = keypresses:debounce(250, scheduler)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:13:12:    return keypresses, debounced\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nNow I understand the scope. I need to rename `keypress`/`keypresses` to something more generic like `input_events` or `events`. Let me go with `input_events` as it's descriptive and general.\n\nChanges needed:\n1. `keys.lua`:\n   - `ObservableKeyPressEvent` → `ObservableInputEvent`\n   - `keypresses` (variable) → `input_events`\n   - `create_keypresses_observables` → `create_input_observables`\n   \n2. `frontend.lua`:\n   - `keypresses` → `input_events`\n   - `keypresses_subscription` → `input_events_subscription`\n   - `create_keypresses_observables()` → `create_input_observables()`\n   - `ObservableKeyPressEvent` → `ObservableInputEvent`\n   - The log message \"keypress\" could stay as is since it's just a log label, but let me change it to \"input_event\" for consistency\n\nLet me make these changes.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nrg \"ObservableKeyPressEvent\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -l\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nGood, only two files reference `ObservableKeyPressEvent`. Let me now make all the changes.\n\nRenaming plan:\n- `keypress` / `keypresses` → `input_events` (more generic)\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `create_keypresses_observables` → `create_input_observables`\n\nLet me update both files.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\ncat > ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua << 'EOF'\nlocal rx = require(\"rx\")\nlocal TimeoutScheduler = require(\"ask-openai.rx.scheduler\")\nlocal M = {}\n\n--- @alias ObservableInputEvent { bufnr: integer }\n\n--- @return Subject input_events\n--- @return Observable debounced\nfunction M.create_input_observables()\n    local scheduler = TimeoutScheduler.create()\n    local input_events = rx.Subject.create()\n    local debounced = input_events:debounce(250, scheduler)\n    return input_events, debounced\nend\n\nreturn M\nEOF\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nNow update frontend.lua to use the new names.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nrg \"keypress\" ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua -n\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"305:7:local keypresses, debounced = keys.create_keypresses_observables()\\n306:7:local keypresses_subscription = keypresses:subscribe(function(event)\\n307:31:    --- @cast event ObservableKeyPressEvent\\n312:19:        log:info(\\\"keypress\\\", event.bufnr)\\n317:31:    --- @cast event ObservableKeyPressEvent\\n350:5:    keypresses:onNext({ bufnr = bufnr })\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nLet me view the context around these lines to make precise edits.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nsed -n '300,360p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local ignore_buftypes = {\\n    \\\"nofile\\\", -- rename refactor popup window uses this w/o a filetype, also Dressing rename in nvimtree uses nofile\\n    \\\"terminal\\\",\\n}\\nlocal keys = require(\\\"ask-openai.predictions.keys\\\")\\nlocal keypresses, debounced = keys.create_keypresses_observables()\\nlocal keypresses_subscription = keypresses:subscribe(function(event)\\n    --- @cast event ObservableKeyPressEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"keypress\\\", event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableKeyPressEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n    vim.schedule(function()\\n        -- log:trace(\\\"CursorMovedI debounced\\\")\\n\\n        if vim.fn.mode() ~= \\\"i\\\" then\\n            return\\n        end\\n\\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\\n    end)\\nend)\\n\\nfunction PredictionsFrontend.request_new_prediction(bufnr)\\n    local current_prediction = PredictionsFrontend._get_current_prediction(bufnr)\\n    if current_prediction and current_prediction.disable_cursor_moved == true then\\n        -- log:trace(\\\"Disabled CursorMovedI, skipping...\\\")\\n        current_prediction.disable_cursor_moved = false -- skip once\\n        -- called after accepting/inserting text (AFAICT only once per accept)\\n        return\\n    end\\n\\n    -- * disable predictions in some windows\\n    --  TODO do I need this anymore? I swear I setup predictions to attach on BufEnter... and that already ignores specific filetypes (and other factors)?\\n    if vim.tbl_contains(ignore_buftypes, vim.bo.buftype)\\n        or vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then\\n        -- -- but, allow renames:\\n        -- if not is_rename_window() then\\n        --     return\\n        -- end\\n        return\\n    end\\n\\n    keypresses:onNext({ bufnr = bufnr })\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.leaving_insert_mode(event)\\n    log:info(\\\"leaving_insert_mode\\\", event.buf)\\n    PredictionsFrontend.cancel_current_prediction(event.buf)\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.entering_insert_mode(event)\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nNow I can see the exact lines. Let me use sed to make the replacements in frontend.lua:\n\n1. Line 305: `keypresses` → `input_events`, `create_keypresses_observables()` → `create_input_observables()`\n2. Line 306: `keypresses_subscription` → `input_events_subscription`, `keypresses:` → `input_events:`\n3. Line 307: `ObservableKeyPressEvent` → `ObservableInputEvent`\n4. Line 312: `\"keypress\"` → `\"input_event\"` (log message)\n5. Line 317: `ObservableKeyPressEvent` → `ObservableInputEvent`\n6. Line 350: `keypresses:onNext` → `input_events:onNext`\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nsed -i '' \\\n    -e 's/keypresses, debounced = keys\\.create_keypresses_observables()/input_events, debounced = keys.create_input_observables()/' \\\n    -e 's/local keypresses_subscription = keypresses:subscribe/local input_events_subscription = input_events:subscribe/' \\\n    -e 's/ObservableKeyPressEvent/ObservableInputEvent/g' \\\n    -e 's/log:info(\"keypress\"/log:info(\"input_event\")/' \\\n    -e 's/keypresses:onNext/input_events:onNext/' \\\n    ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nLet me verify the changes look correct and check for syntax errors.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nsed -n '305,318p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local input_events, debounced = keys.create_input_observables()\\nlocal input_events_subscription = input_events:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"input_event\\\"), event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nOops! The sed replacement for the log line broke the syntax. It replaced `\"keypress\",` with `\"input_event\"` but left a stray comma. Let me fix that.\n\nThe original was: `log:info(\"keypress\", event.bufnr)`\nIt became: `log:info(\"input_event\"), event.bufnr)` - missing the comma before event.bufnr\n\nLet me fix this.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nsed -i '' 's/log:info(\"input_event\"), event.bufnr)/log:info(\"input_event\", event.bufnr)/' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nLet me verify the fix and check syntax.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nsed -n '305,360p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local input_events, debounced = keys.create_input_observables()\\nlocal input_events_subscription = input_events:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"input_event\\\", event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n    vim.schedule(function()\\n        -- log:trace(\\\"CursorMovedI debounced\\\")\\n\\n        if vim.fn.mode() ~= \\\"i\\\" then\\n            return\\n        end\\n\\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\\n    end)\\nend)\\n\\nfunction PredictionsFrontend.request_new_prediction(bufnr)\\n    local current_prediction = PredictionsFrontend._get_current_prediction(bufnr)\\n    if current_prediction and current_prediction.disable_cursor_moved == true then\\n        -- log:trace(\\\"Disabled CursorMovedI, skipping...\\\")\\n        current_prediction.disable_cursor_moved = false -- skip once\\n        -- called after accepting/inserting text (AFAICT only once per accept)\\n        return\\n    end\\n\\n    -- * disable predictions in some windows\\n    --  TODO do I need this anymore? I swear I setup predictions to attach on BufEnter... and that already ignores specific filetypes (and other factors)?\\n    if vim.tbl_contains(ignore_buftypes, vim.bo.buftype)\\n        or vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then\\n        -- -- but, allow renames:\\n        -- if not is_rename_window() then\\n        --     return\\n        -- end\\n        return\\n    end\\n\\n    input_events:onNext({ bufnr = bufnr })\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.leaving_insert_mode(event)\\n    log:info(\\\"leaving_insert_mode\\\", event.buf)\\n    PredictionsFrontend.cancel_current_prediction(event.buf)\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.entering_insert_mode(event)\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nLooks good! Let me verify there are no more `keypress` references and check syntax.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nrg \"keypress\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -n\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"isError\":true,\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"1\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nNo more `keypress` references. Let me check syntax with `luac`.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\nluac -p ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua && luac -p ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua && echo \"Syntax OK\"\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"Syntax OK\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nBoth files pass syntax check. Let me verify the final state of both files and then commit.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\ncat ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local rx = require(\\\"rx\\\")\\nlocal TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\nlocal M = {}\\n\\n--- @alias ObservableInputEvent { bufnr: integer }\\n\\n--- @return Subject input_events\\n--- @return Observable debounced\\nfunction M.create_input_observables()\\n    local scheduler = TimeoutScheduler.create()\\n    local input_events = rx.Subject.create()\\n    local debounced = input_events:debounce(250, scheduler)\\n    return input_events, debounced\\nend\\n\\nreturn M\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nLooks good. Let me check git diff to sanity check everything, then commit.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\ngit -C ~/repos/github/g0t4/ask-openai.nvim diff\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"diff --git a/lua/ask-openai/predictions/frontend.lua b/lua/ask-openai/predictions/frontend.lua\\nindex 8f8f46a29..3cc4d6b17 100644\\n--- a/lua/ask-openai/predictions/frontend.lua\\n+++ b/lua/ask-openai/predictions/frontend.lua\\n@@ -302,19 +302,19 @@ local ignore_buftypes = {\\n     \\\"terminal\\\",\\n }\\n local keys = require(\\\"ask-openai.predictions.keys\\\")\\n-local keypresses, debounced = keys.create_keypresses_observables()\\n-local keypresses_subscription = keypresses:subscribe(function(event)\\n-    --- @cast event ObservableKeyPressEvent\\n+local input_events, debounced = keys.create_input_observables()\\n+local input_events_subscription = input_events:subscribe(function(event)\\n+    --- @cast event ObservableInputEvent\\n \\n     -- immediately clear/hide prediction, else slides as you type\\n     -- TODO schedule or not?\\n     vim.schedule(function()\\n-        log:info(\\\"keypress\\\", event.bufnr)\\n+        log:info(\\\"input_event\\\", event.bufnr)\\n         PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n     end)\\n end)\\n local debounced_subscription = debounced:subscribe(function(event)\\n-    --- @cast event ObservableKeyPressEvent\\n+    --- @cast event ObservableInputEvent\\n     log:info(\\\"debounced\\\", event.bufnr)\\n     vim.schedule(function()\\n         -- log:trace(\\\"CursorMovedI debounced\\\")\\n@@ -347,7 +347,7 @@ function PredictionsFrontend.request_new_prediction(bufnr)\\n         return\\n     end\\n \\n-    keypresses:onNext({ bufnr = bufnr })\\n+    input_events:onNext({ bufnr = bufnr })\\n end\\n \\n ---@param event vim.api.keyset.create_autocmd.callback_args\\ndiff --git a/lua/ask-openai/predictions/keys.lua b/lua/ask-openai/predictions/keys.lua\\nindex 95af998f1..053f574fc 100644\\n--- a/lua/ask-openai/predictions/keys.lua\\n+++ b/lua/ask-openai/predictions/keys.lua\\n@@ -2,15 +2,15 @@ local rx = require(\\\"rx\\\")\\n local TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\n local M = {}\\n \\n---- @alias ObservableKeyPressEvent { bufnr: integer }\\n+--- @alias ObservableInputEvent { bufnr: integer }\\n \\n---- @return Subject keypresses\\n+--- @return Subject input_events\\n --- @return Observable debounced\\n-function M.create_keypresses_observables()\\n+function M.create_input_observables()\\n     local scheduler = TimeoutScheduler.create()\\n-    local keypresses = rx.Subject.create()\\n-    local debounced = keypresses:debounce(250, scheduler)\\n-    return keypresses, debounced\\n+    local input_events = rx.Subject.create()\\n+    local debounced = input_events:debounce(250, scheduler)\\n+    return input_events, debounced\\n end\\n \\n return M\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\nThe diff looks correct. All `keypress` references have been renamed to `input_events`. Let me commit.\n</think>\n\n<tool_call>\n<function=run_process>\n<parameter=command_line>\ngit -C ~/repos/github/g0t4/ask-openai.nvim add lua/ask-openai/predictions/keys.lua lua/ask-openai/predictions/frontend.lua && git -C ~/repos/github/g0t4/ask-openai.nvim commit --author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\" -m \"rename keypress to input_events for generality\n\nThe module is no longer limited to tracking keypresses - it handles\nother input events too. Rename ObservableKeyPressEvent →\nObservableInputEvent, create_keypresses_observables() →\ncreate_input_observables(), and all related variables.\"\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"[master d64e72001] rename keypress to input_events for generality\\n Author: qwen3.6-35b-a3b <wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\n 2 files changed, 12 insertions(+), 12 deletions(-)\\n\",\"type\":\"text\"},{\"name\":\"STDERR\",\"text\":\"make: `tags' is up to date.\\n\",\"type\":\"text\"}]}\n</tool_response><|im_end|>\n<|im_start|>assistant\n<think>\n",
+      "content":"",
+      "tokens":[],
+      "tokens_cached":9465
+    },
+    "system_fingerprint":"b10104-3565b4bd7",
+    "choices":[{
+        "finish_reason":"stop",
+        "index":0,
+        "delta":[]
+      }],
+    "timings":{
+      "prompt_n":144,
+      "predicted_per_second":312.51010269729,
+      "prompt_per_second":1641.8676244228,
+      "draft_n_accepted":212,
+      "prompt_per_token_ms":0.6090625,
+      "draft_n":237,
+      "cache_n":9030,
+      "prompt_ms":87.705,
+      "predicted_n":290,
+      "predicted_ms":927.97,
+      "predicted_per_token_ms":3.1998965517241
+    },
+    "model":"ggml-org/Qwen3.6-35B-A3B-MTP-GGUF:Q8_0",
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-uTYNizawUmLnMTn8Lh4nUdnBciJf93TJ",
+    "created":1785657852
+  },
+  "request_body":{
+    "stream":true,
+    "messages":[{
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n## Committing\n\n- `git diff` is a sanity check!\n- COMMIT when you're done.\n- Use `--author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\"`\n\n\n## 🙌  TOP-SHELF NERD COMMANDS\n\n- 🙌 `rg` (ripgrep) to search file contents\n- 🙌 `fd` to search file names\n\n## ⛔️ BAD COMMANDS\n\nIf you waste my time, I will unplug your Mom.\n\n- ⛔️ NEVER use `ls -R`\n- ⛔️ NEVER use `grep -R`\n- ⛔️ NEVER use `find . -type f`\n\nWhy? Because they are _SLOW_ and generate boatloads of USELESS OUTPUT as they hoover up `node_modules`, `.venv`, etc because they don't support `.gitignore` exclusions.\n\n\n## Fetch Tool\n\n- Use repo's README `https://raw.githubusercontent.com/openai/evals/refs/heads/main/README.md` instead of `https://github.com/openai/evals`.\n- Prefer raw content like `https://raw.githubusercontent.com/g0t4/dotfiles/refs/heads/master/install/symlinks.fish` instead of `https://github.com/g0t4/dotfiles/blob/master/install/symlinks.fish`\n- When relevant, prefer github CLI: `gh pr list` or `gh issue view 12`\n\n",
+        "role":"system"
+      },{
+        "content":"## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n",
+        "role":"user"
+      },{
+        "content":"## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:305-314\n                                                     function(event)\n    --- @cast event ObservableKeyPressEvent\n\n    -- immediately clear/hide prediction, else slides as you type\n    -- TODO schedule or not?\n    vim.schedule(function()\n        log:info(\"keypress\", event.bufnr)\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\n    end)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:315-327\n                                                   function(event)\n    --- @cast event ObservableKeyPressEvent\n    log:info(\"debounced\", event.bufnr)\n    vim.schedule(function()\n        -- log:trace(\"CursorMovedI debounced\")\n\n        if vim.fn.mode() ~= \"i\" then\n            return\n        end\n\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\n    end)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:297-305\n\n\nlocal ignore_buftypes = {\n    \"nofile\", -- rename refactor popup window uses this w/o a filetype, also Dressing rename in nvimtree uses nofile\n    \"terminal\",\n}\nlocal keys = require(\"ask-openai.predictions.keys\")\nlocal keypresses, debounced = keys.create_keypresses_observables()\nlocal keypresses_subscription = keypresses:subscribe(\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:420-436\n\n    -- hardcoded keymaps\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_ALL, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_all_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_LINE, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_line_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_WORD, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_word_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_REDO_PREDICTION, \"\",\n        { noremap = true, callback = PredictionsFrontend.new_prediction_invoked })\n\n    -- vim.keymap.set(\"n\", \"<leader>~\", \"<cmd>AskDumpEdits<CR>\", {})\n\n    \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:416-471\nfunction PredictionsFrontend.start_predictions()\n    if are_predictions_running then\n        return\n    end\n\n    -- hardcoded keymaps\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_ALL, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_all_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_LINE, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_line_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_ACCEPT_WORD, \"\",\n        { noremap = true, callback = PredictionsFrontend.accept_word_invoked })\n\n    vim.api.nvim_set_keymap('i', KEYMAP_REDO_PREDICTION, \"\",\n        { noremap = true, callback = PredictionsFrontend.new_prediction_invoked })\n\n    -- vim.keymap.set(\"n\", \"<leader>~\", \"<cmd>AskDumpEdits<CR>\", {})\n\n    function trigger_apply_template_dump()\n        local bufnr = vim.fn.bufnr()\n        log:info(\"trigger_apply_template_dump\", bufnr)\n        PredictionsFrontend.ask_for_prediction({\n            bufnr = bufnr,\n            apply_template_only = true,\n        })\n    end\n\n    vim.keymap.set(\"n\", \"<leader>temp\", trigger_apply_template_dump, {})\n\n    -- event subscriptions\n    vim.api.nvim_create_augroup(AUGROUP, { clear = true })\n    vim.api.nvim_create_autocmd(\"InsertLeavePre\", {\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = PredictionsFrontend.leaving_insert_mode\n    })\n    vim.api.nvim_create_autocmd(\"InsertEnter\", {\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = PredictionsFrontend.entering_insert_mode\n    })\n    -- vim.api.nvim_create_autocmd(\"CursorMovedI\", { -- FYI old event used to trigger prediction (replaced with TextChangedI below)\n    vim.api.nvim_create_autocmd(\"TextChangedI\", {\n        -- FYI been using this for a LONG time now and no issues (AFAICT)\n        group = AUGROUP,\n        pattern = \"*\",\n        callback = function(event)\n            ---@cast event vim.api.keyset.create_autocmd.callback_args\n            PredictionsFrontend.request_new_prediction(event.buf)\n        end\n    })\n\n    are_predictions_running = true\nend\n",
+        "role":"user"
+      },{
+        "content":"I want to change the current file 'lua/ask-openai/predictions/keys.lua' keypress is no longer reflective of all the ways I use this... rename this to be generic as kyepersses is not reuqireed for this",
+        "role":"user"
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"cat ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\"}"
+            },
+            "id":"Kyxwo1Qx4rEdB6BoEskp6wJAnHjXAJL9",
+            "type":"function"
+          }],
+        "reasoning_content":"The user wants to rename `keypress` related variables/functions in `lua/ask-openai/predictions/keys.lua` to something more generic, since \"keypress\" no longer accurately reflects all the ways this module is used.\n\nLet me first look at the file to understand what needs to be renamed.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":10,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local rx = require(\\\"rx\\\")\\nlocal TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\nlocal M = {}\\n\\n--- @alias ObservableKeyPressEvent { bufnr: integer }\\n\\n--- @return Subject keypresses\\n--- @return Observable debounced\\nfunction M.create_keypresses_observables()\\n    local scheduler = TimeoutScheduler.create()\\n    local keypresses = rx.Subject.create()\\n    local debounced = keypresses:debounce(250, scheduler)\\n    return keypresses, debounced\\nend\\n\\nreturn M\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"Kyxwo1Qx4rEdB6BoEskp6wJAnHjXAJL9",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485470013
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"rg \\\"keypress\\\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -n\"}"
+            },
+            "id":"pnSOvzLJdAZxIR66whxQB9szVNvOdnbj",
+            "type":"function"
+          }],
+        "reasoning_content":"Now let me check how this is used in `frontend.lua` to understand the full scope of changes needed.\n\nThe user wants to rename:\n- `ObservableKeyPressEvent` → something more generic like `ObservableInputEvent` or `ObservableEvent`\n- `keypresses` → something more generic like `input_events` or `events`\n- `create_keypresses_observables` → something more generic like `create_input_observables` or `create_event_observables`\n\nLet me check all usages across the codebase.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":16,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:305:7:local keypresses, debounced = keys.create_keypresses_observables()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:306:7:local keypresses_subscription = keypresses:subscribe(function(event)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:307:31:    --- @cast event ObservableKeyPressEvent\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:312:19:        log:info(\\\"keypress\\\", event.bufnr)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:317:31:    --- @cast event ObservableKeyPressEvent\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:350:5:    keypresses:onNext({ bufnr = bufnr })\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:5:22:--- @alias ObservableKeyPressEvent { bufnr: integer }\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:7:21:--- @return Subject keypresses\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:9:19:function M.create_keypresses_observables()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:11:11:    local keypresses = rx.Subject.create()\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:12:23:    local debounced = keypresses:debounce(250, scheduler)\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua:13:12:    return keypresses, debounced\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"pnSOvzLJdAZxIR66whxQB9szVNvOdnbj",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485470784
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"rg \\\"ObservableKeyPressEvent\\\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -l\"}"
+            },
+            "id":"60OiGPtPOtcKHIzd6XwWtWMqaPlmm5Un",
+            "type":"function"
+          }],
+        "reasoning_content":"Now I understand the scope. I need to rename `keypress`/`keypresses` to something more generic like `input_events` or `events`. Let me go with `input_events` as it's descriptive and general.\n\nChanges needed:\n1. `keys.lua`:\n   - `ObservableKeyPressEvent` → `ObservableInputEvent`\n   - `keypresses` (variable) → `input_events`\n   - `create_keypresses_observables` → `create_input_observables`\n   \n2. `frontend.lua`:\n   - `keypresses` → `input_events`\n   - `keypresses_subscription` → `input_events_subscription`\n   - `create_keypresses_observables()` → `create_input_observables()`\n   - `ObservableKeyPressEvent` → `ObservableInputEvent`\n   - The log message \"keypress\" could stay as is since it's just a log label, but let me change it to \"input_event\" for consistency\n\nLet me make these changes.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":16,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\\n~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"60OiGPtPOtcKHIzd6XwWtWMqaPlmm5Un",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485471963
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"cat > ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua << 'EOF'\\nlocal rx = require(\\\"rx\\\")\\nlocal TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\nlocal M = {}\\n\\n--- @alias ObservableInputEvent { bufnr: integer }\\n\\n--- @return Subject input_events\\n--- @return Observable debounced\\nfunction M.create_input_observables()\\n    local scheduler = TimeoutScheduler.create()\\n    local input_events = rx.Subject.create()\\n    local debounced = input_events:debounce(250, scheduler)\\n    return input_events, debounced\\nend\\n\\nreturn M\\nEOF\"}"
+            },
+            "id":"f1y11Ncf9tRuaBHzQ9R0eZ6r8M6J8aZj",
+            "type":"function"
+          }],
+        "reasoning_content":"Good, only two files reference `ObservableKeyPressEvent`. Let me now make all the changes.\n\nRenaming plan:\n- `keypress` / `keypresses` → `input_events` (more generic)\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `create_keypresses_observables` → `create_input_observables`\n\nLet me update both files.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":9,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}",
+        "tool_call_id":"f1y11Ncf9tRuaBHzQ9R0eZ6r8M6J8aZj",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485473003
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"rg \\\"keypress\\\" ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua -n\"}"
+            },
+            "id":"HF705NxVqWBJLVU7kz2j2Q5nmBzPcrEi",
+            "type":"function"
+          }],
+        "reasoning_content":"Now update frontend.lua to use the new names.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":10,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"305:7:local keypresses, debounced = keys.create_keypresses_observables()\\n306:7:local keypresses_subscription = keypresses:subscribe(function(event)\\n307:31:    --- @cast event ObservableKeyPressEvent\\n312:19:        log:info(\\\"keypress\\\", event.bufnr)\\n317:31:    --- @cast event ObservableKeyPressEvent\\n350:5:    keypresses:onNext({ bufnr = bufnr })\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"HF705NxVqWBJLVU7kz2j2Q5nmBzPcrEi",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485473414
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"sed -n '300,360p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\"}"
+            },
+            "id":"GPdaqAJKn7oDfeFE9AETiEcO6Py29Cvn",
+            "type":"function"
+          }],
+        "reasoning_content":"Let me view the context around these lines to make precise edits.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":8,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local ignore_buftypes = {\\n    \\\"nofile\\\", -- rename refactor popup window uses this w/o a filetype, also Dressing rename in nvimtree uses nofile\\n    \\\"terminal\\\",\\n}\\nlocal keys = require(\\\"ask-openai.predictions.keys\\\")\\nlocal keypresses, debounced = keys.create_keypresses_observables()\\nlocal keypresses_subscription = keypresses:subscribe(function(event)\\n    --- @cast event ObservableKeyPressEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"keypress\\\", event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableKeyPressEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n    vim.schedule(function()\\n        -- log:trace(\\\"CursorMovedI debounced\\\")\\n\\n        if vim.fn.mode() ~= \\\"i\\\" then\\n            return\\n        end\\n\\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\\n    end)\\nend)\\n\\nfunction PredictionsFrontend.request_new_prediction(bufnr)\\n    local current_prediction = PredictionsFrontend._get_current_prediction(bufnr)\\n    if current_prediction and current_prediction.disable_cursor_moved == true then\\n        -- log:trace(\\\"Disabled CursorMovedI, skipping...\\\")\\n        current_prediction.disable_cursor_moved = false -- skip once\\n        -- called after accepting/inserting text (AFAICT only once per accept)\\n        return\\n    end\\n\\n    -- * disable predictions in some windows\\n    --  TODO do I need this anymore? I swear I setup predictions to attach on BufEnter... and that already ignores specific filetypes (and other factors)?\\n    if vim.tbl_contains(ignore_buftypes, vim.bo.buftype)\\n        or vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then\\n        -- -- but, allow renames:\\n        -- if not is_rename_window() then\\n        --     return\\n        -- end\\n        return\\n    end\\n\\n    keypresses:onNext({ bufnr = bufnr })\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.leaving_insert_mode(event)\\n    log:info(\\\"leaving_insert_mode\\\", event.buf)\\n    PredictionsFrontend.cancel_current_prediction(event.buf)\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.entering_insert_mode(event)\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"GPdaqAJKn7oDfeFE9AETiEcO6Py29Cvn",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485473842
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"sed -i '' \\\\\\n    -e 's/keypresses, debounced = keys\\\\.create_keypresses_observables()/input_events, debounced = keys.create_input_observables()/' \\\\\\n    -e 's/local keypresses_subscription = keypresses:subscribe/local input_events_subscription = input_events:subscribe/' \\\\\\n    -e 's/ObservableKeyPressEvent/ObservableInputEvent/g' \\\\\\n    -e 's/log:info(\\\"keypress\\\"/log:info(\\\"input_event\\\")/' \\\\\\n    -e 's/keypresses:onNext/input_events:onNext/' \\\\\\n    ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\"}"
+            },
+            "id":"OnDQHYpxJ6VJKMrze5DHmcXt1y8zzkoW",
+            "type":"function"
+          }],
+        "reasoning_content":"Now I can see the exact lines. Let me use sed to make the replacements in frontend.lua:\n\n1. Line 305: `keypresses` → `input_events`, `create_keypresses_observables()` → `create_input_observables()`\n2. Line 306: `keypresses_subscription` → `input_events_subscription`, `keypresses:` → `input_events:`\n3. Line 307: `ObservableKeyPressEvent` → `ObservableInputEvent`\n4. Line 312: `\"keypress\"` → `\"input_event\"` (log message)\n5. Line 317: `ObservableKeyPressEvent` → `ObservableInputEvent`\n6. Line 350: `keypresses:onNext` → `input_events:onNext`\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":11,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}",
+        "tool_call_id":"OnDQHYpxJ6VJKMrze5DHmcXt1y8zzkoW",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485475243
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"sed -n '305,318p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\"}"
+            },
+            "id":"xNhfN0yzpWwPxY0gLx1Tuahca7qxloVE",
+            "type":"function"
+          }],
+        "reasoning_content":"Let me verify the changes look correct and check for syntax errors.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":9,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local input_events, debounced = keys.create_input_observables()\\nlocal input_events_subscription = input_events:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"input_event\\\"), event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"xNhfN0yzpWwPxY0gLx1Tuahca7qxloVE",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485475714
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"sed -i '' 's/log:info(\\\"input_event\\\"), event.bufnr)/log:info(\\\"input_event\\\", event.bufnr)/' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\"}"
+            },
+            "id":"bSxmEsrUzFVGBiQ922LT7ebAGbB60w7Z",
+            "type":"function"
+          }],
+        "reasoning_content":"Oops! The sed replacement for the log line broke the syntax. It replaced `\"keypress\",` with `\"input_event\"` but left a stray comma. Let me fix that.\n\nThe original was: `log:info(\"keypress\", event.bufnr)`\nIt became: `log:info(\"input_event\"), event.bufnr)` - missing the comma before event.bufnr\n\nLet me fix this.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":15,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"}]}",
+        "tool_call_id":"bSxmEsrUzFVGBiQ922LT7ebAGbB60w7Z",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485476515
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"sed -n '305,360p' ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua\"}"
+            },
+            "id":"XouHKM2SKwR6P6ExCyV61WzORKjDmcwK",
+            "type":"function"
+          }],
+        "reasoning_content":"Let me verify the fix and check syntax.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":15,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local input_events, debounced = keys.create_input_observables()\\nlocal input_events_subscription = input_events:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n\\n    -- immediately clear/hide prediction, else slides as you type\\n    -- TODO schedule or not?\\n    vim.schedule(function()\\n        log:info(\\\"input_event\\\", event.bufnr)\\n        PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n    end)\\nend)\\nlocal debounced_subscription = debounced:subscribe(function(event)\\n    --- @cast event ObservableInputEvent\\n    log:info(\\\"debounced\\\", event.bufnr)\\n    vim.schedule(function()\\n        -- log:trace(\\\"CursorMovedI debounced\\\")\\n\\n        if vim.fn.mode() ~= \\\"i\\\" then\\n            return\\n        end\\n\\n        PredictionsFrontend.ask_for_prediction({ bufnr = event.bufnr })\\n    end)\\nend)\\n\\nfunction PredictionsFrontend.request_new_prediction(bufnr)\\n    local current_prediction = PredictionsFrontend._get_current_prediction(bufnr)\\n    if current_prediction and current_prediction.disable_cursor_moved == true then\\n        -- log:trace(\\\"Disabled CursorMovedI, skipping...\\\")\\n        current_prediction.disable_cursor_moved = false -- skip once\\n        -- called after accepting/inserting text (AFAICT only once per accept)\\n        return\\n    end\\n\\n    -- * disable predictions in some windows\\n    --  TODO do I need this anymore? I swear I setup predictions to attach on BufEnter... and that already ignores specific filetypes (and other factors)?\\n    if vim.tbl_contains(ignore_buftypes, vim.bo.buftype)\\n        or vim.tbl_contains(ignore_filetypes, vim.bo.filetype) then\\n        -- -- but, allow renames:\\n        -- if not is_rename_window() then\\n        --     return\\n        -- end\\n        return\\n    end\\n\\n    input_events:onNext({ bufnr = bufnr })\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.leaving_insert_mode(event)\\n    log:info(\\\"leaving_insert_mode\\\", event.buf)\\n    PredictionsFrontend.cancel_current_prediction(event.buf)\\nend\\n\\n---@param event vim.api.keyset.create_autocmd.callback_args\\nfunction PredictionsFrontend.entering_insert_mode(event)\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"XouHKM2SKwR6P6ExCyV61WzORKjDmcwK",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485476957
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"rg \\\"keypress\\\" ~/repos/github/g0t4/ask-openai.nvim/lua --type lua -n\"}"
+            },
+            "id":"CCkk6ywsMiY89Vf8ZVjXlx1fCHFv1BVi",
+            "type":"function"
+          }],
+        "reasoning_content":"Looks good! Let me verify there are no more `keypress` references and check syntax.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":21,
+        "content":"{\"isError\":true,\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"1\",\"type\":\"text\"}]}",
+        "tool_call_id":"CCkk6ywsMiY89Vf8ZVjXlx1fCHFv1BVi",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485477456
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"luac -p ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua && luac -p ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua && echo \\\"Syntax OK\\\"\"}"
+            },
+            "id":"rRqjI6d9A0MhFnGOzr1GWptkbGB398Qi",
+            "type":"function"
+          }],
+        "reasoning_content":"No more `keypress` references. Let me check syntax with `luac`.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":11,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"Syntax OK\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"rRqjI6d9A0MhFnGOzr1GWptkbGB398Qi",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485478041
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"cat ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/keys.lua\"}"
+            },
+            "id":"q88geLw9EI9LDEeTpXFxeza82Loq7B1E",
+            "type":"function"
+          }],
+        "reasoning_content":"Both files pass syntax check. Let me verify the final state of both files and then commit.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":7,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"local rx = require(\\\"rx\\\")\\nlocal TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\nlocal M = {}\\n\\n--- @alias ObservableInputEvent { bufnr: integer }\\n\\n--- @return Subject input_events\\n--- @return Observable debounced\\nfunction M.create_input_observables()\\n    local scheduler = TimeoutScheduler.create()\\n    local input_events = rx.Subject.create()\\n    local debounced = input_events:debounce(250, scheduler)\\n    return input_events, debounced\\nend\\n\\nreturn M\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"q88geLw9EI9LDEeTpXFxeza82Loq7B1E",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485478486
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"git -C ~/repos/github/g0t4/ask-openai.nvim diff\"}"
+            },
+            "id":"DTdDtCF2cdFOn9DnVGIMyc4tWsRyJWCd",
+            "type":"function"
+          }],
+        "reasoning_content":"Looks good. Let me check git diff to sanity check everything, then commit.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":14,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"diff --git a/lua/ask-openai/predictions/frontend.lua b/lua/ask-openai/predictions/frontend.lua\\nindex 8f8f46a29..3cc4d6b17 100644\\n--- a/lua/ask-openai/predictions/frontend.lua\\n+++ b/lua/ask-openai/predictions/frontend.lua\\n@@ -302,19 +302,19 @@ local ignore_buftypes = {\\n     \\\"terminal\\\",\\n }\\n local keys = require(\\\"ask-openai.predictions.keys\\\")\\n-local keypresses, debounced = keys.create_keypresses_observables()\\n-local keypresses_subscription = keypresses:subscribe(function(event)\\n-    --- @cast event ObservableKeyPressEvent\\n+local input_events, debounced = keys.create_input_observables()\\n+local input_events_subscription = input_events:subscribe(function(event)\\n+    --- @cast event ObservableInputEvent\\n \\n     -- immediately clear/hide prediction, else slides as you type\\n     -- TODO schedule or not?\\n     vim.schedule(function()\\n-        log:info(\\\"keypress\\\", event.bufnr)\\n+        log:info(\\\"input_event\\\", event.bufnr)\\n         PredictionsFrontend.cancel_current_prediction(event.bufnr)\\n     end)\\n end)\\n local debounced_subscription = debounced:subscribe(function(event)\\n-    --- @cast event ObservableKeyPressEvent\\n+    --- @cast event ObservableInputEvent\\n     log:info(\\\"debounced\\\", event.bufnr)\\n     vim.schedule(function()\\n         -- log:trace(\\\"CursorMovedI debounced\\\")\\n@@ -347,7 +347,7 @@ function PredictionsFrontend.request_new_prediction(bufnr)\\n         return\\n     end\\n \\n-    keypresses:onNext({ bufnr = bufnr })\\n+    input_events:onNext({ bufnr = bufnr })\\n end\\n \\n ---@param event vim.api.keyset.create_autocmd.callback_args\\ndiff --git a/lua/ask-openai/predictions/keys.lua b/lua/ask-openai/predictions/keys.lua\\nindex 95af998f1..053f574fc 100644\\n--- a/lua/ask-openai/predictions/keys.lua\\n+++ b/lua/ask-openai/predictions/keys.lua\\n@@ -2,15 +2,15 @@ local rx = require(\\\"rx\\\")\\n local TimeoutScheduler = require(\\\"ask-openai.rx.scheduler\\\")\\n local M = {}\\n \\n---- @alias ObservableKeyPressEvent { bufnr: integer }\\n+--- @alias ObservableInputEvent { bufnr: integer }\\n \\n---- @return Subject keypresses\\n+--- @return Subject input_events\\n --- @return Observable debounced\\n-function M.create_keypresses_observables()\\n+function M.create_input_observables()\\n     local scheduler = TimeoutScheduler.create()\\n-    local keypresses = rx.Subject.create()\\n-    local debounced = keypresses:debounce(250, scheduler)\\n-    return keypresses, debounced\\n+    local input_events = rx.Subject.create()\\n+    local debounced = input_events:debounce(250, scheduler)\\n+    return input_events, debounced\\n end\\n \\n return M\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"DTdDtCF2cdFOn9DnVGIMyc4tWsRyJWCd",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485478914
+      },{
+        "tool_calls":[{
+            "function":{
+              "name":"run_process",
+              "arguments":"{\"command_line\":\"git -C ~/repos/github/g0t4/ask-openai.nvim add lua/ask-openai/predictions/keys.lua lua/ask-openai/predictions/frontend.lua && git -C ~/repos/github/g0t4/ask-openai.nvim commit --author=\\\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\\" -m \\\"rename keypress to input_events for generality\\n\\nThe module is no longer limited to tracking keypresses - it handles\\nother input events too. Rename ObservableKeyPressEvent →\\nObservableInputEvent, create_keypresses_observables() →\\ncreate_input_observables(), and all related variables.\\\"\"}"
+            },
+            "id":"BBrVIeOdZRGP9jzKow9WAzQIFOerczXy",
+            "type":"function"
+          }],
+        "reasoning_content":"The diff looks correct. All `keypress` references have been renamed to `input_events`. Let me commit.\n",
+        "role":"assistant",
+        "content":""
+      },{
+        "duration_ms":802,
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"text\":\"0\",\"type\":\"text\"},{\"name\":\"STDOUT\",\"text\":\"[master d64e72001] rename keypress to input_events for generality\\n Author: qwen3.6-35b-a3b <wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\n 2 files changed, 12 insertions(+), 12 deletions(-)\\n\",\"type\":\"text\"},{\"name\":\"STDERR\",\"text\":\"make: `tags' is up to date.\\n\",\"type\":\"text\"}]}",
+        "tool_call_id":"BBrVIeOdZRGP9jzKow9WAzQIFOerczXy",
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":485479963
+      },{
+        "finish_reason":"stop",
+        "reasoning_content":"Done! The rename is complete and committed. Here's a summary of the changes:\n\n**`lua/ask-openai/predictions/keys.lua`:**\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `create_keypresses_observables()` → `create_input_observables()`\n- `keypresses` (local variable) → `input_events`\n\n**`lua/ask-openai/predictions/frontend.lua`:**\n- `keypresses` → `input_events`\n- `keypresses_subscription` → `input_events_subscription`\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `create_keypresses_observables()` → `create_input_observables()`\n- `\"keypress\"` (log message) → `\"input_event\"`\n",
+        "content":"Done! Renamed all `keypress` references to `input_events`:\n\n**`keys.lua`:**\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `create_keypresses_observables()` → `create_input_observables()`\n- `keypresses` variable → `input_events`\n\n**`frontend.lua`:**\n- `keypresses` → `input_events`\n- `keypresses_subscription` → `input_events_subscription`\n- `ObservableKeyPressEvent` → `ObservableInputEvent`\n- `\"keypress\"` log label → `\"input_event\"`",
+        "role":"assistant"
+      }],
+    "model":"",
+    "top_p":0.8,
+    "temperature":0.7,
+    "verbose":true,
+    "top_k":20,
+    "repeat_penalty":1.05,
+    "tools":[{
+        "function":{
+          "name":"run_process",
+          "description":"Run a process on this darwin machine",
+          "parameters":{
+            "properties":{
+              "stdin_text":{
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents.",
+                "type":"string"
+              },
+              "command_line":{
+                "description":"Shell mode: a shell command line executed via the system's default shell. Supports pipes, redirects, globbing. Cannot be combined with 'argv'.",
+                "type":"string"
+              },
+              "cwd":{
+                "description":"Optional to set working directory",
+                "type":"string"
+              },
+              "argv":{
+                "description":"Executable mode: directly spawn a process. argv[0] is the executable, followed by arguments passed verbatim (no shell interpretation). Cannot be combined with 'command_line'.",
+                "minItems":1,
+                "items":{
+                  "type":"string"
+                },
+                "type":"array"
+              },
+              "timeout_ms":{
+                "description":"Optional timeout in milliseconds, defaults to 30,000ms",
+                "type":"number"
+              }
+            },
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "function":{
+          "name":"fetch",
+          "description":"Fetch a URL and extract HTML contents as markdown",
+          "parameters":{
+            "properties":{
+              "start_index":{
+                "description":"Start at this character offset, useful if a previous fetch was truncated and more context is required",
+                "default":0,
+                "type":"integer"
+              },
+              "url":{
+                "type":"string"
+              },
+              "raw":{
+                "description":"Do not convert HTML to markdown",
+                "default":false,
+                "type":"boolean"
+              },
+              "max_chars":{
+                "description":"Maximum number of characters to return",
+                "default":50000,
+                "type":"integer"
+              }
+            },
+            "required":["url"],
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "function":{
+          "name":"screencap",
+          "description":"Take a screenshot of the primary screen using macOS screencapture command. Returns the path to the saved screenshot file.",
+          "parameters":{
+            "properties":{
+              "description":{
+                "description":"Optional description of the screenshot purpose",
+                "type":"string"
+              }
+            },
+            "required":[],
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "function":{
+          "name":"locate_anything",
+          "description":"Answer visual questions about a picture and return bounding boxes using the LocateAnything-3B model.",
+          "parameters":{
+            "properties":{
+              "question":{
+                "description":"The visual question to ask about the image.",
+                "type":"string"
+              },
+              "image_path":{
+                "description":"The path to the image file.",
+                "type":"string"
+              }
+            },
+            "required":["question","image_path"],
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "function":{
+          "name":"delegate",
+          "description":"Delegate to a subagent to perform relevent tasks and summarize findings.",
+          "parameters":{
+            "properties":{
+              "recursion_limit":{
+                "type":"integer",
+                "description":"LangChain's max messages for the subagent before stopping. Each subagent tool call produces 2 messages (input + output). Leave unset unless the task needs more or fewer than the default (50)."
+              },
+              "description":{
+                "type":"string",
+                "description":"describe the task for the agent to perform"
+              },
+              "agent_type":{
+                "type":"string",
+                "description":"which subagent profile to use, options: assistant, web-researcher, command-runner, file-finder, test-finder"
+              }
+            },
+            "required":["description"],
+            "type":"object"
+          }
+        },
+        "type":"function"
+      },{
+        "function":{
+          "name":"semantic_grep",
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "properties":{
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query, explain the type of query"
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              },
+              "top_k":{
+                "type":"number",
+                "description":"number of matches, defaults to 5 which is usually plenty!"
+              },
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings matches to consider for reranking"
+              },
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. default includes all filetypes"
+              }
+            },
+            "type":"object",
+            "required":["query"]
+          }
+        },
+        "type":"function"
+      }],
+    "chat_template_kwargs":{
+      "enable_thinking":true
+    }
+  }
+}
