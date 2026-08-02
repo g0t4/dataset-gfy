@@ -1,0 +1,13 @@
+fim_evals:
+  - only accept one right answer PredictionsFrontend (as was returned by gptoss)
+     and FYI... this is b/c the next step is to inline the simplification
+  - FYI I would probably avoid fine tuning on this trace, rather this serves as an eval only
+    why? because although I want a model to fix this, I don't want it being biased to believe this is the type of code it should write!
+    not sure if that's a good reason to use this for eval only?
+rewrite_evals:
+  - could select text and have it corrected (only select the variable declaration so the next step to simplify isn't part of it)
+edits_evals:
+  - this is a STELLAR example of using my new idea for edits
+  - just put cursor within scope of the code to simplify (i.e. next to pointless require call)
+    and it should propose removing the variable declared here.. and inlining PredictionsFrontend in all usages of predictions_frontend
+  - ok yeah now I recall I just moved this recently from a diff setup spot... and just needed to cleanup!
