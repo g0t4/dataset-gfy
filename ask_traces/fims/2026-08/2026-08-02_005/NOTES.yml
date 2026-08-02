@@ -1,0 +1,26 @@
+fim_evals:
+  - ok this is a FANTASTIC eval to have, tests deep understanding of surrounding context
+    as well as understanding the idea beyond a typing debounce operator in rx land
+    basically can the model understand that after the debounce delay that the last key is all that would be emitted?
+  - partial credit for whitespace differences?
+    trailing comma vs not is also possible?
+    llm judge if not exact match to expected lines...
+    - partial credit for first line (1/i) but not if second line is the only line generated as that would be out of order
+    - lets adjust scenario so <|CURSOR_IS_HERE|> is at start of line to avoid indent duplication concerns
+      again, my tooling dedupes that so it is NBD
+language: lua
+tags:
+  - challenging logic
+subjects:
+  - logic over time domain
+  - debounce
+  - reactive_streams
+  - testing
+
+answer: |
+                { bufnr = 1, value = "i" },
+                { bufnr = 2, value = "b" }
+
+trailing_comma_is_ok: |
+                { bufnr = 1, value = "i" },
+                { bufnr = 2, value = "b" },
