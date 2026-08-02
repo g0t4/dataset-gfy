@@ -1,0 +1,11 @@
+fim_evals:
+  - highly subjective for what the model can generate
+  - llm judge only
+  - I want a few test cases for bufnr 2
+  - TODO also I would like to drop the comment for the -- bufnr2 and really the model should know to add that!
+     + test cases (inputs)
+     + bonus give me the assertions!
+language: lua
+tags:
+  - creativity
+  - highly_subjective
