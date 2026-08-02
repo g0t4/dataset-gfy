@@ -221,10 +221,10 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
         return "incorrect", f"judge returned unparseable JSON: {raw!r}", judge_model_name
 
 
-def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict], invoke_kwargs: dict, trace: bool):
+def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict], invoke_kwargs: dict, trace: bool, extra_body: dict | None = None):
     """Stream a completion, optionally echoing tokens to stderr as they arrive.
 
-    Passes extra_body={"verbose": True} so llama-server attaches its own
+    Passes extra_body={"verbose": True, ...} so llama-server attaches its own
     "timings" block (predicted_n, predicted_per_second, draft accept stats,
     etc) to the finish-reason chunk -- richer than the standard OpenAI
     "usage" field, and unlike usage it doesn't require a separate trailing
@@ -243,8 +243,9 @@ def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict]
     message = None
     timings = None
     error = None
+    body = {"verbose": True, **(extra_body or {})}
     try:
-        for chunk in model_client.stream(prompt_messages, extra_body={"verbose": True}, **invoke_kwargs):
+        for chunk in model_client.stream(prompt_messages, extra_body=body, **invoke_kwargs):
             debug_info = getattr(chunk, "debug", None)
             if debug_info is not None and debug_info.timings:
                 timings = debug_info.timings
@@ -300,6 +301,13 @@ def main():
                               "as they arrive, instead of waiting for the full response -- also means a "
                               "client-side timeout still leaves you with whatever was streamed so far, dumped "
                               "to debug_dumps, instead of nothing")
+    parser.add_argument("--reasoning", choices=["on", "off"], default="on",
+                         help="toggle thinking/reasoning on the model under test (default: on). 'off' sends "
+                              "chat_template_kwargs={enable_thinking: false}, which Qwen3-family templates honor "
+                              "to skip the <think> block entirely -- lets you A/B the same cases with reasoning "
+                              "on vs off. No effect on models/templates that don't support the toggle (llama-server "
+                              "just ignores the unrecognized template kwarg). Only affects the model under test, "
+                              "never the judge.")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -335,7 +343,8 @@ def main():
         invoke_kwargs = {"temperature": args.temperature}
         if args.max_tokens not in (0, -1):
             invoke_kwargs["max_tokens"] = args.max_tokens
-        ai_message, timings, stream_error = stream_completion(model_client, prompt_messages, invoke_kwargs, args.trace)
+        extra_body = {"chat_template_kwargs": {"enable_thinking": False}} if args.reasoning == "off" else None
+        ai_message, timings, stream_error = stream_completion(model_client, prompt_messages, invoke_kwargs, args.trace, extra_body)
         candidate = (ai_message.content if ai_message else "") or ""
         finish_reason = ai_message.response_metadata.get("finish_reason") if ai_message else None
         model_name = (ai_message.response_metadata.get("model_name") if ai_message else None) or "unknown"
@@ -399,10 +408,10 @@ def main():
                    f"name across cases: {judge_model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_judge_model = next(iter(judge_model_names), None)
 
-    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, results, dump_dir)
+    print_report(resolved_model, args.port, resolved_judge_model, args.judge_port, args.cursor_marker, args.reasoning, results, dump_dir)
 
     if args.save:
-        save_results(resolved_model, args.cursor_marker, results)
+        save_results(resolved_model, args.cursor_marker, args.reasoning, results)
 
 
 RESULT_ICON = {"correct": "✅", "partial": "⚠️ ", "incorrect": "❌"}
@@ -417,7 +426,7 @@ def print_result_block(r: Result) -> None:
         print(f"   reason   : {r.reason}")
 
 
-def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, results: list[Result], dump_dir: Path):
+def print_report(model: str, port: int, judge_model: str | None, judge_port: int | None, cursor_marker: str, reasoning: str, results: list[Result], dump_dir: Path):
     import rich
     print()
     rich.print(f"FIM eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
@@ -425,6 +434,8 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
         rich.print(f"           judge: [bold black on bright_cyan] {judge_model} [/]  (port {judge_port})")
     if cursor_marker != DEFAULT_CURSOR_MARKER:
         rich.print(f"    cursor marker: [bold black on bright_magenta] {cursor_marker} [/]  (swept from default {DEFAULT_CURSOR_MARKER!r})")
+    if reasoning == "off":
+        rich.print(f"        reasoning: [bold black on bright_red] off [/]  (chat_template_kwargs.enable_thinking=false)")
     print(f"trace dumps: {dump_dir}")
     print("=" * 60)
     for r in results:
@@ -438,12 +449,13 @@ def print_report(model: str, port: int, judge_model: str | None, judge_port: int
     print(f"{correct}/{total} correct, {partial}/{total} partial, {incorrect}/{total} incorrect")
 
 
-def save_results(model: str, cursor_marker: str, results: list[Result]):
+def save_results(model: str, cursor_marker: str, reasoning: str, results: list[Result]):
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     safe_model = re.sub(r"[^A-Za-z0-9_.-]", "_", model)
-    out_path = FIM_DIR / "results" / f"{ts}-{safe_model}.json"
+    suffix = "-noreasoning" if reasoning == "off" else ""
+    out_path = FIM_DIR / "results" / f"{ts}-{safe_model}{suffix}.json"
     out_path.parent.mkdir(exist_ok=True)
-    out_path.write_text(json.dumps({"model": model, "cursor_marker": cursor_marker, "results": [asdict(r) for r in results]}, indent=2))
+    out_path.write_text(json.dumps({"model": model, "cursor_marker": cursor_marker, "reasoning": reasoning, "results": [asdict(r) for r in results]}, indent=2))
     print(f"\nsaved: {out_path}")
 
 
