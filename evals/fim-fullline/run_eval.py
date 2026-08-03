@@ -26,7 +26,6 @@ import argparse
 import json
 import re
 import sys
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,12 +43,6 @@ FIM_DIR = Path(__file__).resolve().parent
 
 PAXY_HOST = "paxy.lan"
 PAXY_HARDWARE = "2x NVIDIA RTX PRO 6000 Blackwell 96GB"
-
-# llama-server can be briefly unreachable (e.g. mid-restart while swapping which
-# model is loaded on a given port) -- retry connection errors a few times before
-# giving up, rather than either hanging forever or (worse) crashing the whole run.
-CONNECTION_RETRY_ATTEMPTS = 3
-CONNECTION_RETRY_DELAY_SECONDS = 5.0
 
 
 @dataclass
@@ -155,8 +148,41 @@ def swap_cursor_marker(prompt_messages: list[dict], marker: str) -> list[dict]:
     return [{**m, "content": m["content"].replace(DEFAULT_CURSOR_MARKER, marker)} for m in prompt_messages]
 
 
+FULL_LINE_OVERRIDE = """
+
+IMPORTANT OVERRIDE for this task -- ignore the "DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX" instruction above, and ignore the tricky-completion examples above that show returning only the missing fragment.
+
+Instead, for this task: return the COMPLETE line(s) that contain the cursor marker, reproducing the existing prefix and suffix text on those lines EXACTLY as shown in the surrounding code, with your new code inserted at the correct position. Never return only the missing fragment -- always return the full line(s), prefix and suffix included.
+
+Example:
+```python
+def area(width, height):
+    return <CURSOR> * height
+```
+CORRECT (full line, reproducing the prefix "    return " and the suffix " * height"):
+`    return width * height`
+
+WRONG (only the missing fragment -- do NOT do this for this task):
+`width`
+"""
+
+
+def apply_full_line_override(prompt_messages: list[dict]) -> list[dict]:
+    return [
+        {**m, "content": m["content"] + FULL_LINE_OVERRIDE} if m["role"] == "system" else m
+        for m in prompt_messages
+    ]
+
+
 def normalize(text: str) -> str:
-    return text.strip()
+    # [fim-fullline experiment] full-line answers occasionally come back wrapped in a
+    # single-backtick markdown code span (e.g. despite "do not return markdown"), even
+    # though the fragment-only baseline never showed this -- strip it like production
+    # insertion tooling would have to.
+    t = text.strip()
+    if t.startswith("`") and t.endswith("`") and len(t) >= 2:
+        t = t[1:-1]
+    return t.strip()
 
 
 def grade_exact_normalized(candidate: str, case: Case) -> tuple[str, str]:
@@ -198,7 +224,6 @@ Respond with ONLY a JSON object, no markdown fences, no extra commentary:
 
 
 def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer, dump_dir: Path, case_id: str) -> tuple[str, str, str]:
-    import openai
     fim_task = prompt_messages[-1]["content"]
     judge_prompt = JUDGE_PROMPT_TEMPLATE.format(
         fim_task=fim_task,
@@ -206,23 +231,7 @@ def grade_llm_judge(candidate: str, case: Case, prompt_messages: list[dict], exp
         rubric=case.rubric,
         candidate=candidate,
     )
-    ai_message = None
-    last_error = None
-    for attempt in range(1, CONNECTION_RETRY_ATTEMPTS + 1):
-        try:
-            ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
-            break
-        except openai.APIConnectionError as e:
-            last_error = e
-            if attempt < CONNECTION_RETRY_ATTEMPTS:
-                print(f"  judge connection failed (attempt {attempt}/{CONNECTION_RETRY_ATTEMPTS}), "
-                      f"retrying in {CONNECTION_RETRY_DELAY_SECONDS:.0f}s -- server may be mid-restart: {e}", file=sys.stderr)
-                time.sleep(CONNECTION_RETRY_DELAY_SECONDS)
-    if ai_message is None:
-        return ("incorrect",
-                f"JUDGE CONNECTION FAILED after {CONNECTION_RETRY_ATTEMPTS} attempts: {last_error} -- "
-                f"this is an infra failure, not a real grading result; is the judge server up?",
-                "unknown")
+    ai_message = judge_client.invoke([{"role": "user", "content": judge_prompt}], temperature=0)
     judge_model_name = ai_message.response_metadata.get("model_name") or "unknown"
     raw = (ai_message.content or "").strip()
     dump_json(dump_dir, f"{case_id}.judge", {
@@ -264,45 +273,29 @@ def stream_completion(model_client: ChatLlamaServer, prompt_messages: list[dict]
     way instead of getting nothing on a client-side timeout/connection drop
     mid-stream. `timings` is the raw dict off the finish-reason chunk, or
     None if the stream broke before reaching it.
-
-    If the connection fails before any data arrives at all (llama-server briefly
-    unreachable -- e.g. mid-restart while swapping which model is loaded on this
-    port), retries a few times rather than failing the case outright. A drop
-    *after* some data has already streamed is not retried (nothing to safely
-    resume from), and is returned as-is like before.
     """
     import openai
+    message = None
+    timings = None
+    error = None
     body = {"verbose": True, **(extra_body or {})}
-    last_error = None
-    for attempt in range(1, CONNECTION_RETRY_ATTEMPTS + 1):
-        message = None
-        timings = None
-        error = None
-        try:
-            for chunk in model_client.stream(prompt_messages, extra_body=body, **invoke_kwargs):
-                debug_info = getattr(chunk, "debug", None)
-                if debug_info is not None and debug_info.timings:
-                    timings = debug_info.timings
-                if trace:
-                    reasoning_delta = chunk.additional_kwargs.get("reasoning_content") or ""
-                    if reasoning_delta:
-                        print(reasoning_delta, end="", flush=True, file=sys.stderr)
-                    if chunk.content:
-                        print(chunk.content, end="", flush=True, file=sys.stderr)
-                message = chunk if message is None else message + chunk
-        except openai.APIConnectionError as e:
-            error = e
-        if trace:
-            print(file=sys.stderr)
-        if error is None or message is not None:
-            return message, timings, error
-        last_error = error
-        if attempt < CONNECTION_RETRY_ATTEMPTS:
-            print(f"  connection to model failed (attempt {attempt}/{CONNECTION_RETRY_ATTEMPTS}), "
-                  f"retrying in {CONNECTION_RETRY_DELAY_SECONDS:.0f}s -- server may be mid-restart "
-                  f"(e.g. swapping which model is loaded on this port): {error}", file=sys.stderr)
-            time.sleep(CONNECTION_RETRY_DELAY_SECONDS)
-    return None, None, last_error
+    try:
+        for chunk in model_client.stream(prompt_messages, extra_body=body, **invoke_kwargs):
+            debug_info = getattr(chunk, "debug", None)
+            if debug_info is not None and debug_info.timings:
+                timings = debug_info.timings
+            if trace:
+                reasoning_delta = chunk.additional_kwargs.get("reasoning_content") or ""
+                if reasoning_delta:
+                    print(reasoning_delta, end="", flush=True, file=sys.stderr)
+                if chunk.content:
+                    print(chunk.content, end="", flush=True, file=sys.stderr)
+            message = chunk if message is None else message + chunk
+    except openai.APIConnectionError as e:
+        error = e
+    if trace:
+        print(file=sys.stderr)
+    return message, timings, error
 
 
 def grade(candidate: str, case: Case, prompt_messages: list[dict], expected: str, judge_client: ChatLlamaServer | None, dump_dir: Path, dump_id: str) -> tuple[str, str, str | None]:
@@ -343,6 +336,11 @@ def main():
                               "as they arrive, instead of waiting for the full response -- also means a "
                               "client-side timeout still leaves you with whatever was streamed so far, dumped "
                               "to debug_dumps, instead of nothing")
+    parser.add_argument("--full-line", action="store_true",
+                         help="[fim-fullline experiment] append FULL_LINE_OVERRIDE to the system prompt, asking "
+                              "the model to return the entire cursor line(s) -- prefix+new+suffix -- instead of "
+                              "just the missing fragment. cases.jsonl in this dir already has its 'accepted' "
+                              "values written as full lines to match.")
     parser.add_argument("--reasoning", choices=["on", "off"], default="on",
                          help="toggle thinking/reasoning on the model under test (default: on). 'off' sends "
                               "chat_template_kwargs={enable_thinking: false}, which Qwen3-family templates honor "
@@ -361,11 +359,6 @@ def main():
                               f"and --save output -- GPU/backend numerics (and other processes sharing the same "
                               f"GPU concurrently) can affect run-to-run determinism, so it's worth recording "
                               f"alongside results (default: {PAXY_HARDWARE!r})")
-    parser.add_argument("--expect-model", default=None,
-                         help="substring that must appear in the model name reported by --port (case-insensitive) "
-                              "-- checked as soon as the first case completes, and loudly on any mismatch, so "
-                              "you catch it immediately if e.g. a different model got manually swapped onto that "
-                              "port, instead of silently grading the wrong model for a whole run")
 
     argcomplete.autocomplete(parser)
     import rich
@@ -391,10 +384,11 @@ def main():
     dump_dir = FIM_DIR / "debug_dumps" / run_ts
 
     results: list[Result] = []
-    seen_model_names: set[str] = set()
     for case in cases:
         prompt_messages, expected = load_trace_prompt_and_expected(case.source_trace)
         prompt_messages = swap_cursor_marker(prompt_messages, args.cursor_marker)
+        if args.full_line:
+            prompt_messages = apply_full_line_override(prompt_messages)
 
         for attempt in range(1, args.repeat + 1):
             dump_id = case.id if args.repeat == 1 else f"{case.id}.attempt{attempt}"
@@ -412,20 +406,6 @@ def main():
             model_name = (ai_message.response_metadata.get("model_name") if ai_message else None) or "unknown"
             completion_tokens = timings.get("predicted_n") if timings else None
             reasoning_content = (ai_message.additional_kwargs.get("reasoning_content") if ai_message else None) or ""
-
-            if model_name != "unknown" and model_name not in seen_model_names:
-                if seen_model_names:
-                    rich.print(f"[bold white on red] WARNING [/] port {args.port} just answered with a "
-                               f"DIFFERENT model name than before: {model_name!r} (previously saw "
-                               f"{seen_model_names!r}) -- was the server restarted with a different model "
-                               f"mid-run? results from here on reflect {model_name!r}, not whatever you "
-                               f"assumed was on this port.", file=sys.stderr)
-                elif args.expect_model and args.expect_model.lower() not in model_name.lower():
-                    rich.print(f"[bold white on red] WARNING [/] port {args.port} answered with {model_name!r}, "
-                               f"which does not contain expected substring {args.expect_model!r} -- wrong model "
-                               f"on this port? continuing anyway, but double-check before trusting these results.",
-                               file=sys.stderr)
-                seen_model_names.add(model_name)
 
             dump_json(dump_dir, f"{dump_id}.model", {
                 "prompt_messages": prompt_messages,
