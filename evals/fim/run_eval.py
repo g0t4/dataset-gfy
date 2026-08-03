@@ -98,6 +98,21 @@ def make_client(port: int) -> ChatLlamaServer:
     return ChatLlamaServer(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
 
 
+def ping_server(port: int, label: str) -> None:
+    """Fail fast (before burning time on cases) if a server we depend on isn't
+    actually up -- e.g. the judge port sitting cold because you only fired up
+    the model under test. A judge failure surfaces case-by-case as confusing
+    per-case connection errors otherwise, long after the run already started."""
+    import httpx
+    url = f"http://{PAXY_HOST}:{port}/v1/models"
+    try:
+        resp = httpx.get(url, timeout=5.0)
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        sys.exit(f"startup check failed: {label} on port {port} did not respond to GET {url} ({e}) -- "
+                  f"is llama-server up on that port?")
+
+
 def dump_json(dump_dir: Path, name: str, data: dict) -> None:
     dump_dir.mkdir(parents=True, exist_ok=True)
     (dump_dir / f"{name}.json").write_text(json.dumps(data, indent=2, default=str))
@@ -377,6 +392,7 @@ def main():
         if not cases:
             sys.exit(f"no case with id {args.only!r}")
 
+    ping_server(args.port, "model under test")
     model_client = make_client(args.port)
 
     needs_judge = any(c.grader == "llm_judge" for c in cases)
@@ -385,6 +401,7 @@ def main():
         if args.judge_port is None:
             sys.exit("one or more cases need grader:llm_judge -- pass --judge-port, "
                       "or rerun with --only on a non-judge case")
+        ping_server(args.judge_port, "judge")
         judge_client = make_client(args.judge_port)
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
