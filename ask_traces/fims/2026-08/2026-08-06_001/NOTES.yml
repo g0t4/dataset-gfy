@@ -1,0 +1,15 @@
+fim_evals:
+  - this may well be a difficult eval, maybe not?
+  - I want the model to see the commented out line and recognize I am redoing that line with string.format instead
+  - if that is obvious the the answer becomes obvious
+  - partial credit if not full completion
+    and speaking of not full...
+    gptoss returned `"  _context_query => callback with %d matches", num_matches)`
+    when the answer should be `"  _context_query => callback with %d matches", num_matches))`
+    IOTW two closing parens to finish the line
+
+language: lua
+tags:
+  - redo_commented_out_prior_line
+  - trailing_double_close_parens
+  - do_not_be_lazy
