@@ -1,0 +1,3 @@
+rewrite_evals:
+  - this tests following a pattern between two scenarios
+  - exact match of entire line? though we could allow some leniency for whitespace but nah just go exact for now until I can see how models do
