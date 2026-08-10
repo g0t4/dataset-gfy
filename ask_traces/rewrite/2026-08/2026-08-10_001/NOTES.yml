@@ -1,0 +1,9 @@
+rewrite_evals:
+  - follow a pattern of prior abbrs
+  - understand what an abbr is
+  - create two new abbrs (one of each kind) for muse model
+  - probably can do an exact match first pass => maybe allow strip leading/trailing new lines? or no?)
+    not sure we need LLM fallback, let's hold off for now given this is merely copying a clearly established pattern
+language: fish
+tags:
+  - patterns
