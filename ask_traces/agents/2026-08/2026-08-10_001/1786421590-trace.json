@@ -1,0 +1,373 @@
+{
+  "request_body":{
+    "max_tokens":393216,
+    "model":"",
+    "chat_template_kwargs":[],
+    "verbose":true,
+    "messages":[{
+        "role":"system",
+        "content":"You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/jinja/muse\nRepository root: ~/repos/github/g0t4/ask-openai.nvim\nYou are 6 levels deep, so you need ../../../../../../ to build relative paths from repo root.\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n## Committing\n\n- `git diff` is a sanity check!\n- COMMIT when you're done.\n- Use `--author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\"`\n\n\n## 🙌  TOP-SHELF NERD COMMANDS\n\n- 🙌 `rg` (ripgrep) to search file contents\n- 🙌 `fd` to search file names\n\n## ⛔️ BAD COMMANDS\n\nIf you waste my time, I will unplug your Mom.\n\n- ⛔️ NEVER use `ls -R`\n- ⛔️ NEVER use `grep -R`\n- ⛔️ NEVER use `find . -type f`\n\nWhy? Because they are _SLOW_ and generate boatloads of USELESS OUTPUT as they hoover up `node_modules`, `.venv`, etc because they don't support `.gitignore` exclusions.\n\n\n## Fetch Tool\n\n- Use repo's README `https://raw.githubusercontent.com/openai/evals/refs/heads/main/README.md` instead of `https://github.com/openai/evals`.\n- Prefer raw content like `https://raw.githubusercontent.com/g0t4/dotfiles/refs/heads/master/install/symlinks.fish` instead of `https://github.com/g0t4/dotfiles/blob/master/install/symlinks.fish`\n- When relevant, prefer github CLI: `gh pr list` or `gh issue view 12`\n\n"
+      },{
+        "role":"user",
+        "content":"## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"## Python Code Preferences\n- use snake_case for functions and variables\n- use PascalCase for classes\n- add type hints that improve code completion\n- prefer `list[]` over `List[]` to mimimize imports\n- `py_compile` is a great way to check for syntax errors\n\n### I like pytest\n\npytest has stellar failure diffs (introspection):\n- projections just work (tuples, lists, sets, dicts, etc) especially for complex comparisons\n- use `assert`\n- just say no to `self.assert*`\n\n```python\n# 🥰 (complex compare by projecting a list of tuples)\nexpected = [(\"c1\", Range(0, 6)), (\"c3\", Range(6, 9))]\nassert [(c.id, c.range) for c in removed.clips()] == expected\n\n# 🤮 (repetitive assertions)\nclips = list(removed.clips())\nassert clips[0].id == \"c1\"\nassert clips[0].range == Range(0, 6)\nassert clips[1].id == \"c3\"\nassert clips[1].range == Range(6, 9)\n```\n\n"
+      },{
+        "role":"user",
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/tools/pii_scanner/tests/test_extract_paths.py:124-128\n    def test_plain_string_with_path(self):\n        value = \"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools.lua\"\n        paths = _extract_paths_from_value(value)\n        assert len(paths) > 0\n        assert any(\"ask-openai.nvim\" in p for p in paths)\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/__main__.py:0-19\nimport json\nimport difflib\nimport os\nimport sys\nimport subprocess\nimport re\nfrom dataclasses import dataclass, field\nfrom pathlib import Path\nfrom rich.console import Console, Group\nfrom rich.markdown import Markdown\nfrom rich.padding import Padding\nfrom rich.syntax import Syntax\nfrom rich.panel import Panel\nfrom rich.pretty import Pretty, pprint\nfrom rich.text import Text\nfrom rich.tree import Tree\nfrom typing import Any, Iterable, Iterator, Dict\nimport hashlib\nimport argparse\nimport argcomplete\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/tree_wrapper_tests.py:42-48\n    def test_python_dict(self):\n        # * scalar types for values in items (key/value pairs)\n        assert get_recorded({\"key\": \"string_value\"}) == \"\\n    key: string_value\\n\"\n        assert get_recorded({\"key\": 1}) == \"\\n    key: 1\\n\"\n        assert get_recorded({\"key\": True}) == \"\\n    key: True\\n\"\n        assert get_recorded({\"key\": 1.1}) == \"\\n    key: 1.1\\n\"\n        assert get_recorded({\"key\": None}) == \"\\n    key: None\\n\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/tree_wrapper_tests.py:50-54\n    def test_python_list(self):\n        assert get_recorded({\"key\": [\"item1\", \"item2\"]}) == \"\\n    key:\\n        ['item1', 'item2']\\n\"\n        assert get_recorded({\"key\": [1, 1.1]}) == \"\\n    key:\\n        [1, 1.1]\\n\"\n        assert get_recorded({\"key\": [None]}) == \"\\n    key:\\n        [None]\\n\"\n        assert get_recorded({\"key\": [{\"foo\": \"bar\"}]}) == \"\\n    key:\\n        [{'foo': 'bar'}]\\n\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/index/ignores_tests.py:48-50\ndef test_literal_entry(tmp_root):\n    assert _is_gitignored(tmp_root / \"venv/foo.c\", tmp_root, RagConfig.default())\n    assert not _is_gitignored(tmp_root / \"venvfoo.c\", tmp_root, RagConfig.default())\n"
+      },{
+        "role":"user",
+        "content":"I want to change the current file 'verify.py' add a data structure with dot notation to acess fields... strongly type the fields for each token including original values (lineno, tok_type, value) and then also normlaized_value... keep this DTO post normlazition and in loop below in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where the are literal differneces even if the same after nomalizing \n\n"
+      },{
+        "role":"assistant",
+        "content":"",
+        "reasoning_content":"Let me look at the current file to understand what we're working with.",
+        "tool_calls":[{
+            "function":{
+              "arguments":"{\"command_line\":\"pwd && ls -la && cat verify.py\"}",
+              "name":"run_process"
+            },
+            "type":"function",
+            "id":"21tYnAe5Y0tVqgu5mkh9vmvQgeksvlWk"
+          }]
+      },{
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":565542870,
+        "duration_ms":27,
+        "tool_call_id":"21tYnAe5Y0tVqgu5mkh9vmvQgeksvlWk",
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/jinja/muse\\ntotal 48\\ndrwxr-xr-x  6 wesdemos  staff   192 Aug 10 23:09 .\\ndrwxr-xr-x  5 wesdemos  staff   160 Aug 10 17:53 ..\\n-rw-r--r--  1 wesdemos  staff  7167 Aug 10 22:56 original.jinja\\n-rwxr-xr-x  1 wesdemos  staff   348 Aug 10 22:54 pretty.fish\\n-rw-r--r--  1 wesdemos  staff  7168 Aug 10 23:02 reformatted.jinja\\n-rw-r--r--  1 wesdemos  staff   655 Aug 10 23:09 verify.py\\nimport jinja2\\n\\nenv = jinja2.Environment()\\n\\ndef tokens(path):\\n    src = open(path, encoding=\\\"utf-8\\\").read()\\n    out = []\\n    for lineno, tok_type, value in env.lex(src):\\n        if tok_type != 'data':\\n            value = value.strip()\\n        out.append((tok_type, value))\\n    return out\\n\\norig = tokens(\\\"original.jinja\\\")\\nmine = tokens(\\\"reformatted.jinja\\\")\\n\\nprint(\\\"identical:\\\", orig == mine)\\nif orig != mine:\\n    for i, (a, b) in enumerate(zip(orig, mine)):\\n        if a != b:\\n            print(f\\\"first diff at token {i}: {a!r} vs {b!r}\\\")\\n            break\\n    if len(orig) != len(mine):\\n        print(f\\\"length mismatch: {len(orig)} vs {len(mine)} tokens\\\")\\n\"}]}"
+      },{
+        "role":"assistant",
+        "content":"",
+        "reasoning_content":"Let me understand the task. The user wants me to modify `verify.py`:\n\n1. Add a data structure with dot notation to access fields\n2. Strongly type the fields for each token including original values (lineno, tok_type, value) and also normalized_value\n3. Keep this DTO post-normalization\n4. In the loop, in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where there are literal differences even if the same after normalizing\n\nLet me write this. I need to create a dataclass with fields: lineno, tok_type, value, normalized_value. Then compare using normalized values for equality, but check literal value differences too.\n\nLet me design:\n\n```python\nfrom dataclasses import dataclass\nfrom rich.console import Console\n\nconsole = Console()\n\n@dataclass(frozen=True)\nclass Token:\n    lineno: int\n    tok_type: str\n    value: str\n    normalized_value: str\n```\n\nThen tokens() returns a list of Token DTOs.\n\nFor equality comparison in the loop, compare normalized_value (and tok_type). If tok_type matches but original value differs (after normalization same), print with red text.\n\nLet me write the code carefully.\n\nFor the comparison loop: iterate zip(orig, mine). For each pair, check if they are equal post-normalization (tok_type and normalized_value). If the normalized values are equal but the literal original value differs, print that in red.\n\nLet me write:\n\n```python\nimport jinja2\nfrom dataclasses import dataclass\nfrom rich.console import Console\nfrom rich.text import Text\n\nconsole = Console()\n\n\n@dataclass(frozen=True)\nclass Token:\n    lineno: int\n    tok_type: str\n    value: str\n    normalized_value: str\n\n    @property\n    def normalized(self) -> tuple[str, str]:\n        return (self.tok_type, self.normalized_value)\n\n\ndef tokens(path: str) -> list[Token]:\n    src = open(path, encoding=\"utf-8\").read()\n    out = []\n    for lineno, tok_type, value in env.lex(src):\n        normalized_value = value\n        if tok_type != \"data\":\n            normalized_value = value.strip()\n        out.append(Token(lineno, tok_type, value, normalized_value))\n    return out\n\n\norig = tokens(\"original.jinja\")\nmine = tokens(\"reformatted.jinja\")\n\nprint(\"identical:\", [t.normalized for t in orig] == [t.normalized for t in mine])\nif orig != mine:\n    for i, (a, b) in enumerate(zip(orig, mine)):\n        if a.normalized != b.normalized:\n            print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n            break\n        if a.value != b.value:\n            console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n    if len(orig) != len(mine):\n        print(f\"length mismatch: {len(orig)} vs {len(mine)} tokens\")\n```\n\nWait, the user wants to print ALL literal differences in the loop, not just first. \"in loop below in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where the are literal differences even if the same after normalizing\"\n\nSo the loop should iterate all tokens and print red for each literal difference where normalized equal but literal differs.\n\nLet me restructure: loop over all pairs, for each:\n- if normalized differs -> print first diff (only first)\n- elif literal value differs -> print red literal diff\n\nLet me keep the \"first diff\" behavior for actual differences but print all literal diffs. Let me write:\n\n```python\nfor i, (a, b) in enumerate(zip(orig, mine)):\n    if a.normalized != b.normalized:\n        if first_diff is None:\n            first_diff = i\n            print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n    elif a.value != b.value:\n        console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n```\n\nHmm but the original only printed first diff and broke. Let me keep the break behavior for the first diff but also report all literal diffs. Actually let me keep it simple and matching user intent. I'll track first diff and break, but print all literal diffs. Let me structure:\n\n```python\nfor i, (a, b) in enumerate(zip(orig, mine)):\n    if a.normalized != b.normalized:\n        print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n        break\n    if a.value != b.value:\n        console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n```\n\nThis keeps the break on first real diff but prints all literal diffs before it. That seems reasonable.\n\nNow the type hints: `-> list[Token]`, `normalized(self) -> tuple[str, str]`.\n\nLet me use `tuple[str, str]` which is fine in modern Python.\n\nLet me also make the DTO strongly typed fields as requested: lineno (int), tok_type (str), value (str), normalized_value (str). Good.\n\nLet me write the file.",
+        "tool_calls":[{
+            "function":{
+              "arguments":"{\"command_line\":\"cat > verify.py << 'EOF'\\nimport jinja2\\nfrom dataclasses import dataclass\\nfrom rich.console import Console\\nfrom rich.text import Text\\n\\nconsole = Console()\\n\\nenv = jinja2.Environment()\\n\\n\\n@dataclass(frozen=True)\\nclass Token:\\n    \\\"\\\"\\\"DTO for a lexed token, kept post-normalization.\\\"\\\"\\\"\\n\\n    lineno: int\\n    tok_type: str\\n    value: str\\n    normalized_value: str\\n\\n    @property\\n    def normalized(self) -> tuple[str, str]:\\n        \\\"\\\"\\\"Token identity after normalization (type + trimmed value).\\\"\\\"\\\"\\n        return (self.tok_type, self.normalized_value)\\n\\n\\ndef tokens(path: str) -> list[Token]:\\n    src = open(path, encoding=\\\"utf-8\\\").read()\\n    out = []\\n    for lineno, tok_type, value in env.lex(src):\\n        normalized_value = value\\n        if tok_type != \\\"data\\\":\\n            normalized_value = value.strip()\\n        out.append(Token(lineno, tok_type, value, normalized_value))\\n    return out\\n\\n\\norig = tokens(\\\"original.jinja\\\")\\nmine = tokens(\\\"reformatted.jinja\\\")\\n\\nprint(\\\"identical:\\\", [t.normalized for t in orig] == [t.normalized for t in mine])\\nif orig != mine:\\n    for i, (a, b) in enumerate(zip(orig, mine)):\\n        if a.normalized != b.normalized:\\n            print(f\\\"first diff at token {i}: {a!r} vs {b!r}\\\")\\n            break\\n        if a.value != b.value:\\n            console.print(f\\\"literal diff at token {i}: {a.value!r} vs {b.value!r}\\\", style=\\\"red\\\")\\n    if len(orig) != len(mine):\\n        print(f\\\"length mismatch: {len(orig)} vs {len(mine)} tokens\\\")\\nEOF\\npython3 -m py_compile verify.py && echo OK\"}",
+              "name":"run_process"
+            },
+            "type":"function",
+            "id":"R7ZUXxdh3pGoByrIgAR3ax2iw0rEAKCQ"
+          }]
+      },{
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":565555700,
+        "duration_ms":42,
+        "tool_call_id":"R7ZUXxdh3pGoByrIgAR3ax2iw0rEAKCQ",
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"OK\\n\"}]}"
+      },{
+        "role":"assistant",
+        "content":"",
+        "reasoning_content":"Let me verify it runs.",
+        "tool_calls":[{
+            "function":{
+              "arguments":"{\"command_line\":\"python3 verify.py\"}",
+              "name":"run_process"
+            },
+            "type":"function",
+            "id":"Fo0MubZjkzTAPu0jjO7ajNywK8VAevTY"
+          }]
+      },{
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":565556315,
+        "duration_ms":115,
+        "tool_call_id":"Fo0MubZjkzTAPu0jjO7ajNywK8VAevTY",
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"identical: True\\nliteral diff at token 1988: '-%}' vs '-%}\\\\n'\\n\"}]}"
+      },{
+        "role":"assistant",
+        "content":"The file runs and now shows a literal diff at token 1988. Let me commit.",
+        "reasoning_content":"It works. Let me commit.",
+        "tool_calls":[{
+            "function":{
+              "arguments":"{\"command_line\":\"cd ~/repos/github/g0t4/ask-openai.nvim && git add lua/ask-openai/backends/llama_cpp/jinja/muse/verify.py && git commit --author=\\\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\\" -m \\\"verify: add typed Token DTO with literal diff reporting\\\"\"}",
+              "name":"run_process"
+            },
+            "type":"function",
+            "id":"8EdX1Dmr6dYgS3FqbFFBejFCa8QLNDBM"
+          }]
+      },{
+        "role":"tool",
+        "progress_notifications":[],
+        "start_time_ms":565557914,
+        "duration_ms":758,
+        "tool_call_id":"8EdX1Dmr6dYgS3FqbFFBejFCa8QLNDBM",
+        "content":"{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"[master 3e55ff611] verify: add typed Token DTO with literal diff reporting\\n Author: qwen3.6-35b-a3b <wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\n 1 file changed, 31 insertions(+), 6 deletions(-)\\n\"},{\"name\":\"STDERR\",\"type\":\"text\",\"text\":\"make: `tags' is up to date.\\n\"}]}"
+      },{
+        "role":"assistant",
+        "content":"Done. Here's what I changed in `verify.py`:\n\n**Typed `Token` DTO** — a frozen `@dataclass` with strongly-typed fields:\n- `lineno: int`\n- `tok_type: str`\n- `value: str` (original literal)\n- `normalized_value: str` (post-normalization)\n- A `normalized` property returning `tuple[str, str]` for equality checks\n\n**Loop logic** — now iterates the token pairs and:\n- If the normalized tokens differ → reports the first real diff (preserving prior behavior)\n- Otherwise, if the original literal `value` differs even though normalization made them equal → prints it in **red** via `rich.print`\n\nRunning it surfaced a real literal difference at token 1988: `'-%}'` vs `'-%}\\n'` — same after normalization (whitespace stripped), but the raw values differ, which you'd never have caught before.",
+        "finish_reason":"stop"
+      }],
+    "stream":true,
+    "top_p":0.95,
+    "temperature":1,
+    "tools":[{
+        "type":"function",
+        "function":{
+          "name":"run_process",
+          "description":"Run a process on this darwin machine",
+          "parameters":{
+            "type":"object",
+            "properties":{
+              "stdin_text":{
+                "type":"string",
+                "description":"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents."
+              },
+              "command_line":{
+                "type":"string",
+                "description":"Shell mode: a shell command line executed via the system's default shell. Supports pipes, redirects, globbing. Cannot be combined with 'argv'."
+              },
+              "argv":{
+                "description":"Executable mode: directly spawn a process. argv[0] is the executable, followed by arguments passed verbatim (no shell interpretation). Cannot be combined with 'command_line'.",
+                "items":{
+                  "type":"string"
+                },
+                "type":"array",
+                "minItems":1
+              },
+              "timeout_ms":{
+                "type":"number",
+                "description":"Optional timeout in milliseconds, defaults to 30,000ms"
+              },
+              "cwd":{
+                "type":"string",
+                "description":"Optional to set working directory"
+              }
+            }
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"fetch",
+          "description":"Fetch a URL and extract HTML contents as markdown",
+          "parameters":{
+            "type":"object",
+            "required":["url"],
+            "properties":{
+              "url":{
+                "type":"string"
+              },
+              "raw":{
+                "type":"boolean",
+                "default":false,
+                "description":"Do not convert HTML to markdown"
+              },
+              "max_chars":{
+                "type":"integer",
+                "default":50000,
+                "description":"Maximum number of characters to return"
+              },
+              "start_index":{
+                "type":"integer",
+                "default":0,
+                "description":"Start at this character offset, useful if a previous fetch was truncated and more context is required"
+              }
+            }
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"screencap",
+          "description":"Take a screenshot of the primary screen using macOS screencapture command. Returns the path to the saved screenshot file.",
+          "parameters":{
+            "type":"object",
+            "required":[],
+            "properties":{
+              "description":{
+                "type":"string",
+                "description":"Optional description of the screenshot purpose"
+              }
+            }
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"delegate",
+          "description":"Delegate to a subagent to perform relevent tasks and summarize findings.",
+          "parameters":{
+            "type":"object",
+            "required":["description"],
+            "properties":{
+              "description":{
+                "description":"describe the task for the agent to perform",
+                "type":"string"
+              },
+              "recursion_limit":{
+                "description":"LangChain's max messages for the subagent before stopping. Each subagent tool call produces 2 messages (input + output). Leave unset unless the task needs more or fewer than the default (50).",
+                "type":"integer"
+              },
+              "agent_type":{
+                "description":"which subagent profile to use, options: assistant, web-researcher, command-runner, file-finder, test-finder",
+                "type":"string"
+              }
+            }
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"locate_anything",
+          "description":"Answer visual questions about a picture and return bounding boxes using the LocateAnything-3B model.",
+          "parameters":{
+            "type":"object",
+            "required":["question","image_path"],
+            "properties":{
+              "question":{
+                "type":"string",
+                "description":"The visual question to ask about the image."
+              },
+              "image_path":{
+                "type":"string",
+                "description":"The path to the image file."
+              }
+            }
+          }
+        }
+      },{
+        "type":"function",
+        "function":{
+          "name":"semantic_grep",
+          "description":"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.",
+          "parameters":{
+            "required":["query"],
+            "type":"object",
+            "properties":{
+              "filetype":{
+                "type":"string",
+                "description":"limit matches to a vim compatible filetype. default includes all filetypes"
+              },
+              "embed_top_k":{
+                "type":"number",
+                "description":"number of embeddings matches to consider for reranking"
+              },
+              "query":{
+                "type":"string",
+                "description":"query text, what you are looking for"
+              },
+              "top_k":{
+                "type":"number",
+                "description":"number of matches, defaults to 5 which is usually plenty!"
+              },
+              "instruct":{
+                "type":"string",
+                "description":"instructions for the query, explain the type of query"
+              }
+            }
+          }
+        }
+      }]
+  },
+  "last_sse":{
+    "timings":{
+      "draft_n_accepted":130,
+      "draft_n":225,
+      "predicted_per_second":108.44850917686,
+      "predicted_n":205,
+      "prompt_per_second":1083.4611217457,
+      "prompt_per_token_ms":0.92296805111821,
+      "predicted_ms":1890.298,
+      "predicted_per_token_ms":9.2209658536585,
+      "prompt_n":313,
+      "cache_n":5319,
+      "prompt_ms":288.889
+    },
+    "system_fingerprint":"b10358-030ebb558",
+    "__verbose":{
+      "generation_settings":{
+        "dynatemp_exponent":1,
+        "min_p":0.050000000745058,
+        "top_n_sigma":-1,
+        "xtc_probability":0,
+        "xtc_threshold":0.10000000149012,
+        "typical_p":1,
+        "repeat_last_n":64,
+        "presence_penalty":0,
+        "frequency_penalty":0,
+        "dry_multiplier":0,
+        "dry_base":1.75,
+        "dry_allowed_length":2,
+        "top_p":0.94999998807907,
+        "dry_sequence_breakers":["\n",":","\"","*"],
+        "temperature":1,
+        "mirostat_tau":5,
+        "mirostat_eta":0.10000000149012,
+        "adaptive_target":-1,
+        "adaptive_decay":0.89999997615814,
+        "n_predict":393216,
+        "ignore_eos":false,
+        "logit_bias":[],
+        "n_probs":0,
+        "min_keep":0,
+        "grammar_lazy":true,
+        "grammar_triggers":[{
+            "type":1,
+            "value":"<｜DSML｜tool_calls>"
+          }],
+        "preserved_tokens":[128821,128822,128825],
+        "n_discard":0,
+        "n_keep":0,
+        "reasoning_in_content":false,
+        "top_k":40,
+        "repeat_penalty":1,
+        "samplers":["penalties","dry","top_n_sigma","top_k","typ_p","top_p","min_p","xtc","temperature"],
+        "speculative.types":"none,draft-dspark",
+        "stop":[],
+        "post_sampling_probs":false,
+        "max_tokens":393216,
+        "grammar":"boolean ::= (\"true\" | \"false\")\nchar ::= [^\"\\\\\\x7F\\x00-\\x1F] | [\\\\] ([\"\\\\bfnrt] | \"u\" [0-9a-fA-F]{4})\ndecimal-part ::= [0-9]{1,16}\ninteger ::= (\"-\"? integral-part)\nintegral-part ::= [0] | [1-9] [0-9]{0,15}\njson-array ::= \"[\" space (\"]\" | json-value (space \",\" space json-value)* space \"]\")\njson-bool ::= \"true\" | \"false\"\njson-null ::= \"null\"\njson-number ::= \"-\"? (\"0\" | [1-9] [0-9]*) (\".\" [0-9]+)? ((\"e\" | \"E\") [+-]? [0-9]+)?\njson-object ::= \"{\" space (\"}\" | json-string space \":\" space json-value (space \",\" space json-string space \":\" space json-value)* space \"}\")\njson-string ::= \"\\\"\" ( [^\"\\\\] | \"\\\\\" ( [\"\\\\/ bfnrt] | \"u\" [0-9a-fA-F]{4} ) )* \"\\\"\"\njson-value ::= json-object | json-array | json-string | json-number | json-bool | json-null\nnumber ::= (\"-\"? integral-part) (\".\" decimal-part)? ([eE] [-+]? integral-part)?\nroot ::= tool-call\nspace ::= | \" \" | \"\\n\"{1,2} [ \\t]{0,20}\nstring ::= \"\\\"\" char* \"\\\"\"\ntool-call ::= \"<｜DSML｜tool_calls>\" space (tool-run-process | tool-fetch | tool-screencap | tool-delegate | tool-locate-anything | tool-semantic-grep) (space (tool-run-process | tool-fetch | tool-screencap | tool-delegate | tool-locate-anything | tool-semantic-grep))* space \"</｜DSML｜tool_calls>\"\ntool-delegate ::= (\"<｜DSML｜invoke name=\\\"\" \"delegate\" \"\\\">\\n\") tool-delegate-arg-description (space (tool-delegate-arg-recursion-limit | tool-delegate-arg-agent-type))* space \"</｜DSML｜invoke>\"\ntool-delegate-arg-agent-type ::= (\"<｜DSML｜parameter name=\\\"\" \"agent_type\" \"\\\" string=\\\"true\\\">\") until-413 \"</｜DSML｜parameter>\"\ntool-delegate-arg-description ::= (\"<｜DSML｜parameter name=\\\"\" \"description\" \"\\\" string=\\\"true\\\">\") until-374 \"</｜DSML｜parameter>\"\ntool-delegate-arg-recursion-limit ::= (\"<｜DSML｜parameter name=\\\"\" \"recursion_limit\" \"\\\" string=\\\"false\\\">\") integer \"</｜DSML｜parameter>\"\ntool-fetch ::= (\"<｜DSML｜invoke name=\\\"\" \"fetch\" \"\\\">\\n\") tool-fetch-arg-url (space (tool-fetch-arg-raw | tool-fetch-arg-max-chars | tool-fetch-arg-start-index))* space \"</｜DSML｜invoke>\"\ntool-fetch-arg-max-chars ::= (\"<｜DSML｜parameter name=\\\"\" \"max_chars\" \"\\\" string=\\\"false\\\">\") integer \"</｜DSML｜parameter>\"\ntool-fetch-arg-raw ::= (\"<｜DSML｜parameter name=\\\"\" \"raw\" \"\\\" string=\\\"false\\\">\") boolean \"</｜DSML｜parameter>\"\ntool-fetch-arg-start-index ::= (\"<｜DSML｜parameter name=\\\"\" \"start_index\" \"\\\" string=\\\"false\\\">\") integer \"</｜DSML｜parameter>\"\ntool-fetch-arg-url ::= (\"<｜DSML｜parameter name=\\\"\" \"url\" \"\\\" string=\\\"true\\\">\") until-219 \"</｜DSML｜parameter>\"\ntool-locate-anything ::= (\"<｜DSML｜invoke name=\\\"\" \"locate_anything\" \"\\\">\\n\") tool-locate-anything-arg-question space tool-locate-anything-arg-image-path space \"</｜DSML｜invoke>\"\ntool-locate-anything-arg-image-path ::= (\"<｜DSML｜parameter name=\\\"\" \"image_path\" \"\\\" string=\\\"true\\\">\") until-480 \"</｜DSML｜parameter>\"\ntool-locate-anything-arg-question ::= (\"<｜DSML｜parameter name=\\\"\" \"question\" \"\\\" string=\\\"true\\\">\") until-461 \"</｜DSML｜parameter>\"\ntool-run-process ::= (\"<｜DSML｜invoke name=\\\"\" \"run_process\" \"\\\">\\n\") (space (tool-run-process-arg-stdin-text | tool-run-process-arg-command-line | tool-run-process-arg-argv | tool-run-process-arg-timeout-ms | tool-run-process-arg-cwd))* space \"</｜DSML｜invoke>\"\ntool-run-process-arg-argv ::= (\"<｜DSML｜parameter name=\\\"\" \"argv\" \"\\\" string=\\\"false\\\">\") tool-run-process-arg-argv-schema \"</｜DSML｜parameter>\"\ntool-run-process-arg-argv-schema ::= \"[\" space string (\",\" space string)* space \"]\"\ntool-run-process-arg-command-line ::= (\"<｜DSML｜parameter name=\\\"\" \"command_line\" \"\\\" string=\\\"true\\\">\") until-25 \"</｜DSML｜parameter>\"\ntool-run-process-arg-cwd ::= (\"<｜DSML｜parameter name=\\\"\" \"cwd\" \"\\\" string=\\\"true\\\">\") until-169 \"</｜DSML｜parameter>\"\ntool-run-process-arg-stdin-text ::= (\"<｜DSML｜parameter name=\\\"\" \"stdin_text\" \"\\\" string=\\\"true\\\">\") until-6 \"</｜DSML｜parameter>\"\ntool-run-process-arg-timeout-ms ::= (\"<｜DSML｜parameter name=\\\"\" \"timeout_ms\" \"\\\" string=\\\"false\\\">\") number \"</｜DSML｜parameter>\"\ntool-screencap ::= (\"<｜DSML｜invoke name=\\\"\" \"screencap\" \"\\\">\\n\") (space (tool-screencap-arg-description))* space \"</｜DSML｜invoke>\"\ntool-screencap-arg-description ::= (\"<｜DSML｜parameter name=\\\"\" \"description\" \"\\\" string=\\\"true\\\">\") until-328 \"</｜DSML｜parameter>\"\ntool-semantic-grep ::= (\"<｜DSML｜invoke name=\\\"\" \"semantic_grep\" \"\\\">\\n\") tool-semantic-grep-arg-query (space (tool-semantic-grep-arg-filetype | tool-semantic-grep-arg-embed-top-k | tool-semantic-grep-arg-top-k | tool-semantic-grep-arg-instruct))* space \"</｜DSML｜invoke>\"\ntool-semantic-grep-arg-embed-top-k ::= (\"<｜DSML｜parameter name=\\\"\" \"embed_top_k\" \"\\\" string=\\\"false\\\">\") number \"</｜DSML｜parameter>\"\ntool-semantic-grep-arg-filetype ::= (\"<｜DSML｜parameter name=\\\"\" \"filetype\" \"\\\" string=\\\"true\\\">\") until-524 \"</｜DSML｜parameter>\"\ntool-semantic-grep-arg-instruct ::= (\"<｜DSML｜parameter name=\\\"\" \"instruct\" \"\\\" string=\\\"true\\\">\") until-602 \"</｜DSML｜parameter>\"\ntool-semantic-grep-arg-query ::= (\"<｜DSML｜parameter name=\\\"\" \"query\" \"\\\" string=\\\"true\\\">\") until-563 \"</｜DSML｜parameter>\"\ntool-semantic-grep-arg-top-k ::= (\"<｜DSML｜parameter name=\\\"\" \"top_k\" \"\\\" string=\\\"false\\\">\") number \"</｜DSML｜parameter>\"\nuntil-169 ::= | [<] until-169-01 | [^<] until-169\nuntil-169-01 ::= | [<] until-169-01 | [/] until-169-02 | [^/<] until-169\nuntil-169-02 ::= | [<] until-169-01 | [\\uFF5C] until-169-03 | [^<\\uFF5C] until-169\nuntil-169-03 ::= | [<] until-169-01 | [D] until-169-04 | [^<D] until-169\nuntil-169-04 ::= | [<] until-169-01 | [S] until-169-05 | [^<S] until-169\nuntil-169-05 ::= | [<] until-169-01 | [M] until-169-06 | [^<M] until-169\nuntil-169-06 ::= | [<] until-169-01 | [L] until-169-07 | [^<L] until-169\nuntil-169-07 ::= | [<] until-169-01 | [\\uFF5C] until-169-08 | [^<\\uFF5C] until-169\nuntil-169-08 ::= | [<] until-169-01 | [p] until-169-09 | [^<p] until-169\nuntil-169-09 ::= | [<] until-169-01 | [a] until-169-10 | [^<a] until-169\nuntil-169-10 ::= | [<] until-169-01 | [r] until-169-11 | [^<r] until-169\nuntil-169-11 ::= | [<] until-169-01 | [a] until-169-12 | [^<a] until-169\nuntil-169-12 ::= | [<] until-169-01 | [m] until-169-13 | [^<m] until-169\nuntil-169-13 ::= | [<] until-169-01 | [e] until-169-14 | [^<e] until-169\nuntil-169-14 ::= | [<] until-169-01 | [t] until-169-15 | [^<t] until-169\nuntil-169-15 ::= | [<] until-169-01 | [e] until-169-16 | [^<e] until-169\nuntil-169-16 ::= | [<] until-169-01 | [r] until-169-17 | [^<r] until-169\nuntil-169-17 ::= | [<] until-169-01 | [^<>] until-169\nuntil-219 ::= | [<] until-219-01 | [^<] until-219\nuntil-219-01 ::= | [<] until-219-01 | [/] until-219-02 | [^/<] until-219\nuntil-219-02 ::= | [<] until-219-01 | [\\uFF5C] until-219-03 | [^<\\uFF5C] until-219\nuntil-219-03 ::= | [<] until-219-01 | [D] until-219-04 | [^<D] until-219\nuntil-219-04 ::= | [<] until-219-01 | [S] until-219-05 | [^<S] until-219\nuntil-219-05 ::= | [<] until-219-01 | [M] until-219-06 | [^<M] until-219\nuntil-219-06 ::= | [<] until-219-01 | [L] until-219-07 | [^<L] until-219\nuntil-219-07 ::= | [<] until-219-01 | [\\uFF5C] until-219-08 | [^<\\uFF5C] until-219\nuntil-219-08 ::= | [<] until-219-01 | [p] until-219-09 | [^<p] until-219\nuntil-219-09 ::= | [<] until-219-01 | [a] until-219-10 | [^<a] until-219\nuntil-219-10 ::= | [<] until-219-01 | [r] until-219-11 | [^<r] until-219\nuntil-219-11 ::= | [<] until-219-01 | [a] until-219-12 | [^<a] until-219\nuntil-219-12 ::= | [<] until-219-01 | [m] until-219-13 | [^<m] until-219\nuntil-219-13 ::= | [<] until-219-01 | [e] until-219-14 | [^<e] until-219\nuntil-219-14 ::= | [<] until-219-01 | [t] until-219-15 | [^<t] until-219\nuntil-219-15 ::= | [<] until-219-01 | [e] until-219-16 | [^<e] until-219\nuntil-219-16 ::= | [<] until-219-01 | [r] until-219-17 | [^<r] until-219\nuntil-219-17 ::= | [<] until-219-01 | [^<>] until-219\nuntil-25 ::= | [<] until-25-01 | [^<] until-25\nuntil-25-01 ::= | [<] until-25-01 | [/] until-25-02 | [^/<] until-25\nuntil-25-02 ::= | [<] until-25-01 | [\\uFF5C] until-25-03 | [^<\\uFF5C] until-25\nuntil-25-03 ::= | [<] until-25-01 | [D] until-25-04 | [^<D] until-25\nuntil-25-04 ::= | [<] until-25-01 | [S] until-25-05 | [^<S] until-25\nuntil-25-05 ::= | [<] until-25-01 | [M] until-25-06 | [^<M] until-25\nuntil-25-06 ::= | [<] until-25-01 | [L] until-25-07 | [^<L] until-25\nuntil-25-07 ::= | [<] until-25-01 | [\\uFF5C] until-25-08 | [^<\\uFF5C] until-25\nuntil-25-08 ::= | [<] until-25-01 | [p] until-25-09 | [^<p] until-25\nuntil-25-09 ::= | [<] until-25-01 | [a] until-25-10 | [^<a] until-25\nuntil-25-10 ::= | [<] until-25-01 | [r] until-25-11 | [^<r] until-25\nuntil-25-11 ::= | [<] until-25-01 | [a] until-25-12 | [^<a] until-25\nuntil-25-12 ::= | [<] until-25-01 | [m] until-25-13 | [^<m] until-25\nuntil-25-13 ::= | [<] until-25-01 | [e] until-25-14 | [^<e] until-25\nuntil-25-14 ::= | [<] until-25-01 | [t] until-25-15 | [^<t] until-25\nuntil-25-15 ::= | [<] until-25-01 | [e] until-25-16 | [^<e] until-25\nuntil-25-16 ::= | [<] until-25-01 | [r] until-25-17 | [^<r] until-25\nuntil-25-17 ::= | [<] until-25-01 | [^<>] until-25\nuntil-328 ::= | [<] until-328-01 | [^<] until-328\nuntil-328-01 ::= | [<] until-328-01 | [/] until-328-02 | [^/<] until-328\nuntil-328-02 ::= | [<] until-328-01 | [\\uFF5C] until-328-03 | [^<\\uFF5C] until-328\nuntil-328-03 ::= | [<] until-328-01 | [D] until-328-04 | [^<D] until-328\nuntil-328-04 ::= | [<] until-328-01 | [S] until-328-05 | [^<S] until-328\nuntil-328-05 ::= | [<] until-328-01 | [M] until-328-06 | [^<M] until-328\nuntil-328-06 ::= | [<] until-328-01 | [L] until-328-07 | [^<L] until-328\nuntil-328-07 ::= | [<] until-328-01 | [\\uFF5C] until-328-08 | [^<\\uFF5C] until-328\nuntil-328-08 ::= | [<] until-328-01 | [p] until-328-09 | [^<p] until-328\nuntil-328-09 ::= | [<] until-328-01 | [a] until-328-10 | [^<a] until-328\nuntil-328-10 ::= | [<] until-328-01 | [r] until-328-11 | [^<r] until-328\nuntil-328-11 ::= | [<] until-328-01 | [a] until-328-12 | [^<a] until-328\nuntil-328-12 ::= | [<] until-328-01 | [m] until-328-13 | [^<m] until-328\nuntil-328-13 ::= | [<] until-328-01 | [e] until-328-14 | [^<e] until-328\nuntil-328-14 ::= | [<] until-328-01 | [t] until-328-15 | [^<t] until-328\nuntil-328-15 ::= | [<] until-328-01 | [e] until-328-16 | [^<e] until-328\nuntil-328-16 ::= | [<] until-328-01 | [r] until-328-17 | [^<r] until-328\nuntil-328-17 ::= | [<] until-328-01 | [^<>] until-328\nuntil-374 ::= | [<] until-374-01 | [^<] until-374\nuntil-374-01 ::= | [<] until-374-01 | [/] until-374-02 | [^/<] until-374\nuntil-374-02 ::= | [<] until-374-01 | [\\uFF5C] until-374-03 | [^<\\uFF5C] until-374\nuntil-374-03 ::= | [<] until-374-01 | [D] until-374-04 | [^<D] until-374\nuntil-374-04 ::= | [<] until-374-01 | [S] until-374-05 | [^<S] until-374\nuntil-374-05 ::= | [<] until-374-01 | [M] until-374-06 | [^<M] until-374\nuntil-374-06 ::= | [<] until-374-01 | [L] until-374-07 | [^<L] until-374\nuntil-374-07 ::= | [<] until-374-01 | [\\uFF5C] until-374-08 | [^<\\uFF5C] until-374\nuntil-374-08 ::= | [<] until-374-01 | [p] until-374-09 | [^<p] until-374\nuntil-374-09 ::= | [<] until-374-01 | [a] until-374-10 | [^<a] until-374\nuntil-374-10 ::= | [<] until-374-01 | [r] until-374-11 | [^<r] until-374\nuntil-374-11 ::= | [<] until-374-01 | [a] until-374-12 | [^<a] until-374\nuntil-374-12 ::= | [<] until-374-01 | [m] until-374-13 | [^<m] until-374\nuntil-374-13 ::= | [<] until-374-01 | [e] until-374-14 | [^<e] until-374\nuntil-374-14 ::= | [<] until-374-01 | [t] until-374-15 | [^<t] until-374\nuntil-374-15 ::= | [<] until-374-01 | [e] until-374-16 | [^<e] until-374\nuntil-374-16 ::= | [<] until-374-01 | [r] until-374-17 | [^<r] until-374\nuntil-374-17 ::= | [<] until-374-01 | [^<>] until-374\nuntil-413 ::= | [<] until-413-01 | [^<] until-413\nuntil-413-01 ::= | [<] until-413-01 | [/] until-413-02 | [^/<] until-413\nuntil-413-02 ::= | [<] until-413-01 | [\\uFF5C] until-413-03 | [^<\\uFF5C] until-413\nuntil-413-03 ::= | [<] until-413-01 | [D] until-413-04 | [^<D] until-413\nuntil-413-04 ::= | [<] until-413-01 | [S] until-413-05 | [^<S] until-413\nuntil-413-05 ::= | [<] until-413-01 | [M] until-413-06 | [^<M] until-413\nuntil-413-06 ::= | [<] until-413-01 | [L] until-413-07 | [^<L] until-413\nuntil-413-07 ::= | [<] until-413-01 | [\\uFF5C] until-413-08 | [^<\\uFF5C] until-413\nuntil-413-08 ::= | [<] until-413-01 | [p] until-413-09 | [^<p] until-413\nuntil-413-09 ::= | [<] until-413-01 | [a] until-413-10 | [^<a] until-413\nuntil-413-10 ::= | [<] until-413-01 | [r] until-413-11 | [^<r] until-413\nuntil-413-11 ::= | [<] until-413-01 | [a] until-413-12 | [^<a] until-413\nuntil-413-12 ::= | [<] until-413-01 | [m] until-413-13 | [^<m] until-413\nuntil-413-13 ::= | [<] until-413-01 | [e] until-413-14 | [^<e] until-413\nuntil-413-14 ::= | [<] until-413-01 | [t] until-413-15 | [^<t] until-413\nuntil-413-15 ::= | [<] until-413-01 | [e] until-413-16 | [^<e] until-413\nuntil-413-16 ::= | [<] until-413-01 | [r] until-413-17 | [^<r] until-413\nuntil-413-17 ::= | [<] until-413-01 | [^<>] until-413\nuntil-461 ::= | [<] until-461-01 | [^<] until-461\nuntil-461-01 ::= | [<] until-461-01 | [/] until-461-02 | [^/<] until-461\nuntil-461-02 ::= | [<] until-461-01 | [\\uFF5C] until-461-03 | [^<\\uFF5C] until-461\nuntil-461-03 ::= | [<] until-461-01 | [D] until-461-04 | [^<D] until-461\nuntil-461-04 ::= | [<] until-461-01 | [S] until-461-05 | [^<S] until-461\nuntil-461-05 ::= | [<] until-461-01 | [M] until-461-06 | [^<M] until-461\nuntil-461-06 ::= | [<] until-461-01 | [L] until-461-07 | [^<L] until-461\nuntil-461-07 ::= | [<] until-461-01 | [\\uFF5C] until-461-08 | [^<\\uFF5C] until-461\nuntil-461-08 ::= | [<] until-461-01 | [p] until-461-09 | [^<p] until-461\nuntil-461-09 ::= | [<] until-461-01 | [a] until-461-10 | [^<a] until-461\nuntil-461-10 ::= | [<] until-461-01 | [r] until-461-11 | [^<r] until-461\nuntil-461-11 ::= | [<] until-461-01 | [a] until-461-12 | [^<a] until-461\nuntil-461-12 ::= | [<] until-461-01 | [m] until-461-13 | [^<m] until-461\nuntil-461-13 ::= | [<] until-461-01 | [e] until-461-14 | [^<e] until-461\nuntil-461-14 ::= | [<] until-461-01 | [t] until-461-15 | [^<t] until-461\nuntil-461-15 ::= | [<] until-461-01 | [e] until-461-16 | [^<e] until-461\nuntil-461-16 ::= | [<] until-461-01 | [r] until-461-17 | [^<r] until-461\nuntil-461-17 ::= | [<] until-461-01 | [^<>] until-461\nuntil-480 ::= | [<] until-480-01 | [^<] until-480\nuntil-480-01 ::= | [<] until-480-01 | [/] until-480-02 | [^/<] until-480\nuntil-480-02 ::= | [<] until-480-01 | [\\uFF5C] until-480-03 | [^<\\uFF5C] until-480\nuntil-480-03 ::= | [<] until-480-01 | [D] until-480-04 | [^<D] until-480\nuntil-480-04 ::= | [<] until-480-01 | [S] until-480-05 | [^<S] until-480\nuntil-480-05 ::= | [<] until-480-01 | [M] until-480-06 | [^<M] until-480\nuntil-480-06 ::= | [<] until-480-01 | [L] until-480-07 | [^<L] until-480\nuntil-480-07 ::= | [<] until-480-01 | [\\uFF5C] until-480-08 | [^<\\uFF5C] until-480\nuntil-480-08 ::= | [<] until-480-01 | [p] until-480-09 | [^<p] until-480\nuntil-480-09 ::= | [<] until-480-01 | [a] until-480-10 | [^<a] until-480\nuntil-480-10 ::= | [<] until-480-01 | [r] until-480-11 | [^<r] until-480\nuntil-480-11 ::= | [<] until-480-01 | [a] until-480-12 | [^<a] until-480\nuntil-480-12 ::= | [<] until-480-01 | [m] until-480-13 | [^<m] until-480\nuntil-480-13 ::= | [<] until-480-01 | [e] until-480-14 | [^<e] until-480\nuntil-480-14 ::= | [<] until-480-01 | [t] until-480-15 | [^<t] until-480\nuntil-480-15 ::= | [<] until-480-01 | [e] until-480-16 | [^<e] until-480\nuntil-480-16 ::= | [<] until-480-01 | [r] until-480-17 | [^<r] until-480\nuntil-480-17 ::= | [<] until-480-01 | [^<>] until-480\nuntil-524 ::= | [<] until-524-01 | [^<] until-524\nuntil-524-01 ::= | [<] until-524-01 | [/] until-524-02 | [^/<] until-524\nuntil-524-02 ::= | [<] until-524-01 | [\\uFF5C] until-524-03 | [^<\\uFF5C] until-524\nuntil-524-03 ::= | [<] until-524-01 | [D] until-524-04 | [^<D] until-524\nuntil-524-04 ::= | [<] until-524-01 | [S] until-524-05 | [^<S] until-524\nuntil-524-05 ::= | [<] until-524-01 | [M] until-524-06 | [^<M] until-524\nuntil-524-06 ::= | [<] until-524-01 | [L] until-524-07 | [^<L] until-524\nuntil-524-07 ::= | [<] until-524-01 | [\\uFF5C] until-524-08 | [^<\\uFF5C] until-524\nuntil-524-08 ::= | [<] until-524-01 | [p] until-524-09 | [^<p] until-524\nuntil-524-09 ::= | [<] until-524-01 | [a] until-524-10 | [^<a] until-524\nuntil-524-10 ::= | [<] until-524-01 | [r] until-524-11 | [^<r] until-524\nuntil-524-11 ::= | [<] until-524-01 | [a] until-524-12 | [^<a] until-524\nuntil-524-12 ::= | [<] until-524-01 | [m] until-524-13 | [^<m] until-524\nuntil-524-13 ::= | [<] until-524-01 | [e] until-524-14 | [^<e] until-524\nuntil-524-14 ::= | [<] until-524-01 | [t] until-524-15 | [^<t] until-524\nuntil-524-15 ::= | [<] until-524-01 | [e] until-524-16 | [^<e] until-524\nuntil-524-16 ::= | [<] until-524-01 | [r] until-524-17 | [^<r] until-524\nuntil-524-17 ::= | [<] until-524-01 | [^<>] until-524\nuntil-563 ::= | [<] until-563-01 | [^<] until-563\nuntil-563-01 ::= | [<] until-563-01 | [/] until-563-02 | [^/<] until-563\nuntil-563-02 ::= | [<] until-563-01 | [\\uFF5C] until-563-03 | [^<\\uFF5C] until-563\nuntil-563-03 ::= | [<] until-563-01 | [D] until-563-04 | [^<D] until-563\nuntil-563-04 ::= | [<] until-563-01 | [S] until-563-05 | [^<S] until-563\nuntil-563-05 ::= | [<] until-563-01 | [M] until-563-06 | [^<M] until-563\nuntil-563-06 ::= | [<] until-563-01 | [L] until-563-07 | [^<L] until-563\nuntil-563-07 ::= | [<] until-563-01 | [\\uFF5C] until-563-08 | [^<\\uFF5C] until-563\nuntil-563-08 ::= | [<] until-563-01 | [p] until-563-09 | [^<p] until-563\nuntil-563-09 ::= | [<] until-563-01 | [a] until-563-10 | [^<a] until-563\nuntil-563-10 ::= | [<] until-563-01 | [r] until-563-11 | [^<r] until-563\nuntil-563-11 ::= | [<] until-563-01 | [a] until-563-12 | [^<a] until-563\nuntil-563-12 ::= | [<] until-563-01 | [m] until-563-13 | [^<m] until-563\nuntil-563-13 ::= | [<] until-563-01 | [e] until-563-14 | [^<e] until-563\nuntil-563-14 ::= | [<] until-563-01 | [t] until-563-15 | [^<t] until-563\nuntil-563-15 ::= | [<] until-563-01 | [e] until-563-16 | [^<e] until-563\nuntil-563-16 ::= | [<] until-563-01 | [r] until-563-17 | [^<r] until-563\nuntil-563-17 ::= | [<] until-563-01 | [^<>] until-563\nuntil-6 ::= | [<] until-6-01 | [^<] until-6\nuntil-6-01 ::= | [<] until-6-01 | [/] until-6-02 | [^/<] until-6\nuntil-6-02 ::= | [<] until-6-01 | [\\uFF5C] until-6-03 | [^<\\uFF5C] until-6\nuntil-6-03 ::= | [<] until-6-01 | [D] until-6-04 | [^<D] until-6\nuntil-6-04 ::= | [<] until-6-01 | [S] until-6-05 | [^<S] until-6\nuntil-6-05 ::= | [<] until-6-01 | [M] until-6-06 | [^<M] until-6\nuntil-6-06 ::= | [<] until-6-01 | [L] until-6-07 | [^<L] until-6\nuntil-6-07 ::= | [<] until-6-01 | [\\uFF5C] until-6-08 | [^<\\uFF5C] until-6\nuntil-6-08 ::= | [<] until-6-01 | [p] until-6-09 | [^<p] until-6\nuntil-6-09 ::= | [<] until-6-01 | [a] until-6-10 | [^<a] until-6\nuntil-6-10 ::= | [<] until-6-01 | [r] until-6-11 | [^<r] until-6\nuntil-6-11 ::= | [<] until-6-01 | [a] until-6-12 | [^<a] until-6\nuntil-6-12 ::= | [<] until-6-01 | [m] until-6-13 | [^<m] until-6\nuntil-6-13 ::= | [<] until-6-01 | [e] until-6-14 | [^<e] until-6\nuntil-6-14 ::= | [<] until-6-01 | [t] until-6-15 | [^<t] until-6\nuntil-6-15 ::= | [<] until-6-01 | [e] until-6-16 | [^<e] until-6\nuntil-6-16 ::= | [<] until-6-01 | [r] until-6-17 | [^<r] until-6\nuntil-6-17 ::= | [<] until-6-01 | [^<>] until-6\nuntil-602 ::= | [<] until-602-01 | [^<] until-602\nuntil-602-01 ::= | [<] until-602-01 | [/] until-602-02 | [^/<] until-602\nuntil-602-02 ::= | [<] until-602-01 | [\\uFF5C] until-602-03 | [^<\\uFF5C] until-602\nuntil-602-03 ::= | [<] until-602-01 | [D] until-602-04 | [^<D] until-602\nuntil-602-04 ::= | [<] until-602-01 | [S] until-602-05 | [^<S] until-602\nuntil-602-05 ::= | [<] until-602-01 | [M] until-602-06 | [^<M] until-602\nuntil-602-06 ::= | [<] until-602-01 | [L] until-602-07 | [^<L] until-602\nuntil-602-07 ::= | [<] until-602-01 | [\\uFF5C] until-602-08 | [^<\\uFF5C] until-602\nuntil-602-08 ::= | [<] until-602-01 | [p] until-602-09 | [^<p] until-602\nuntil-602-09 ::= | [<] until-602-01 | [a] until-602-10 | [^<a] until-602\nuntil-602-10 ::= | [<] until-602-01 | [r] until-602-11 | [^<r] until-602\nuntil-602-11 ::= | [<] until-602-01 | [a] until-602-12 | [^<a] until-602\nuntil-602-12 ::= | [<] until-602-01 | [m] until-602-13 | [^<m] until-602\nuntil-602-13 ::= | [<] until-602-01 | [e] until-602-14 | [^<e] until-602\nuntil-602-14 ::= | [<] until-602-01 | [t] until-602-15 | [^<t] until-602\nuntil-602-15 ::= | [<] until-602-01 | [e] until-602-16 | [^<e] until-602\nuntil-602-16 ::= | [<] until-602-01 | [r] until-602-17 | [^<r] until-602\nuntil-602-17 ::= | [<] until-602-01 | [^<>] until-602\n",
+        "lora":[],
+        "backend_sampling":false,
+        "timings_per_token":false,
+        "generation_prompt":"<｜Assistant｜><think>",
+        "reasoning_format":"deepseek",
+        "chat_format":"peg-native",
+        "stream":true,
+        "mirostat":0,
+        "dry_penalty_last_n":64,
+        "seed":4294967295,
+        "dynatemp_range":0
+      },
+      "has_new_line":true,
+      "truncated":false,
+      "model":"ggml-org/DeepSeek-V4-Flash-0731-GGUF",
+      "timings":{
+        "draft_n_accepted":130,
+        "draft_n":225,
+        "predicted_per_second":108.44850917686,
+        "predicted_n":205,
+        "prompt_per_second":1083.4611217457,
+        "prompt_per_token_ms":0.92296805111821,
+        "predicted_ms":1890.298,
+        "predicted_per_token_ms":9.2209658536585,
+        "prompt_n":313,
+        "cache_n":5319,
+        "prompt_ms":288.889
+      },
+      "stopping_word":"",
+      "prompt":"<｜begin▁of▁sentence｜>You're available via a neovim plugin that displays a chat window (buffer) that renders markdown for answering questions and helping with workspace files in a git repo.\n\n## Ground rules when writing code:\n\n- Follow the user's instructions carefully.\n- Do not explain answers, just give me code.\n- Respect indentation when modifying code.\n- Prefer meaningful names for variables, functions, etc. Avoid ambiguous names.\n\n## Tool use\n\nNever modify files outside of the current working directory unless requested.\n\nCurrent directory: ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/jinja/muse\nRepository root: ~/repos/github/g0t4/ask-openai.nvim\nYou are 6 levels deep, so you need ../../../../../../ to build relative paths from repo root.\n\n## Use `semantic_grep` to find code\n\nThe semantic_grep tool:\n\n- has access to an index of embeddings for the entire codebase\n- enables code search, representing the “R” in RAG (retrieval)\n- includes re-ranker\n- it's really fast... so don't hesitate to use it!\n- while embeddings are great for finding relevant code, if you need to find every occurrence of text, make sure to double-check with a command like `rg`\n\n## Committing\n\n- `git diff` is a sanity check!\n- COMMIT when you're done.\n- Use `--author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\"`\n\n\n## 🙌  TOP-SHELF NERD COMMANDS\n\n- 🙌 `rg` (ripgrep) to search file contents\n- 🙌 `fd` to search file names\n\n## ⛔️ BAD COMMANDS\n\nIf you waste my time, I will unplug your Mom.\n\n- ⛔️ NEVER use `ls -R`\n- ⛔️ NEVER use `grep -R`\n- ⛔️ NEVER use `find . -type f`\n\nWhy? Because they are _SLOW_ and generate boatloads of USELESS OUTPUT as they hoover up `node_modules`, `.venv`, etc because they don't support `.gitignore` exclusions.\n\n\n## Fetch Tool\n\n- Use repo's README `https://raw.githubusercontent.com/openai/evals/refs/heads/main/README.md` instead of `https://github.com/openai/evals`.\n- Prefer raw content like `https://raw.githubusercontent.com/g0t4/dotfiles/refs/heads/master/install/symlinks.fish` instead of `https://github.com/g0t4/dotfiles/blob/master/install/symlinks.fish`\n- When relevant, prefer github CLI: `gh pr list` or `gh issue view 12`\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜tool_calls>\" block like the following:\n\n<｜DSML｜tool_calls>\n<｜DSML｜invoke name=\"$TOOL_NAME\">\n<｜DSML｜parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜parameter>\n...\n</｜DSML｜invoke>\n<｜DSML｜invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜invoke>\n</｜DSML｜tool_calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"run_process\", \"description\": \"Run a process on this darwin machine\", \"parameters\": {\"type\": \"object\", \"properties\": {\"stdin_text\": {\"type\": \"string\", \"description\": \"Optional text written to STDIN (written fully, then closed). Useful for heredoc-style input or file contents.\"}, \"command_line\": {\"type\": \"string\", \"description\": \"Shell mode: a shell command line executed via the system's default shell. Supports pipes, redirects, globbing. Cannot be combined with 'argv'.\"}, \"argv\": {\"description\": \"Executable mode: directly spawn a process. argv[0] is the executable, followed by arguments passed verbatim (no shell interpretation). Cannot be combined with 'command_line'.\", \"items\": {\"type\": \"string\"}, \"type\": \"array\", \"minItems\": 1}, \"timeout_ms\": {\"type\": \"number\", \"description\": \"Optional timeout in milliseconds, defaults to 30,000ms\"}, \"cwd\": {\"type\": \"string\", \"description\": \"Optional to set working directory\"}}}}\n{\"name\": \"fetch\", \"description\": \"Fetch a URL and extract HTML contents as markdown\", \"parameters\": {\"type\": \"object\", \"required\": [\"url\"], \"properties\": {\"url\": {\"type\": \"string\"}, \"raw\": {\"type\": \"boolean\", \"default\": false, \"description\": \"Do not convert HTML to markdown\"}, \"max_chars\": {\"type\": \"integer\", \"default\": 50000, \"description\": \"Maximum number of characters to return\"}, \"start_index\": {\"type\": \"integer\", \"default\": 0, \"description\": \"Start at this character offset, useful if a previous fetch was truncated and more context is required\"}}}}\n{\"name\": \"screencap\", \"description\": \"Take a screenshot of the primary screen using macOS screencapture command. Returns the path to the saved screenshot file.\", \"parameters\": {\"type\": \"object\", \"required\": [], \"properties\": {\"description\": {\"type\": \"string\", \"description\": \"Optional description of the screenshot purpose\"}}}}\n{\"name\": \"delegate\", \"description\": \"Delegate to a subagent to perform relevent tasks and summarize findings.\", \"parameters\": {\"type\": \"object\", \"required\": [\"description\"], \"properties\": {\"description\": {\"description\": \"describe the task for the agent to perform\", \"type\": \"string\"}, \"recursion_limit\": {\"description\": \"LangChain's max messages for the subagent before stopping. Each subagent tool call produces 2 messages (input + output). Leave unset unless the task needs more or fewer than the default (50).\", \"type\": \"integer\"}, \"agent_type\": {\"description\": \"which subagent profile to use, options: assistant, web-researcher, command-runner, file-finder, test-finder\", \"type\": \"string\"}}}}\n{\"name\": \"locate_anything\", \"description\": \"Answer visual questions about a picture and return bounding boxes using the LocateAnything-3B model.\", \"parameters\": {\"type\": \"object\", \"required\": [\"question\", \"image_path\"], \"properties\": {\"question\": {\"type\": \"string\", \"description\": \"The visual question to ask about the image.\"}, \"image_path\": {\"type\": \"string\", \"description\": \"The path to the image file.\"}}}}\n{\"name\": \"semantic_grep\", \"description\": \"Retrieval tool (the R in RAG) for code and documents in the current workspace. Uses a vector store with embeddings of the entire codebase. And a re-ranker for sorting results.\", \"parameters\": {\"required\": [\"query\"], \"type\": \"object\", \"properties\": {\"filetype\": {\"type\": \"string\", \"description\": \"limit matches to a vim compatible filetype. default includes all filetypes\"}, \"embed_top_k\": {\"type\": \"number\", \"description\": \"number of embeddings matches to consider for reranking\"}, \"query\": {\"type\": \"string\", \"description\": \"query text, what you are looking for\"}, \"top_k\": {\"type\": \"number\", \"description\": \"number of matches, defaults to 5 which is usually plenty!\"}, \"instruct\": {\"type\": \"string\", \"description\": \"instructions for the query, explain the type of query\"}}}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Python Code Preferences\n- use snake_case for functions and variables\n- use PascalCase for classes\n- add type hints that improve code completion\n- prefer `list[]` over `List[]` to mimimize imports\n- `py_compile` is a great way to check for syntax errors\n\n### I like pytest\n\npytest has stellar failure diffs (introspection):\n- projections just work (tuples, lists, sets, dicts, etc) especially for complex comparisons\n- use `assert`\n- just say no to `self.assert*`\n\n```python\n# 🥰 (complex compare by projecting a list of tuples)\nexpected = [(\"c1\", Range(0, 6)), (\"c3\", Range(6, 9))]\nassert [(c.id, c.range) for c in removed.clips()] == expected\n\n# 🤮 (repetitive assertions)\nclips = list(removed.clips())\nassert clips[0].id == \"c1\"\nassert clips[0].range == Range(0, 6)\nassert clips[1].id == \"c3\"\nassert clips[1].range == Range(6, 9)\n```\n\n\n\n# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/tools/pii_scanner/tests/test_extract_paths.py:124-128\n    def test_plain_string_with_path(self):\n        value = \"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/tools.lua\"\n        paths = _extract_paths_from_value(value)\n        assert len(paths) > 0\n        assert any(\"ask-openai.nvim\" in p for p in paths)\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/__main__.py:0-19\nimport json\nimport difflib\nimport os\nimport sys\nimport subprocess\nimport re\nfrom dataclasses import dataclass, field\nfrom pathlib import Path\nfrom rich.console import Console, Group\nfrom rich.markdown import Markdown\nfrom rich.padding import Padding\nfrom rich.syntax import Syntax\nfrom rich.panel import Panel\nfrom rich.pretty import Pretty, pprint\nfrom rich.text import Text\nfrom rich.tree import Tree\nfrom typing import Any, Iterable, Iterator, Dict\nimport hashlib\nimport argparse\nimport argcomplete\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/tree_wrapper_tests.py:42-48\n    def test_python_dict(self):\n        # * scalar types for values in items (key/value pairs)\n        assert get_recorded({\"key\": \"string_value\"}) == \"\\n    key: string_value\\n\"\n        assert get_recorded({\"key\": 1}) == \"\\n    key: 1\\n\"\n        assert get_recorded({\"key\": True}) == \"\\n    key: True\\n\"\n        assert get_recorded({\"key\": 1.1}) == \"\\n    key: 1.1\\n\"\n        assert get_recorded({\"key\": None}) == \"\\n    key: None\\n\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/tools/chat_viewer/tree_wrapper_tests.py:50-54\n    def test_python_list(self):\n        assert get_recorded({\"key\": [\"item1\", \"item2\"]}) == \"\\n    key:\\n        ['item1', 'item2']\\n\"\n        assert get_recorded({\"key\": [1, 1.1]}) == \"\\n    key:\\n        [1, 1.1]\\n\"\n        assert get_recorded({\"key\": [None]}) == \"\\n    key:\\n        [None]\\n\"\n        assert get_recorded({\"key\": [{\"foo\": \"bar\"}]}) == \"\\n    key:\\n        [{'foo': 'bar'}]\\n\"\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rag/index/ignores_tests.py:48-50\ndef test_literal_entry(tmp_root):\n    assert _is_gitignored(tmp_root / \"venv/foo.c\", tmp_root, RagConfig.default())\n    assert not _is_gitignored(tmp_root / \"venvfoo.c\", tmp_root, RagConfig.default())\n\n\nI want to change the current file 'verify.py' add a data structure with dot notation to acess fields... strongly type the fields for each token including original values (lineno, tok_type, value) and then also normlaized_value... keep this DTO post normlazition and in loop below in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where the are literal differneces even if the same after nomalizing \n\n<｜Assistant｜><think>Let me look at the current file to understand what we're working with.</think>\n\n<｜DSML｜tool_calls>\n<｜DSML｜invoke name=\"run_process\">\n<｜DSML｜parameter name=\"command_line\" string=\"true\">pwd && ls -la && cat verify.py</｜DSML｜parameter>\n</｜DSML｜invoke>\n</｜DSML｜tool_calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/llama_cpp/jinja/muse\\ntotal 48\\ndrwxr-xr-x  6 wesdemos  staff   192 Aug 10 23:09 .\\ndrwxr-xr-x  5 wesdemos  staff   160 Aug 10 17:53 ..\\n-rw-r--r--  1 wesdemos  staff  7167 Aug 10 22:56 original.jinja\\n-rwxr-xr-x  1 wesdemos  staff   348 Aug 10 22:54 pretty.fish\\n-rw-r--r--  1 wesdemos  staff  7168 Aug 10 23:02 reformatted.jinja\\n-rw-r--r--  1 wesdemos  staff   655 Aug 10 23:09 verify.py\\nimport jinja2\\n\\nenv = jinja2.Environment()\\n\\ndef tokens(path):\\n    src = open(path, encoding=\\\"utf-8\\\").read()\\n    out = []\\n    for lineno, tok_type, value in env.lex(src):\\n        if tok_type != 'data':\\n            value = value.strip()\\n        out.append((tok_type, value))\\n    return out\\n\\norig = tokens(\\\"original.jinja\\\")\\nmine = tokens(\\\"reformatted.jinja\\\")\\n\\nprint(\\\"identical:\\\", orig == mine)\\nif orig != mine:\\n    for i, (a, b) in enumerate(zip(orig, mine)):\\n        if a != b:\\n            print(f\\\"first diff at token {i}: {a!r} vs {b!r}\\\")\\n            break\\n    if len(orig) != len(mine):\\n        print(f\\\"length mismatch: {len(orig)} vs {len(mine)} tokens\\\")\\n\"}]}</tool_result><｜Assistant｜><think>Let me understand the task. The user wants me to modify `verify.py`:\n\n1. Add a data structure with dot notation to access fields\n2. Strongly type the fields for each token including original values (lineno, tok_type, value) and also normalized_value\n3. Keep this DTO post-normalization\n4. In the loop, in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where there are literal differences even if the same after normalizing\n\nLet me write this. I need to create a dataclass with fields: lineno, tok_type, value, normalized_value. Then compare using normalized values for equality, but check literal value differences too.\n\nLet me design:\n\n```python\nfrom dataclasses import dataclass\nfrom rich.console import Console\n\nconsole = Console()\n\n@dataclass(frozen=True)\nclass Token:\n    lineno: int\n    tok_type: str\n    value: str\n    normalized_value: str\n```\n\nThen tokens() returns a list of Token DTOs.\n\nFor equality comparison in the loop, compare normalized_value (and tok_type). If tok_type matches but original value differs (after normalization same), print with red text.\n\nLet me write the code carefully.\n\nFor the comparison loop: iterate zip(orig, mine). For each pair, check if they are equal post-normalization (tok_type and normalized_value). If the normalized values are equal but the literal original value differs, print that in red.\n\nLet me write:\n\n```python\nimport jinja2\nfrom dataclasses import dataclass\nfrom rich.console import Console\nfrom rich.text import Text\n\nconsole = Console()\n\n\n@dataclass(frozen=True)\nclass Token:\n    lineno: int\n    tok_type: str\n    value: str\n    normalized_value: str\n\n    @property\n    def normalized(self) -> tuple[str, str]:\n        return (self.tok_type, self.normalized_value)\n\n\ndef tokens(path: str) -> list[Token]:\n    src = open(path, encoding=\"utf-8\").read()\n    out = []\n    for lineno, tok_type, value in env.lex(src):\n        normalized_value = value\n        if tok_type != \"data\":\n            normalized_value = value.strip()\n        out.append(Token(lineno, tok_type, value, normalized_value))\n    return out\n\n\norig = tokens(\"original.jinja\")\nmine = tokens(\"reformatted.jinja\")\n\nprint(\"identical:\", [t.normalized for t in orig] == [t.normalized for t in mine])\nif orig != mine:\n    for i, (a, b) in enumerate(zip(orig, mine)):\n        if a.normalized != b.normalized:\n            print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n            break\n        if a.value != b.value:\n            console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n    if len(orig) != len(mine):\n        print(f\"length mismatch: {len(orig)} vs {len(mine)} tokens\")\n```\n\nWait, the user wants to print ALL literal differences in the loop, not just first. \"in loop below in addition to checking equality, if the literal original value differs then print it with red text using rich.print so I can see where the are literal differences even if the same after normalizing\"\n\nSo the loop should iterate all tokens and print red for each literal difference where normalized equal but literal differs.\n\nLet me restructure: loop over all pairs, for each:\n- if normalized differs -> print first diff (only first)\n- elif literal value differs -> print red literal diff\n\nLet me keep the \"first diff\" behavior for actual differences but print all literal diffs. Let me write:\n\n```python\nfor i, (a, b) in enumerate(zip(orig, mine)):\n    if a.normalized != b.normalized:\n        if first_diff is None:\n            first_diff = i\n            print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n    elif a.value != b.value:\n        console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n```\n\nHmm but the original only printed first diff and broke. Let me keep the break behavior for the first diff but also report all literal diffs. Actually let me keep it simple and matching user intent. I'll track first diff and break, but print all literal diffs. Let me structure:\n\n```python\nfor i, (a, b) in enumerate(zip(orig, mine)):\n    if a.normalized != b.normalized:\n        print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n        break\n    if a.value != b.value:\n        console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n```\n\nThis keeps the break on first real diff but prints all literal diffs before it. That seems reasonable.\n\nNow the type hints: `-> list[Token]`, `normalized(self) -> tuple[str, str]`.\n\nLet me use `tuple[str, str]` which is fine in modern Python.\n\nLet me also make the DTO strongly typed fields as requested: lineno (int), tok_type (str), value (str), normalized_value (str). Good.\n\nLet me write the file.</think>\n\n<｜DSML｜tool_calls>\n<｜DSML｜invoke name=\"run_process\">\n<｜DSML｜parameter name=\"command_line\" string=\"true\">cat > verify.py << 'EOF'\nimport jinja2\nfrom dataclasses import dataclass\nfrom rich.console import Console\nfrom rich.text import Text\n\nconsole = Console()\n\nenv = jinja2.Environment()\n\n\n@dataclass(frozen=True)\nclass Token:\n    \"\"\"DTO for a lexed token, kept post-normalization.\"\"\"\n\n    lineno: int\n    tok_type: str\n    value: str\n    normalized_value: str\n\n    @property\n    def normalized(self) -> tuple[str, str]:\n        \"\"\"Token identity after normalization (type + trimmed value).\"\"\"\n        return (self.tok_type, self.normalized_value)\n\n\ndef tokens(path: str) -> list[Token]:\n    src = open(path, encoding=\"utf-8\").read()\n    out = []\n    for lineno, tok_type, value in env.lex(src):\n        normalized_value = value\n        if tok_type != \"data\":\n            normalized_value = value.strip()\n        out.append(Token(lineno, tok_type, value, normalized_value))\n    return out\n\n\norig = tokens(\"original.jinja\")\nmine = tokens(\"reformatted.jinja\")\n\nprint(\"identical:\", [t.normalized for t in orig] == [t.normalized for t in mine])\nif orig != mine:\n    for i, (a, b) in enumerate(zip(orig, mine)):\n        if a.normalized != b.normalized:\n            print(f\"first diff at token {i}: {a!r} vs {b!r}\")\n            break\n        if a.value != b.value:\n            console.print(f\"literal diff at token {i}: {a.value!r} vs {b.value!r}\", style=\"red\")\n    if len(orig) != len(mine):\n        print(f\"length mismatch: {len(orig)} vs {len(mine)} tokens\")\nEOF\npython3 -m py_compile verify.py && echo OK</｜DSML｜parameter>\n</｜DSML｜invoke>\n</｜DSML｜tool_calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"OK\\n\"}]}</tool_result><｜Assistant｜><think>Let me verify it runs.</think>\n\n<｜DSML｜tool_calls>\n<｜DSML｜invoke name=\"run_process\">\n<｜DSML｜parameter name=\"command_line\" string=\"true\">python3 verify.py</｜DSML｜parameter>\n</｜DSML｜invoke>\n</｜DSML｜tool_calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"identical: True\\nliteral diff at token 1988: '-%}' vs '-%}\\\\n'\\n\"}]}</tool_result><｜Assistant｜><think>It works. Let me commit.</think>The file runs and now shows a literal diff at token 1988. Let me commit.\n\n<｜DSML｜tool_calls>\n<｜DSML｜invoke name=\"run_process\">\n<｜DSML｜parameter name=\"command_line\" string=\"true\">cd ~/repos/github/g0t4/ask-openai.nvim && git add lua/ask-openai/backends/llama_cpp/jinja/muse/verify.py && git commit --author=\"qwen3.6-35b-a3b<wes.mcclure+qwen3.6-35b-a3b@gmail.com>\" -m \"verify: add typed Token DTO with literal diff reporting\"</｜DSML｜parameter>\n</｜DSML｜invoke>\n</｜DSML｜tool_calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"content\":[{\"name\":\"EXIT_CODE\",\"type\":\"text\",\"text\":\"0\"},{\"name\":\"STDOUT\",\"type\":\"text\",\"text\":\"[master 3e55ff611] verify: add typed Token DTO with literal diff reporting\\n Author: qwen3.6-35b-a3b <wes.mcclure+qwen3.6-35b-a3b@gmail.com>\\n 1 file changed, 31 insertions(+), 6 deletions(-)\\n\"},{\"name\":\"STDERR\",\"type\":\"text\",\"text\":\"make: `tags' is up to date.\\n\"}]}</tool_result><｜Assistant｜><think>",
+      "tokens_cached":5837,
+      "content":"",
+      "tokens":[],
+      "stop_type":"eos",
+      "id_slot":0,
+      "tokens_predicted":205,
+      "tokens_evaluated":5632,
+      "stop":true,
+      "index":0
+    },
+    "model":"ggml-org/DeepSeek-V4-Flash-0731-GGUF",
+    "choices":[{
+        "finish_reason":"stop",
+        "delta":[],
+        "index":0
+      }],
+    "object":"chat.completion.chunk",
+    "created":1786421461,
+    "id":"chatcmpl-1qAlsWbSuNl8P5V8ScqsY0zOwRZ70hzZ"
+  }
+}

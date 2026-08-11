@@ -1,0 +1,21 @@
+agent_evals:
+  - lets make sure the script can run and correctly print the one difference!
+  - not sure how we best go about having it edit the file other than I suppose we can setup a sandbox to run agent evals and copy the initial file
+  - verify the output in files/stdout.log matches the output from the model...
+    Please review the line ending to make sure I captured correctly from my logs
+    could allow leniency in output, in terms of leading/trailing whitespace (just trim leading/trailing if it doesn't match exact)
+  - the original prompt asked for red color when there's no match
+    - we could try to get rich.print's colors too...
+    - or we could simplify the prompt and strip out the color part?
+    - oh and ... color wise we might not be able to do that b/c of rich config we'd have to have the model also set
+      ? or I suppose we could setup the verify.py (before) to have rich configured to always print color so the test runner would also get color
+
+commits:
+  - sha: 3e55ff611
+    tag: evals-agent-001
+    repo: github.com:g0t4/ask-openai.nvim
+    notes:
+      - this is the solution commit for the changes made by deepseek, that are proven to work
+      - I captured `verify.py` before changes in ./files/verify.before.py
+      - I captured deepseeks's solution in ./files/verify.after.py
+
