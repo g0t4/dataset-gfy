@@ -73,7 +73,11 @@ security boundary.
 
 Each case lists `fixture_files`: a `{dest_name: path_relative_to_repo_root}`
 map, copied into a fresh temp dir before the loop starts, then bind-mounted
-into the container. The other tools a trace's system prompt might advertise
+into the container. `dest_name` can include subdirectories (e.g.
+`tools/chat_viewer/browser/__main__.py`, needed when the fixture is a real
+package module with sibling `__init__.py`/import-chain files) --
+`setup_sandbox()` creates parent directories as needed before copying. The
+other tools a trace's system prompt might advertise
 (`fetch`, `screencap`, `delegate`, `locate_anything`, `semantic_grep`) return
 a stub "not available in this offline eval" tool result instead of erroring
 the whole run -- there's no real index/network/screen to back them, and a
@@ -91,6 +95,20 @@ however the model itself happened to invoke or verify it) and compare
 stdout to `expected_stdout` -- exact match, or match after stripping
 leading/trailing whitespace from both sides. Anything else (non-zero exit,
 timeout, real mismatch) is `incorrect`.
+
+Grading runs on the **host**, not through `docker exec` -- only the model's
+own tool-calling loop is containerized. `resolve_run_command()` remaps a
+`"python3"`/`"python"` head to `sys.executable` (the interpreter running
+`run_eval.py` itself, i.e. this project's `uv`-managed venv), and
+`subprocess.run(..., cwd=sandbox_dir)` runs directly against the sandbox
+dir on disk -- there's no `/workspace` mount at grading time, and any
+package `run_command` needs (e.g. `rich`, `argcomplete`) has to be
+available in the host venv, not just the Docker image. A `run_command` or
+fixture script that hardcodes a container path like `/workspace/...` will
+fail here even though it works fine when the model runs the equivalent
+command through its own sandboxed `run_process` calls -- use a
+`cwd`-relative path instead (`agent-python-trace-browser-jq-dump-key`'s
+`grade_driver.py` hit exactly this).
 
 Get `expected_stdout` by actually running the known-good reference file
 against the fixtures yourself, not by hand-copying it out of a captured

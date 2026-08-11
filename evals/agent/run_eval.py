@@ -212,7 +212,9 @@ def apply_prompt_patches(messages: list[dict], patches: dict[str, str] | None) -
 def setup_sandbox(case: Case) -> Path:
     sandbox_dir = Path(tempfile.mkdtemp(prefix=f"agent-eval-{case.id}-"))
     for dest_name, src_rel in case.fixture_files.items():
-        shutil.copy(REPO_ROOT / src_rel, sandbox_dir / dest_name)
+        dest_path = sandbox_dir / dest_name
+        dest_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO_ROOT / src_rel, dest_path)
     return sandbox_dir
 
 
