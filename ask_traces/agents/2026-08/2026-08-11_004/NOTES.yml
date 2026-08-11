@@ -1,0 +1,21 @@
+
+notes:
+  - I literally wanted a  `jq` command added to my browse tool to dump a trace via jq...
+  - muse nailed it right away
+
+agent_evals:
+  - this could probably be eval tested
+  - nice thing is this is one single file to edit with all relevant code so it would be easy to sandbox
+  - only challenge might be how to test it since it is an interactive browser...
+    - perhaps I just need to add a non-interactive version of it (another good eval case!)
+  - assert a few things
+    - model should add "j" to the "h" help command table output
+    - "j" should trigger dumping the current trace via jq
+
+commits:
+  - tag: evals-agent-002
+    repo: github.com:g0t4/ask-openai.nvim
+    notes: this is the solution from Muse Glimmer 30b  that worked when I ran it
+files: |
+  `git -C ~/repos/github/g0t4/ask-openai.nvim show evals-agent-002~1:tools/chat_viewer/browser/__main__.py > files/__main__.before.py`
+  `git -C ~/repos/github/g0t4/ask-openai.nvim show evals-agent-002:tools/chat_viewer/browser/__main__.py > files/__main__.after.py`
