@@ -25,18 +25,63 @@ as the prompt. Everything from the first assistant message on was the
 token-for-token -- it's just evidence of what a working solution looked
 like when this case was built.
 
-## Sandbox
+A trace can be a *continuation* of a longer real session -- one capture
+with several follow-up asks chained onto the same file (verify.py, then
+"now build pretty.py", then "now build render_check.py", ...). A case
+sourced from a later follow-up sets `prompt_end_idx` explicitly
+(`messages[:prompt_end_idx]`) instead of relying on the first-assistant-
+message default, which only makes sense for a case starting at message 0.
+Point it just past the user message that kicks off the follow-up you're
+turning into a case -- everything before that (including the earlier
+sub-tasks' back-and-forth) becomes prompt context, same as the reference
+session had it.
+
+## Sandbox: real containment via Docker
+
+`run_process` runs every model-driven command via `docker exec` into a
+per-case container (built from `agent/docker/Dockerfile`, image
+`agent-eval-sandbox:latest`), bind-mounted to the sandbox dir at
+`/workspace` and always executed from there. This is real filesystem
+containment -- the container has no access to the host filesystem beyond
+that one bind-mounted directory -- not just a pinned-`cwd` convention a
+shell command could `cd` its way out of.
+
+That distinction isn't hypothetical: it's how `agent-python-render-check-
+dual-template-jinja-match` was first found to be broken. Before Docker was
+wired in, `run_process` just ran `subprocess.run(..., cwd=sandbox_dir)` --
+pinning where a command *started*, not what it could reach. The trace's
+source repo (`ask-openai.nvim`) was a real, currently-checked-out working
+directory on the eval machine, with the reference commit already sitting on
+`master`. The model under test `cd`'d straight there, ran the *already-
+finished* `render_check.py`, and declared victory -- its actual sandbox
+stayed empty the whole time. Grading still caught it (it only ever looks at
+the sandbox), but the eval measured nothing. The first fix attempt --
+`prompt_patches`, a `{old_substring: new_substring}` text substitution
+across the whole replayed prompt, redacting the real path -- wasn't enough
+either: denied the stated path, the model got suspicious and ran `fd -t d
+muse` against the real home directory, using one of the very tools its own
+system prompt advertised, and found the real repo anyway under its
+unredacted name. Redacting text a model reads can't stop a model that
+decides to search the real filesystem from scratch. Docker closes that off
+structurally: inside the container there is nothing to find.
+
+`prompt_patches` still exists and still gets applied (see `Case.prompt_patches`
+in `run_eval.py`) -- it's just no longer load-bearing for containment. Use it
+for narrative cleanliness (a stated cwd that doesn't match where fixtures
+actually landed can confuse a model into wasted turns) rather than as a
+security boundary.
 
 Each case lists `fixture_files`: a `{dest_name: path_relative_to_repo_root}`
-map, copied into a fresh temp dir before the loop starts. Only
-`run_process` is wired up for real (subprocess, `cwd` **always** pinned to
-the sandbox dir -- a model-generated shell command's blast radius stays
-contained to the disposable sandbox no matter what `cwd` it asks for). The
-other tools a trace's system prompt might advertise (`fetch`, `screencap`,
-`delegate`, `locate_anything`, `semantic_grep`) return a stub "not
-available in this offline eval" tool result instead of erroring the whole
-run -- there's no real index/network/screen to back them, and a case
-should be scoped so it doesn't actually need them.
+map, copied into a fresh temp dir before the loop starts, then bind-mounted
+into the container. The other tools a trace's system prompt might advertise
+(`fetch`, `screencap`, `delegate`, `locate_anything`, `semantic_grep`) return
+a stub "not available in this offline eval" tool result instead of erroring
+the whole run -- there's no real index/network/screen to back them, and a
+case should be scoped so it doesn't actually need them.
+
+One-time setup: `docker build -t agent-eval-sandbox agent/docker` (needs
+Docker running). `run_eval.py` fails fast at startup if the daemon isn't
+reachable or the image hasn't been built.
 
 ## Grading
 

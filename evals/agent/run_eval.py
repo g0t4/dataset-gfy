@@ -44,6 +44,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -61,6 +62,17 @@ PAXY_HOST = "paxy.lan"
 
 EXEC_TIMEOUT_SECONDS = 15
 RUN_PROCESS_TIMEOUT_CAP_MS = 60_000
+
+# every model-driven run_process call executes via `docker exec` into a
+# per-case container (built from agent/docker/Dockerfile), bind-mounted to
+# the sandbox dir -- real filesystem containment, not just a pinned cwd
+# convention. Pinning cwd alone let a model `cd`/`fd` its way out to a real,
+# already-solved directory elsewhere on the host (see README's "Prompt
+# patching" section for how that was found -- text-level prompt patching
+# turned out not to be enough, since a model can just search the real
+# filesystem from scratch).
+DOCKER_IMAGE = "agent-eval-sandbox:latest"
+DOCKER_CONTAINER_WORKDIR = "/workspace"
 
 # a case's run_command/model tool calls say "python3"/"python" -- swap in
 # the interpreter actually running this harness (which has the eval
@@ -81,7 +93,29 @@ class Case:
     run_command: list[str]
     expected_stdout: str
     grader: str = "execute_stdout_match"
+    # for grader="execute_exit_zero_and_contains": substrings that must all
+    # appear in stdout (exit code must also be 0). Use this instead of exact
+    # stdout matching when a case has real design freedom in phrasing (see
+    # constraint="loose") -- pick substrings specific enough that a trivial/
+    # broken implementation can't fake them by accident (e.g. an exact
+    # computed number, not a word like "MATCH" that a naive stub could
+    # hardcode regardless of correctness).
+    expected_substrings: list[str] | None = None
     max_turns: int = 8
+    # for a case sourced from partway through a longer trace (a later
+    # follow-up in the same session, after earlier sub-tasks already
+    # happened): explicit end of the prompt slice (messages[:prompt_end_idx]),
+    # overriding the default "everything before the first assistant message"
+    # behavior, which only makes sense when the trace starts fresh.
+    prompt_end_idx: int | None = None
+    # literal substring replacements applied across the entire prompt
+    # (system prompt text, historical tool_call arguments, historical tool
+    # results -- everywhere) before replay. Use this whenever the trace's
+    # stated cwd/repo-root is a real, currently-existing directory on the
+    # eval-running machine -- otherwise a model can `cd` straight to the real
+    # (already-solved) location instead of working in the sandbox, and the
+    # eval measures nothing. Always patch in that case.
+    prompt_patches: dict[str, str] | None = None
     # answer-constraint tightness, for slicing reports separately from verdict
     # (see fim/run_eval.py for the scale)
     constraint: str | None = None
@@ -122,6 +156,17 @@ def ping_server(port: int, label: str) -> None:
                   f"is llama-server up on that port?")
 
 
+def ping_docker() -> None:
+    try:
+        subprocess.run(["docker", "info"], capture_output=True, timeout=5, check=True)
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as e:
+        sys.exit(f"startup check failed: docker daemon not reachable ({e}) -- is Docker running?")
+    inspect = subprocess.run(["docker", "image", "inspect", DOCKER_IMAGE], capture_output=True, timeout=5)
+    if inspect.returncode != 0:
+        sys.exit(f"startup check failed: docker image {DOCKER_IMAGE!r} not found -- "
+                  f"build it with: docker build -t {DOCKER_IMAGE} agent/docker")
+
+
 def dump_json(dump_dir: Path, name: str, data: dict) -> None:
     dump_dir.mkdir(parents=True, exist_ok=True)
     (dump_dir / f"{name}.json").write_text(json.dumps(data, indent=2, default=str))
@@ -146,12 +191,22 @@ def complete_case_ids(prefix: str, parsed_args: argparse.Namespace, **kwargs) ->
         return []
 
 
-def load_trace_prompt_and_tools(source_trace: str) -> tuple[list[dict], list[dict]]:
+def load_trace_prompt_and_tools(source_trace: str, prompt_end_idx: int | None = None) -> tuple[list[dict], list[dict]]:
     trace = json.loads((REPO_ROOT / source_trace).read_text())
     messages = trace["request_body"]["messages"]
     tools = trace["request_body"]["tools"]
-    first_assistant_idx = next(i for i, m in enumerate(messages) if m["role"] == "assistant")
-    return messages[:first_assistant_idx], tools
+    end_idx = prompt_end_idx if prompt_end_idx is not None else next(
+        i for i, m in enumerate(messages) if m["role"] == "assistant")
+    return messages[:end_idx], tools
+
+
+def apply_prompt_patches(messages: list[dict], patches: dict[str, str] | None) -> list[dict]:
+    if not patches:
+        return messages
+    text = json.dumps(messages)
+    for old, new in patches.items():
+        text = text.replace(old, new)
+    return json.loads(text)
 
 
 def setup_sandbox(case: Case) -> Path:
@@ -161,19 +216,38 @@ def setup_sandbox(case: Case) -> Path:
     return sandbox_dir
 
 
-def execute_run_process(args: dict, sandbox_dir: Path) -> dict:
+def start_container(sandbox_dir: Path, case_id: str) -> str:
+    name = f"agent-eval-{case_id}-{uuid.uuid4().hex[:8]}"
+    subprocess.run(
+        ["docker", "run", "-d", "--rm", "--name", name,
+         "-v", f"{sandbox_dir}:{DOCKER_CONTAINER_WORKDIR}", "-w", DOCKER_CONTAINER_WORKDIR,
+         DOCKER_IMAGE, "sleep", "infinity"],
+        capture_output=True, text=True, check=True, timeout=30,
+    )
+    return name
+
+
+def stop_container(name: str) -> None:
+    subprocess.run(["docker", "rm", "-f", name], capture_output=True, timeout=15)
+
+
+def execute_run_process(args: dict, container_name: str) -> dict:
     command_line = args.get("command_line")
     argv = args.get("argv")
     timeout_ms = min(args.get("timeout_ms") or 30_000, RUN_PROCESS_TIMEOUT_CAP_MS)
-    # NOTE: cwd is always pinned to the sandbox dir, regardless of any `cwd`
-    # arg the model passes -- keeps a model-generated shell command's blast
-    # radius contained to the disposable sandbox no matter what it asks for.
+    # NOTE: every call runs via `docker exec` into the case's container, always
+    # from DOCKER_CONTAINER_WORKDIR, regardless of any `cwd` arg the model
+    # passes or any `cd` a prior call made -- real filesystem containment (the
+    # container has no access to the host filesystem beyond the sandbox_dir
+    # bind mount), not just a pinned-cwd convention a shell command could
+    # wander out of.
+    docker_prefix = ["docker", "exec", "-i", "-w", DOCKER_CONTAINER_WORKDIR, container_name]
     try:
         if command_line:
-            proc = subprocess.run(command_line, shell=True, cwd=sandbox_dir, capture_output=True,
+            proc = subprocess.run([*docker_prefix, "sh", "-c", command_line], capture_output=True,
                                    text=True, timeout=timeout_ms / 1000, input=args.get("stdin_text"))
         elif argv:
-            proc = subprocess.run(argv, cwd=sandbox_dir, capture_output=True,
+            proc = subprocess.run([*docker_prefix, *argv], capture_output=True,
                                    text=True, timeout=timeout_ms / 1000, input=args.get("stdin_text"))
         else:
             return {"content": [{"name": "ERROR", "type": "text", "text": "run_process called with neither command_line nor argv"}]}
@@ -194,7 +268,7 @@ def execute_stub_tool(name: str) -> dict:
 
 
 def run_agent_loop(client: openai.OpenAI, prompt_messages: list[dict], tools: list[dict], case: Case,
-                    sandbox_dir: Path, max_tokens: int, temperature: float, verbose: bool) -> dict:
+                    container_name: str, max_tokens: int, temperature: float, verbose: bool) -> dict:
     messages = [dict(m) for m in prompt_messages]
     tool_calls_made: list[str] = []
     completion_tokens_total = 0
@@ -229,7 +303,7 @@ def run_agent_loop(client: openai.OpenAI, prompt_messages: list[dict], tools: li
             except json.JSONDecodeError:
                 args = {}
             tool_calls_made.append(name)
-            result = execute_run_process(args, sandbox_dir) if name == "run_process" else execute_stub_tool(name)
+            result = execute_run_process(args, container_name) if name == "run_process" else execute_stub_tool(name)
             messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(result)})
     else:
         hit_max_turns = True
@@ -264,6 +338,13 @@ def grade(case: Case, sandbox_dir: Path) -> tuple[str, str, str, int | None]:
         return "incorrect", f"grading run timed out after {EXEC_TIMEOUT_SECONDS}s", stdout, None
     if returncode != 0:
         return "incorrect", f"grading run exited {returncode}: {stderr.strip()[:300] or '(no stderr)'}", stdout, returncode
+
+    if case.grader == "execute_exit_zero_and_contains":
+        missing = [s for s in (case.expected_substrings or []) if s not in stdout]
+        if missing:
+            return "incorrect", f"stdout missing expected substring(s): {missing!r}", stdout, returncode
+        return "correct", "exit 0 and stdout contains all expected substrings", stdout, returncode
+
     if stdout == case.expected_stdout:
         return "correct", "stdout matches expected exactly", stdout, returncode
     if stdout.strip() == case.expected_stdout.strip():
@@ -294,6 +375,7 @@ def main():
             sys.exit(f"no case with id {args.only!r}")
 
     ping_server(args.port, "model under test")
+    ping_docker()
     client = make_client(args.port)
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -304,10 +386,13 @@ def main():
         if args.verbose:
             print(f"running {case.id}...", file=sys.stderr)
 
-        prompt_messages, tools = load_trace_prompt_and_tools(case.source_trace)
+        prompt_messages, tools = load_trace_prompt_and_tools(case.source_trace, case.prompt_end_idx)
+        prompt_messages = apply_prompt_patches(prompt_messages, case.prompt_patches)
         sandbox_dir = setup_sandbox(case)
+        container_name = None
         try:
-            loop_result = run_agent_loop(client, prompt_messages, tools, case, sandbox_dir,
+            container_name = start_container(sandbox_dir, case.id)
+            loop_result = run_agent_loop(client, prompt_messages, tools, case, container_name,
                                           args.max_tokens, args.temperature, args.verbose)
             dump_json(dump_dir, case.id, {
                 "sandbox_dir": str(sandbox_dir) if args.keep_sandbox else None,
@@ -317,6 +402,8 @@ def main():
             if loop_result["hit_max_turns"]:
                 reason += f" [NOTE: agent loop hit max_turns={case.max_turns} without finishing on its own]"
         finally:
+            if container_name:
+                stop_container(container_name)
             if args.keep_sandbox:
                 print(f"  sandbox kept: {sandbox_dir}", file=sys.stderr)
             else:
