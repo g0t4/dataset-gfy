@@ -1,0 +1,2 @@
+ask deepseek to fix nested indent for elif/else in jinja templates in my pretty.py pretty printer... fixed it to not indent an extra level beyond if statements
+- only gripe is that i had to tell it what was wrong with direct examples from the file, at first it thought I was wrong (perhaps b/c I asked if I was crazy... which maybe next time if you are confident just say so and let it tell you no if it really thinks you are wrong... asking it if you are wrong opens door to it coming to that conclusion when you're not wrong!)
