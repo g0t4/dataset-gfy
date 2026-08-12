@@ -1,0 +1,20 @@
+fim_evals:
+  - this is a tricky FIM... but I think it is obvious what I want here...
+  - lets catalog the exact matches we might expect and fallback to llm-judge?
+  - two key parts to the answer
+    - 1. cancel prediction
+    - 2. which buffer (current)
+      - I think we should accept `0` too for bufnr, b/c I don't think any RAG matches captured the code that will blow up if it is zero (I have that intentionally) so just allow 0 too
+    - can you enumerate more approaches to get current bufnr and list those as exact matches (as the arg to cancel)
+language: lua
+tags:
+  - hardcore
+  - mind_reading
+notes:
+  - sick FIM from deepseek that quashes a bug I've long ignored... when I disable predictions midflight! the prediction extmarks are frozen... not anymore!
+  - I just put my cursor where I would make the change and went into insert mode and dang deepseek nailed it
+  - note about high thinking...
+    - thinking time is a bit insane here but I did have it set to "High"
+    - cool thing is, because I can see thinking preview I could tell it was on the right path right away so I just let it keep thinking
+    - and legit it is a bit challenging to know which buffer to do this for... good call to do it for current buffer!
+
