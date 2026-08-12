@@ -139,15 +139,15 @@ class Result:
     constraint: str | None = None
 
 
-def make_client(port: int) -> openai.OpenAI:
+def make_client(port: int, host: str = PAXY_HOST) -> openai.OpenAI:
     import openai
-    return openai.OpenAI(base_url=f"http://{PAXY_HOST}:{port}/v1", api_key="none", timeout=120)
+    return openai.OpenAI(base_url=f"http://{host}:{port}/v1", api_key="none", timeout=120)
 
 
-def ping_server(port: int, label: str) -> None:
+def ping_server(port: int, label: str, host: str = PAXY_HOST) -> None:
     """See fim/run_eval.py -- same fail-fast rationale."""
     import httpx
-    url = f"http://{PAXY_HOST}:{port}/v1/models"
+    url = f"http://{host}:{port}/v1/models"
     try:
         resp = httpx.get(url, timeout=5.0)
         resp.raise_for_status()
@@ -161,8 +161,12 @@ def ping_docker() -> None:
         subprocess.run(["docker", "info"], capture_output=True, timeout=5, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired) as e:
         sys.exit(f"startup check failed: docker daemon not reachable ({e}) -- is Docker running?")
-    inspect = subprocess.run(["docker", "image", "inspect", DOCKER_IMAGE], capture_output=True, timeout=5)
-    if inspect.returncode != 0:
+    # docker image inspect on an explicit ":latest" tag can fail to resolve under
+    # Docker Desktop's containerd snapshotter even when the image is present --
+    # `docker images -q` looks up the same tag via the image list instead, which
+    # doesn't hit that resolution quirk.
+    found = subprocess.run(["docker", "images", "-q", DOCKER_IMAGE], capture_output=True, text=True, timeout=5)
+    if not found.stdout.strip():
         sys.exit(f"startup check failed: docker image {DOCKER_IMAGE!r} not found -- "
                   f"build it with: docker build -t {DOCKER_IMAGE} agent/docker")
 
@@ -356,7 +360,8 @@ def grade(case: Case, sandbox_dir: Path) -> tuple[str, str, str, int | None]:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on {PAXY_HOST}")
+    parser.add_argument("--port", type=int, required=True, help=f"port of the llama-server instance to test, on --host")
+    parser.add_argument("--host", default=PAXY_HOST, help=f"host the llama-server instance is on (default: {PAXY_HOST}); use this to target a box directly when it's not proxied through {PAXY_HOST}")
     parser.add_argument("--cases", default=str(AGENT_DIR / "cases.jsonl"), help="path to cases.jsonl").completer = argcomplete.completers.FilesCompleter(allowednames=[".jsonl"])
     parser.add_argument("--max-tokens", type=int, default=8192,
                          help="cap on generated tokens per agent turn; 0 or -1 removes the cap entirely")
@@ -376,9 +381,9 @@ def main():
         if not cases:
             sys.exit(f"no case with id {args.only!r}")
 
-    ping_server(args.port, "model under test")
+    ping_server(args.port, "model under test", args.host)
     ping_docker()
-    client = make_client(args.port)
+    client = make_client(args.port, args.host)
 
     run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     dump_dir = AGENT_DIR / "debug_dumps" / run_ts
@@ -433,17 +438,17 @@ def main():
                    f"across cases: {model_names} -- was the server restarted with a different model mid-run?", file=sys.stderr)
     resolved_model = results[0].model_name if results else "unknown"
 
-    print_report(resolved_model, args.port, results, dump_dir)
+    print_report(resolved_model, args.host, args.port, results, dump_dir)
 
     if args.save:
         save_results(resolved_model, results)
 
 
-def print_report(model: str, port: int, results: list[Result], dump_dir: Path):
+def print_report(model: str, host: str, port: int, results: list[Result], dump_dir: Path):
     import rich
     icon = {"correct": "✅", "incorrect": "❌"}
     print()
-    rich.print(f"agent eval -- model: [bold black on bright_yellow] {model} [/]  (port {port})")
+    rich.print(f"agent eval -- model: [bold black on bright_yellow] {model} [/]  ({host}:{port})")
     print(f"trace dumps: {dump_dir}")
     print("=" * 60)
     for r in results:
