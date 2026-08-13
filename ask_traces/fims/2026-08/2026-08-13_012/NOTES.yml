@@ -1,0 +1,11 @@
+fim_evals:
+  - simple copy paste pattern (I think I already test this in another FIM eval so only use this if that alone is insufficient or if you wanna give a model multiple tries at similar FIMs)
+  - correct response:
+      file: 1786651025-trace.json
+      notes: in this case I re-ran FIM w/o anything on cursorline
+  - variation:
+      file: duplicated_cursorline_prefix/1786650591-trace.json
+      notes: this one has `---<|CURSOR_IS_HERE|>` and in this case glimmer repeated the `---`
+language: lua
+tags:
+  - pattern
