@@ -1,0 +1,3 @@
+gave muse a real task, to show timings per assistant message in trace viewer (python)...
+- wow oh wow... I am getting many turns with high 200s into mid 300s for tok/sec output ... WOW
+- also it solved this so friggin fast and correctly is showing when I run trace viewer
