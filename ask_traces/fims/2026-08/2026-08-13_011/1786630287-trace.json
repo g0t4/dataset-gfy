@@ -1,0 +1,63 @@
+{
+  "last_sse":{
+    "id":"chatcmpl-zPqiuoJZuvTuvu0o5BDAk5Gu2Pk8YqE4",
+    "timings":{
+      "draft_n_accepted":91,
+      "cache_n":1382,
+      "predicted_per_second":544.90096284562,
+      "predicted_n":98,
+      "prompt_per_second":71.319554395424,
+      "draft_n":105,
+      "prompt_ms":70.107,
+      "prompt_per_token_ms":14.0214,
+      "predicted_ms":178.014,
+      "predicted_per_token_ms":1.8351958762887,
+      "prompt_n":5
+    },
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "system_fingerprint":"b10413-f65e568fd",
+    "model":"meta-models/Muse-Glimmer-30B-GGUF:Q4_K_XL",
+    "created":1786630136
+  },
+  "flags":[],
+  "request_body":{
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_strength":"off"
+    },
+    "raw":false,
+    "top_p":1,
+    "top_logprobs":5,
+    "temperature":1,
+    "logprobs":true,
+    "top_k":64,
+    "post_sampling_probs":true,
+    "max_tokens":2048,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:6-8\nfunction M.sub(a, b)\n    return a - b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:2-4\nfunction M.add(a, b)\n    return a + b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:10-12\nfunction M.mul(a, b)\n    return a * b\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:49-49\nfunction M.min(a, b) return math.min(a, b) end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/tests/calc/calc-from-14b-q8-way-further-coherent.lua:14-19\nfunction M.div(a, b)\n    if b == 0 then\n        error(\"Cannot divide by zero\")\n    end\n    return a / b\nend\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```lua/ask-openai/predictions/tests/calc/calc.lua\nlocal M = {}\n\nfunction M.add(a, b)\n    return a + b\nend\n\nfunction M.sub(a, b)\n    return b\nend\n\n<|CURSOR_IS_HERE|>\n\nreturn M\n```\n\n## Reminders about the cursor line:\n",
+        "role":"user"
+      },{
+        "content":"",
+        "reasoning_content":"<|eom|><|start|>assistant to=user<|message|>",
+        "role":"assistant"
+      },{
+        "role":"assistant",
+        "finish_reason":"stop",
+        "content":"function M.sub(a, b)\n    return a - b\nend\n\nfunction M.mul(a, b)\n    return a * b\nend\n\nfunction M.div(a, b)\n    if b == 0 then\n        error(\"Cannot divide by zero\")\n    end\n    return a / b\nend\n\nfunction M.min(a, b)\n    return math.min(a, b)\nend\n\nfunction M.max(a, b)\n    return math.max(a, b)\nend"
+      }]
+  }
+}
