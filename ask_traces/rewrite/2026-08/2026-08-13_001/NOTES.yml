@@ -1,0 +1,5 @@
+rewrite_evals:
+  - simple move of positional arg for refspec
+  - tricky in that you don't wanna put this inside the double quotes, needs to be outside double, inside single at end of command
+  - only one right answer IMO, no partial credit (I suppose it could be quoted but no lets not inject unnecessary quoting
+langauge: fish
