@@ -1,0 +1,13 @@
+notes:
+  - this FIM shows the power of Muse Glimmer in a non reasoning mode! it is VERY FAST (312 tok/sec) and can be VERY GOOD/USEFUL too
+fim_evals:
+  - this is simply pattern recognition + then rewriting the pattern (example) from a json timings object into type annotations for that object
+    first annotation is done and matches first field from timings example
+    so just define rest of fields for the example! (name/type of each) in lua annotations
+
+  - really is only one right answer IMO... I think we can do an exact match on the other fields + with same whitespace, will probably work for many models
+    might have lenience about whitespace but we shall see, lets do exact to start
+    i.e. extra blank lines after won't hurt
+language: lua
+tags:
+  - pattern
