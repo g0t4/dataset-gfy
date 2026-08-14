@@ -1,0 +1,76 @@
+{
+  "last_sse":{
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }],
+    "system_fingerprint":"b10413-f65e568fd",
+    "created":1786744711,
+    "id":"chatcmpl-bFsU54suecyGtM8DlKYJC7wfxlTx9foy",
+    "timings":{
+      "prompt_n":2547,
+      "cache_n":618,
+      "draft_n_accepted":38,
+      "draft_n":105,
+      "predicted_per_second":251.37829576942,
+      "predicted_n":45,
+      "prompt_per_second":2290.0475092699,
+      "predicted_per_token_ms":3.9780681818182,
+      "prompt_ms":1112.204,
+      "prompt_per_token_ms":0.43667216332941,
+      "predicted_ms":175.035
+    },
+    "model":"meta-models/Muse-Glimmer-30B-GGUF:Q4_K_XL"
+  },
+  "flags":[],
+  "request_body":{
+    "top_logprobs":5,
+    "top_p":1,
+    "stream":true,
+    "top_k":64,
+    "raw":false,
+    "chat_template_kwargs":{
+      "reasoning_strength":"off"
+    },
+    "post_sampling_probs":true,
+    "max_tokens":2048,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n",
+        "role":"user"
+      },{
+        "content":"# Semantic Grep matches: 5\n\nThis is automatic context based on my request. These may or may not be relevant.\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/frontend.lua:111-124\n        ---@param sse_parsed LlamaServerSSEBase\n        ---@return SseFieldsResult sse_result\n        local function _extract_sse_fields(sse_parsed)\n            if fim_request.endpoint == CompletionsEndpoints.llamacpp_completions then\n                -- FYI so far all these requests are for raw completions (otherwise I'd use chat completions)\n                ---@cast sse_parsed LlamaServerRawCompletionSSE\n                return parse_sse_llamacpp_completions(sse_parsed)\n            end\n            if fim_request.endpoint == CompletionsEndpoints.v1_chat_completions then\n                ---@cast sse_parsed LlamaServerChatCompletionSSE\n                return parse_sse_v1_chat_completions(sse_parsed)\n            end\n            error(\"Unsupported FIM endpoint: \" .. tostring(fim_request.endpoint))\n        end\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua:131-157\n---@param endpoint CompletionsEndpoints\n---@return ExtractGeneratedTextFromChoiceFunction\nlocal function get_extract_generated_text_func(endpoint)\n    if endpoint == CompletionsEndpoints.v1_chat_completions then\n        ---@type ExtractGeneratedTextFromChoiceFunction\n        return function(choice)\n            --- * /v1/chat/completions\n            -- NOW I have access to request (url, body.model, etc) to be able to dynamically swap in the right SSE parser!\n            --   I could even add another function that would handle aggregating and transforming the raw response (i.e. for harmony) into aggregate views (i.e. of thinking and final responses), also trigger events that way\n            if choice == nil or choice.delta == nil\n            then\n                return \"\", \"\"\n            end\n            local content = choice.delta.content or \"\"\n            if content == vim.NIL then content = \"\" end\n            local reasoning = choice.delta.reasoning_content or \"\"\n            if reasoning == vim.NIL then reasoning = \"\" end\n            return content, reasoning\n        end\n    end\n\n    if endpoint == CompletionsEndpoints.llamacpp_completions then\n        error(\"NOT YET IMPLEMENTED llama-sever /completions endpoint\")\n    end\n\n    error(\"Not yet implemented: \" .. endpoint)\nend\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/rewrites/frontend.lua:127-136\nend\n\n---@alias ExtractGeneratedTextFromChoiceFunction fun(first_choice: table): string, string\n\n---@param endpoint CompletionsEndpoints\n---@return ExtractGeneratedTextFromChoiceFunction\nlocal function get_extract_generated_text_func(endpoint)\n    if endpoint == CompletionsEndpoints.v1_chat_completions then\n        ---@type ExtractGeneratedTextFromChoiceFunction\n        return \n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/predictions/fim_request_builder.lua:15-26\nlocal logging_tokens = require(\"ask-openai.logs.tokens\")\n\nrequire(\"ask-openai.backends.sse.parsers\")\n\n---@class CurlParamsBuilder\n---@field body table<string, any>\n---@field base_url string\n---@field endpoint CompletionsEndpoints\n---@field type string\nlocal CurlParamsBuilder = {}\nCurlParamsBuilder.__index = CurlParamsBuilder\n\n\n\n## ~/repos/github/g0t4/ask-openai.nvim/lua/ask-openai/backends/curl_request.lua:0-19\nlocal log = require(\"devtools.logs.logger\").universal()\n\n---@class CurlRequest\n---@field body table\n---@field base_url string\n---@field endpoint CompletionsEndpoints\n---@field handle? uv.uv_process_t\n---@field pid? integer\n---@field start_time integer -- unix timestamp when request was sent (for timing)\n---@field marks_ns_id integer\n---@field type string\nlocal CurlRequest = {}\nlocal request_counter = 1\n\n---@class CurlRequestParams\n---@field body table<string, any>\n---@field base_url string\n---@field endpoint CompletionsEndpoints\n---@field type string\n\n\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```lua/ask-openai/config/init.lua\n    -- ggml-org/gpt-oss-120b-GGUF\n    { pattern = \"/gpt%-oss\",             abbrev = \"gptoss\" },\n    -- google/gemma-4-26B-A4B-it-qat-q4_0-gguf\n    { pattern = \"/gemma%-4\",             abbrev = \"gemma4\" },\n    -- ggml-org/GLM-4.7-Flash-GGUF:Q8_0\n    { pattern = \"/GLM%-4.7%-Flash\",      abbrev = \"glm\" },\n    -- ggml-org/DeepSeek-V4-Flash-0731-GGUF\n    { pattern = \"/DeepSeek%-V4%-Flash\", abbrev = \"deepseek\" },\n    { pattern = \"/Muse%-Glimmer\", abbrev = \"muse\" },\n    -- ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF:Q4_K_M\n    { pattern = \"/NVIDIA%-Nemotron\", abbrev = \"nemo-lightning\" },\n}\n\n--- Abbreviate a raw model name using pattern matching, or return the original name.\n--- @param raw_model string|nil\n--- @return string\nlocal function abbreviate_model(raw_model)\n    if not raw_model then\n        return \"MISSING_NAME\"\n    end\n\n    for _, entry in ipairs(MODEL_PATTERNS) do\n        if raw_model:match(entry.pattern) then\n            return entry.abbrev\n        end\n    end\n\n    return raw_model\nend\n\nlocal function NOOP() end\n\n---@param base_url string\n---@param callback ModelEntryCallback\nlocal function refresh_model_info_cache_for(base_url, callback)\n    callback = callback or NOOP\n\n    local model_info = LlamaServerClient.get_model_info(base_url, { connect_timeout = 1, max_time = 3 })\n    if not model_info then\n        _fetch_in_progress[base_url] = nil\n        callback({ name = \"FETCH_FAILED\" })\n        return\n    end\n\n    local model_name = abbreviate_model(model_info.name)\n\n    local entry = { name = model_name, model_info = model_info, base_url = base_url, ts = os.time() }\n    _model_cache[base_url] = entry\n    callback(entry) -- TODO or just return name?\nend\n\n---@alias ModelEntryCallback fun(entry: ModelCacheEntry)\n\n--- Async model name lookup (cached is sync but requires callback pattern for now)\n---@param base_url string The base URL of the llama-server (e.g. \"http://paxy.lan:8012\")\n---@param callback ModelEntryCallback\nfunction M.get_llama_server_model_info(base_url, callback)\n    callback = callback or NOOP\n\n    local function fetch()\n        _fetch_in_progress[base_url] = true\n        vim.schedule(function()\n            refresh_model_info_cache_for(base_url, callback)\n        end)\n    end\n\n    local cached = _model_cache[base_url]\n    if cached then\n        local cache_timeout_seconds = cached.name == nil and 1 or 120\n        local expired = os.time() - cached.ts > cache_timeout_seconds\n        if expired then\n            -- trigger background refresh while using last value\n            fetch()\n        end\n        callback(cached) -- respond with cached (albeit \"expired\") until refreshed\n        return\n    end\n\n    if not _fetch_in_progress[base_url] then\n        fetch()\n    end\n\n    callback({ name = \"Pending...\" })\nend\n\n---@class AskOpenAIOptions\nlocal default_options = {}\n\nlocal cached_options = default_options\n\n---@return AskOpenAIOptions\nfunction M.get_options()\n    return cached_options\nend\n\n--- @class Endpoint\n--- @field base_url string\n\n--- @return table { cmdline: Endpoint, <|CURSOR_IS_HERE|>\nfunction M.get_endpoints()\n    local gptoss_url = \"http://ask.lan:8013\"\n    local qwen3_url = \"http://ask.lan:8012\"\n    local gemma4_url = \"http://ask.lan:8011\"\n    local glm_url = \"http://ask.lan:8010\"\n    local deepseek_url = \"http://ask.lan:8014\"\n    local muse_url = \"http://ask.lan:8016\"\n    local nemo_lightning_url = \"http://build21.lan:8017\"\n\n    -- FYI fine by me to collapse Endpoint into a string\n    -- I used to handle name here too but that became a hot mess due to async vs sync\n    -- sync is needed for endpoint URL...\n    -- async is fine for name (for all my use cases thus far\n    return {\n        cmdline = {\n            base_url = gptoss_url,\n        },\n        qwen = {\n            base_url = qwen3_url,\n        },\n        deepseek = {\n            base_url = deepseek_url,\n        },\n        gptoss = {\n            base_url = gptoss_url,\n        },\n        gemma4 = {\n            base_url = gemma4_url,\n        },\n        glm = {\n            base_url = glm_url,\n        },\n        muse = {\n            base_url = muse_url,\n        },\n        [\"nemo-lightning\"] = {\n            base_url = nemo_lightning_url,\n        },\n    }\nend\n\n---@param config_model_slug string   -- this is an abbreviated string used in the config file to store which model to use for a given situation, not the same as abbreviated model name NOR full model name from llama.cpp\nfunction M.get_base_url(config_model_slug)\n    local endpoints = M.get_endpoints()\n    if endpoints[config_model_slug] then\n        return endpoints[config_model_slug].base_url\n    end\n    return nil\nend\n\nfunction M.setup()\n    local_share.setup()\n    vim.schedule(function()\n        -- schedule in background on startup\n        M.get_endpoints()\n    end)\nend\n\nM.local_share = local_share\n\nreturn M\n```\n\n## Reminders about the cursor line:\nText before cursor: `--- @return table { cmdline: Endpoint, `",
+        "role":"user"
+      },{
+        "content":"",
+        "reasoning_content":"<|eom|><|start|>assistant to=user<|message|>",
+        "role":"assistant"
+      },{
+        "timings":{
+          "prompt_n":2547,
+          "cache_n":618,
+          "draft_n_accepted":38,
+          "draft_n":105,
+          "predicted_per_second":251.37829576942,
+          "predicted_n":45,
+          "prompt_per_second":2290.0475092699,
+          "predicted_per_token_ms":3.9780681818182,
+          "prompt_ms":1112.204,
+          "prompt_per_token_ms":0.43667216332941,
+          "predicted_ms":175.035
+        },
+        "content":"cmdline: Endpoint, qwen: Endpoint, deepseek: Endpoint, gptoss: Endpoint, gemma4: Endpoint, glm: Endpoint, muse: Endpoint, [\"nemo-lightning\"]: Endpoint }`",
+        "finish_reason":"stop",
+        "role":"assistant"
+      }],
+    "temperature":1,
+    "logprobs":true
+  }
+}
