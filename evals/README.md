@@ -13,10 +13,17 @@ benchmark. Each subdirectory is a self-contained eval track with its own
   is spliced into a runnable test harness and actually run; an optional LLM
   judge only weighs in on qualitative stuff (style, whether an explicit
   constraint was honored) once execution has already confirmed it works.
+- **[`speed/`](speed/README.md)** -- raw speed testing, not correctness.
+  Boots a llama-server instance over SSH on a remote GPU box with a
+  specific set of server flags (the point: sweeping speculative-decoding/
+  MTP params like `--spec-draft-n-max`), replays precanned prompts, and
+  captures llama-server's own reported prompt/decode tokens-per-second and
+  draft-accept rate.
 
-The two tracks intentionally duplicate code (client setup, judge-prompt
+These tracks intentionally duplicate code (client setup, judge-prompt
 plumbing, trace-dump helpers) rather than sharing a library -- not worth
-factoring out until there's a third real need for the same plumbing.
+factoring out until there's a real need for the same plumbing across more
+than one or two of them.
 
 ## What this is actually for
 

@@ -1,0 +1,46 @@
+{
+  "host": "build21",
+  "port": 8097,
+  "model": "ggml-org/Qwen3.5-0.8B-GGUF:BF16",
+  "llama_args": "",
+  "results": [
+    {
+      "id": "speed-gen-lua-tower-of-hanoi",
+      "category": "generation",
+      "model_name": "ggml-org/Qwen3.5-0.8B-GGUF:BF16",
+      "prompt_n": 217,
+      "predicted_n": 1372,
+      "prompt_ms": 59.878,
+      "predicted_ms": 2595.623,
+      "prompt_per_second": 3624.035538929156,
+      "predicted_per_second": 528.5821554208758,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "cache_n": 0,
+      "client_ttft_ms": 94.52995902393013,
+      "client_total_ms": 2689.38049999997,
+      "finish_reason": "stop",
+      "completion_preview": "```lua\n-- tower_of_hanoi.lua\n-- Tower of Hanoi: n disks moved from one peg to another using two pegs\n-- \n-- Usage:\n-- t = tower_of_hanoi(3, from, to, recursive)\n\nlocal function tower_of_hanoi(n, from,",
+      "error": null
+    },
+    {
+      "id": "speed-prefill-agent-semantic-grep-what-time-is-it",
+      "category": "prefill",
+      "model_name": "ggml-org/Qwen3.5-0.8B-GGUF:BF16",
+      "prompt_n": 11096,
+      "predicted_n": 95,
+      "prompt_ms": 176.289,
+      "predicted_ms": 188.535,
+      "prompt_per_second": 62942.100755010244,
+      "predicted_per_second": 503.88522025088184,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "cache_n": 0,
+      "client_ttft_ms": 219.90862500388175,
+      "client_total_ms": 410.7232919195667,
+      "finish_reason": "tool_calls",
+      "completion_preview": "",
+      "error": null
+    }
+  ]
+}
