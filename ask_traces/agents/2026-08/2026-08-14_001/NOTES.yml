@@ -1,0 +1,5 @@
+notes: |
+  this is largely a test of tokens/sec generation
+  there is very little prompt to process so it won't likely give us much info about prefill speeds, that said we can capture it anyways
+
+
