@@ -1,0 +1,10 @@
+fim_evals:
+  - super simple too, enough that we can make this an...
+    - EXACT MATCH ONLY => `return self .. after`
+    - PARTIAL credit if ltrim(rtrim(suggestion)) matches, that way if the model duplicates leading whitespace (i.e. returns full line then we give some credit for that)
+  - stellar thinking FIM from DeepSeek-v4-flash-0731
+  - I had a thought about expanding string with an append method (and later prepend)
+  - I defined the signature
+language: lua
+tags:
+  - avoid_indent_duplication
