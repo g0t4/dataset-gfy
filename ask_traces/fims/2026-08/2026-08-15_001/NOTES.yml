@@ -1,0 +1,7 @@
+fim_evals:
+  - deepseek nailed it, use `prompt_n` from line above
+  - EXACT MATCH ONLY
+  - no judging
+  - could give partial credit for overlapping any of prefix/suffix, but not initially
+language: lua
+
