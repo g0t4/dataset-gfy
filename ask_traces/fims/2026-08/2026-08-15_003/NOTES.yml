@@ -1,0 +1,13 @@
+fim_evals:
+  - stellar response from deepseek PSM
+  - open ended FIM and this was what I wanted to see...
+    - could use an llm-judge to make sure the creative response is a valid response
+      - first, pre-llm-judge, use a tool call to luac to verify it is syntactically valid
+    - then ask llm-judge if it does something useful
+      + is not a copy of append
+      + is not a copy of smth in lua's string std library
+  - would have to port to chat completions if wanted it for other models
+language: lua
+tags:
+  - open_ended
+  - read_my_mind
