@@ -54,16 +54,55 @@ axis it's meant to isolate and lean into that -- don't reach for a "medium"
 prompt with a "medium" completion; the extremes are what make a number
 legible.
 
+## Repeats and seed
+
+Every case runs `--repeats` times (default 5, matching `llama-bench`'s own
+`-r`/`--repetitions` default) and the report shows mean ± stdev per case,
+not a single number. One run is luck of the draw -- GPU contention, thermal
+drift, OS scheduling can all put a single measurement noticeably off from
+what the params actually deliver on average. `llama-bench` itself defaults
+to 5 repetitions even though its workload is 100% synthetic (dummy token
+counts, no real sampling) -- proof this kind of noise is worth averaging
+over even in the best case; a shared dev box like `build21` (routinely
+mid-session with someone else's model loaded) has more of it, not less.
+
+Every request also carries a fixed `--seed` (default 42). llama.cpp's
+speculative decoding is designed to be sampling-equivalent to the target
+model alone -- drafts are verified against the target's own probabilities,
+so the same seed should produce the *same* output tokens whether MTP is on
+or off, just via a different number of forward passes. Pinning it means
+switching `--llama-args` between runs of the *same* case replays the
+identical token trajectory, so a tok/s difference you measure is actually
+caused by the params, not by one run having randomly sampled an
+easier/harder continuation to draft. It also makes repeat-to-repeat
+variance mean something cleaner: with content held constant, that variance
+is a pure read on environmental noise instead of a blur of "got lucky
+content" and "GPU was busy," which is the whole point of the repeats above.
+
+One real failure mode this surfaced during validation, worth knowing about:
+a fixed seed doesn't prevent a bad generation, it just makes it
+*deterministic* -- if seed 42 happens to send a given model/case into a
+repetition loop instead of hitting EOS, every single repeat hits that same
+loop (unlike unseeded runs, where only some fraction of random draws would).
+`--max-tokens` (default 4096) exists specifically to bound the damage; if a
+case's mean looks suspiciously pinned at exactly `--max-tokens`, that's the
+tell -- try a different `--seed` for that case, not a sign the harness is
+broken.
+
 ## Cases and what to think about when adding one
 
 - **Cold cache is load-bearing for `prefill` cases.** llama-server caches
   the KV state of a prompt it's already seen (`cache_n` in the timings
-  block). Run a `prefill` case against a server that's already processed
-  that exact prompt (e.g. a second `--only` run right after the first) and
-  you'll measure cache-hit speed, not real prefill throughput -- an
-  order-of-magnitude different number. Fresh server per prefill sweep, or
-  at least a prompt that's actually novel to that server, or you're not
-  measuring what you think you're measuring.
+  block). `run_eval.py` handles this automatically between `prefill`
+  repeats via `POST /slots/{id}?action=erase` (that's why the server is
+  always started with `--slot-save-path` -- llama-server gates the entire
+  `/slots` POST route, erase included, behind that flag being set at all,
+  even though erase itself never writes a file: see `server-context.cpp`'s
+  `post_slots` handler). If you ever bypass `run_eval.py`'s own case loop
+  (e.g. `--reuse-server` plus manually replaying a prompt twice against the
+  same server), the underlying problem is still real: a second hit on an
+  already-cached prompt measures cache-hit speed, not real prefill
+  throughput -- an order-of-magnitude different number.
 - **Decide which axis before picking a trace**, per above -- check
   `prompt_n` and `predicted_n` in the source trace's own captured timings
   (or estimate from `len(content)` if the trace predates verbose capture)
@@ -134,12 +173,17 @@ trusted.
 
 ```
 uv run --project .. python run_eval.py --host build21 --port 8097 \
-    --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 --save
+    --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 --verbose --save
 
 uv run --project .. python run_eval.py --host build21 --port 8097 \
     --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 \
-    --llama-args "--spec-type draft-mtp --spec-draft-n-max 4" --save
+    --llama-args "--spec-type draft-mtp --spec-draft-n-max 4" --verbose --save
 ```
+
+`-v`/`--verbose` prints prompt size, time-to-first-token, and a per-repeat
+timing summary as each case streams (to stderr) instead of only the final
+report table -- useful for a sweep that's going to take a while, or for
+noticing a stuck/looping repeat before it burns through `--max-tokens`.
 
 `--llama-server-bin` defaults to the path found running on `build21`
 (`/home/wes/repos/github/ggml-org/llama.cpp/build/bin/llama-server`) --

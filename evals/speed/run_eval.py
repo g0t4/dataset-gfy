@@ -54,12 +54,32 @@ Usage:
     # let this run kill any other llama-server on the host first (DESTRUCTIVE)
     uv run --project .. python run_eval.py --host build21 --port 8097 \\
         --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 --kill-existing
+
+    # -v/--verbose: print prompt size, time-to-first-token, and a per-case
+    # timing summary as each case streams, instead of only the final table
+    uv run --project .. python run_eval.py --host build21 --port 8097 \\
+        --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 --verbose
+
+    # --repeats/--seed (on by default -- 5 repeats, fixed seed): pinning the
+    # seed makes every repeat (and every --llama-args combo you're comparing
+    # for the same case) replay the identical sampled token trajectory, so
+    # repeat-to-repeat variance in the reported mean/stdev is a read on
+    # environmental noise (GPU contention, thermal, scheduling), not on
+    # having randomly sampled an easier/harder continuation that run. Without
+    # a fixed seed, a case can genuinely spiral into a multi-hundred-thousand
+    # token repetition loop instead of hitting EOS at its usual length --
+    # observed firsthand building this: Qwen3.5-0.8B ran past 180K decoded
+    # tokens on speed-gen-lua-tower-of-hanoi (normally ~1300) before being
+    # killed, with no fixed seed set.
+    uv run --project .. python run_eval.py --host build21 --port 8097 \\
+        --model ggml-org/Qwen3.5-0.8B-GGUF:BF16 --repeats 5 --seed 42
 """
 from __future__ import annotations
 
 import argparse
 import json
 import shlex
+import statistics
 import subprocess
 import sys
 import time
@@ -82,6 +102,21 @@ DEFAULT_LLAMA_SERVER_BIN = "/home/wes/repos/github/ggml-org/llama.cpp/build/bin/
 
 STARTUP_POLL_INTERVAL_SECONDS = 2.0
 REMOTE_LOG_DIR = "/tmp/speed-eval-logs"
+# llama-server gates its entire POST /slots/{id}?action=... route (save/restore/erase
+# alike) behind --slot-save-path being set at all, even for `erase` which doesn't
+# actually write a file -- see tools/server/server-context.cpp's post_slots handler
+# (`params.slot_save_path.empty()` check wraps all three actions before the
+# action=="erase" branch is even reached, returning 501 otherwise). We always pass
+# this so erase_slot_cache() works; nothing is ever actually saved into it.
+REMOTE_SLOT_SAVE_DIR = "/tmp/speed-eval-slots"
+
+# matches llama-bench's own -r/--repetitions default -- see README.md's
+# "Repeats and seed" section for why this track still repeats even though the
+# seed is fixed (llama-bench has zero content-sampling variance to begin with
+# and still defaults to 5 reps + avg±stddev; environmental noise is a
+# separate axis a fixed seed doesn't remove).
+DEFAULT_REPEATS = 5
+DEFAULT_SEED = 42
 
 
 @dataclass
@@ -97,6 +132,7 @@ class Case:
 class Result:
     id: str
     category: str
+    repeat: int  # 1-indexed -- which repeat of this case this is
     model_name: str
     prompt_n: int | None
     predicted_n: int | None
@@ -170,12 +206,13 @@ def kill_procs(host: str, pids: list[str]) -> None:
 
 def start_llama_server(host: str, port: int, model: str, llama_server_bin: str, extra_args: str) -> tuple[str, str]:
     """Starts llama-server in the background over ssh. Returns (pid, remote_log_path)."""
-    run_ssh(host, f"mkdir -p {REMOTE_LOG_DIR}")
+    run_ssh(host, f"mkdir -p {REMOTE_LOG_DIR} {REMOTE_SLOT_SAVE_DIR}")
     remote_log_path = f"{REMOTE_LOG_DIR}/{port}-{int(time.time())}.log"
     extra = f" {extra_args}" if extra_args else ""
     cmd = (
         f"nohup {shlex.quote(llama_server_bin)} --host 0.0.0.0 --port {port} "
-        f"--flash-attn on --jinja -hf {shlex.quote(model)}{extra} "
+        f"--flash-attn on --jinja --slot-save-path {shlex.quote(REMOTE_SLOT_SAVE_DIR)} "
+        f"-hf {shlex.quote(model)}{extra} "
         f"> {shlex.quote(remote_log_path)} 2>&1 < /dev/null & echo $!"
     )
     proc = run_ssh(host, cmd, timeout=15)
@@ -230,6 +267,19 @@ def stop_server(host: str, pid: str) -> None:
     run_ssh(host, f"kill {pid}")
 
 
+def erase_slot_cache(host: str, port: int, slot_id: int = 0) -> None:
+    """Clears a slot's cached KV state without restarting the server -- needed
+    between repeats of a `prefill` case, or the 2nd+ repeat measures cache-hit
+    speed instead of real prefill throughput (see README.md). Doesn't require
+    --slot-save-path (that's only for save/restore-to-file); slot 0 is where a
+    single-client sequential run always lands (llama-server assigns the sole
+    idle slot by default).
+    """
+    import httpx
+    resp = httpx.post(f"http://{host}:{port}/slots/{slot_id}", params={"action": "erase"}, timeout=15.0)
+    resp.raise_for_status()
+
+
 def download_log(host: str, remote_log_path: str, local_dir: Path) -> Path | None:
     local_dir.mkdir(parents=True, exist_ok=True)
     local_path = local_dir / Path(remote_log_path).name
@@ -269,12 +319,24 @@ def load_trace_prompt_and_tools(case: Case) -> tuple[list[dict], list[dict]]:
     return messages[:end_idx], tools
 
 
-def run_case(client: ChatLlamaServer, case: Case) -> Result:
+def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
+             repeat: int = 1, repeats_total: int = 1, verbose: bool = False) -> Result:
     prompt_messages, tools = load_trace_prompt_and_tools(case)
+    tag = f"{case.id} ({repeat}/{repeats_total})" if repeats_total > 1 else case.id
+    if verbose:
+        prompt_chars = sum(len(m.get("content") or "") for m in prompt_messages)
+        print(f"  [{tag}] prompt: {len(prompt_messages)} message(s), ~{prompt_chars} chars"
+              f"{' + tools' if tools else ''} -- streaming...", file=sys.stderr)
     invoke_kwargs = {}
     if tools:
         invoke_kwargs["tools"] = tools
-    body = {"verbose": True}
+    if max_tokens not in (0, -1):
+        invoke_kwargs["max_tokens"] = max_tokens
+    # pinning seed makes every repeat (and every --llama-args combo compared against this
+    # same case) replay the identical sampled token trajectory -- see README.md "Repeats
+    # and seed". id_slot=0 targets the same slot erase_slot_cache() clears between prefill
+    # repeats (a single-client sequential run always lands on the sole idle slot anyway).
+    body = {"verbose": True, "seed": seed, "id_slot": 0}
 
     timings: dict | None = None
     model_name = ""
@@ -287,6 +349,8 @@ def run_case(client: ChatLlamaServer, case: Case) -> Result:
         for chunk in client.stream(prompt_messages, extra_body=body, **invoke_kwargs):
             if ttft_s is None:
                 ttft_s = time.monotonic() - start
+                if verbose:
+                    print(f"  [{tag}] first token after {ttft_s * 1000:.0f}ms", file=sys.stderr)
             debug_info = getattr(chunk, "debug", None)
             if debug_info is not None and getattr(debug_info, "timings", None):
                 timings = debug_info.timings
@@ -303,9 +367,20 @@ def run_case(client: ChatLlamaServer, case: Case) -> Result:
 
     timings = timings or {}
     preview = "".join(content_parts)[:200]
+    if verbose:
+        if error:
+            print(f"  [{tag}] ERROR: {error}", file=sys.stderr)
+        else:
+            accept_pct = (f", draft accept {100 * timings['draft_n_accepted'] / timings['draft_n']:.0f}%"
+                          if timings.get("draft_n_accepted") is not None and timings.get("draft_n") else "")
+            print(f"  [{tag}] done in {total_s * 1000:.0f}ms -- "
+                  f"prompt {timings.get('prompt_n', '?')} tok @ {timings.get('prompt_per_second', 0):.0f} tok/s, "
+                  f"predicted {timings.get('predicted_n', '?')} tok @ {timings.get('predicted_per_second', 0):.0f} tok/s"
+                  f"{accept_pct}", file=sys.stderr)
     return Result(
         id=case.id,
         category=case.category,
+        repeat=repeat,
         model_name=model_name,
         prompt_n=timings.get("prompt_n"),
         predicted_n=timings.get("predicted_n"),
@@ -328,33 +403,64 @@ def print_report(host: str, port: int, model: str, llama_args: str, results: lis
     from rich.console import Console
     from rich.table import Table
 
+    def mean_stdev(values: list[float], decimals: int = 0) -> str:
+        vals = [v for v in values if v is not None]
+        if not vals:
+            return "-"
+        if len(vals) == 1:
+            return f"{vals[0]:.{decimals}f}"
+        return f"{statistics.mean(vals):.{decimals}f} ± {statistics.stdev(vals):.{decimals}f}"
+
     console = Console()
     console.print(f"\n[bold]{host}:{port}[/bold]  model={model!r}  llama_args={llama_args!r}\n")
     table = Table(show_lines=False)
-    for col in ("id", "cat", "prompt_n", "prompt_tok/s", "pred_n", "pred_tok/s",
+    for col in ("id", "cat", "reps", "prompt_n", "prompt_tok/s", "pred_n", "pred_tok/s",
                 "draft_n", "draft_acc%", "ttft_ms", "total_ms"):
         table.add_column(col)
+
+    seen_ids: list[str] = []
+    by_id: dict[str, list[Result]] = {}
     for r in results:
-        if r.error:
-            table.add_row(r.id, r.category, "-", "-", "-", "-", "-", "-", "-", f"ERROR: {r.error}")
+        by_id.setdefault(r.id, []).append(r)
+        if r.id not in seen_ids:
+            seen_ids.append(r.id)
+
+    for case_id in seen_ids:
+        case_results = by_id[case_id]
+        ok = [r for r in case_results if not r.error]
+        errors = [r for r in case_results if r.error]
+        reps = f"{len(ok)}/{len(case_results)}"
+        if not ok:
+            table.add_row(case_id, case_results[0].category, reps,
+                          "-", "-", "-", "-", "-", "-", "-", f"ERROR: {errors[0].error}")
             continue
-        accept_pct = (f"{100 * r.draft_n_accepted / r.draft_n:.0f}%"
-                      if r.draft_n_accepted is not None and r.draft_n else "-")
+        accept_pcts = [100 * r.draft_n_accepted / r.draft_n for r in ok
+                       if r.draft_n_accepted is not None and r.draft_n]
         table.add_row(
-            r.id, r.category,
-            str(r.prompt_n) if r.prompt_n is not None else "-",
-            f"{r.prompt_per_second:.0f}" if r.prompt_per_second is not None else "-",
-            str(r.predicted_n) if r.predicted_n is not None else "-",
-            f"{r.predicted_per_second:.0f}" if r.predicted_per_second is not None else "-",
-            str(r.draft_n) if r.draft_n is not None else "-",
-            accept_pct,
-            f"{r.client_ttft_ms:.0f}" if r.client_ttft_ms is not None else "-",
-            f"{r.client_total_ms:.0f}" if r.client_total_ms is not None else "-",
+            case_id, ok[0].category, reps,
+            str(ok[0].prompt_n) if ok[0].prompt_n is not None else "-",
+            mean_stdev([r.prompt_per_second for r in ok]),
+            str(ok[0].predicted_n) if ok[0].predicted_n is not None else "-",
+            mean_stdev([r.predicted_per_second for r in ok]),
+            str(ok[0].draft_n) if ok[0].draft_n is not None else "-",
+            mean_stdev(accept_pcts) + "%" if accept_pcts else "-",
+            mean_stdev([r.client_ttft_ms for r in ok]),
+            mean_stdev([r.client_total_ms for r in ok]),
         )
+        if errors:
+            table.add_row(case_id, ok[0].category, reps, "", "", "", "", "", "", "",
+                          f"{len(errors)} repeat(s) errored, e.g. {errors[0].error}")
     console.print(table)
 
 
 def main() -> None:
+    # stdout is block-buffered (not line-buffered) whenever it's not a live terminal --
+    # e.g. piped through this harness's own capture, or `tee`d to a log file. stderr is
+    # always line-buffered. Without this, the lifecycle prints below (GPU check, server
+    # start/ready) and the --verbose per-case prints (which go to stderr) interleave out
+    # of the order they actually happened in, defeating the point of --verbose.
+    sys.stdout.reconfigure(line_buffering=True)
+
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--host", required=True, help="ssh host alias (also used as the HTTP host) -- e.g. build21, paxy.lan")
     parser.add_argument("--port", type=int, required=True)
@@ -376,6 +482,22 @@ def main() -> None:
     parser.add_argument("--only", default=None, help="only run the case with this id").completer = complete_case_ids
     parser.add_argument("--save", action="store_true", help="write a JSON result file under results/")
     parser.add_argument("--log-dir", type=Path, default=SPEED_DIR / "logs")
+    parser.add_argument("--verbose", "-v", action="store_true",
+                         help="print what's happening as each case runs (prompt size, time-to-first-token, "
+                              "per-case timing summary) instead of just the final report table")
+    parser.add_argument("--repeats", type=int, default=DEFAULT_REPEATS,
+                         help=f"how many times to repeat each case (default {DEFAULT_REPEATS}, matching "
+                              f"llama-bench's own -r/--repetitions default) -- averages out environmental "
+                              f"noise (GPU contention, thermal, scheduling); see README.md")
+    parser.add_argument("--seed", type=int, default=DEFAULT_SEED,
+                         help=f"fixed sampling seed sent with every request (default {DEFAULT_SEED}) -- makes "
+                              f"every repeat, and every --llama-args combo you compare for the same case, "
+                              f"replay the identical sampled token trajectory; see README.md")
+    parser.add_argument("--max-tokens", type=int, default=4096,
+                         help="cap on generated tokens per request (default 4096, matching evals/fim's "
+                              "convention; 0 or -1 removes the cap). Even with a fixed --seed, an unlucky "
+                              "seed/prompt/param combo can genuinely spiral into a multi-hundred-thousand "
+                              "token repetition loop instead of hitting EOS -- this bounds the damage.")
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
@@ -421,7 +543,18 @@ def main() -> None:
             wait_for_ready(args.host, args.port, args.startup_timeout, pid, remote_log_path)
 
         client = ChatLlamaServer(base_url=f"http://{args.host}:{args.port}/v1", api_key="none", timeout=300)
-        results = [run_case(client, case) for case in cases]
+        results = []
+        for i, case in enumerate(cases, 1):
+            if args.verbose:
+                print(f"[{i}/{len(cases)}] running {case.id} ({case.category}) x{args.repeats}", file=sys.stderr)
+            for r in range(1, args.repeats + 1):
+                if case.category == "prefill":
+                    # cold cache is load-bearing for this axis -- a 2nd+ repeat against a
+                    # server that already cached this exact prompt measures cache-hit
+                    # speed, not real prefill throughput. See README.md.
+                    erase_slot_cache(args.host, args.port)
+                results.append(run_case(client, case, seed=args.seed, max_tokens=args.max_tokens,
+                                         repeat=r, repeats_total=args.repeats, verbose=args.verbose))
         print_report(args.host, args.port, args.model or "(reused server)", args.llama_args, results)
 
         if remote_log_path:
@@ -440,6 +573,9 @@ def main() -> None:
                 "port": args.port,
                 "model": args.model,
                 "llama_args": args.llama_args,
+                "repeats": args.repeats,
+                "seed": args.seed,
+                "max_tokens": args.max_tokens,
                 "results": [asdict(r) for r in results],
             }, indent=2))
             print(f"saved results to {out_path}")
