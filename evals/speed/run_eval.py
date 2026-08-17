@@ -361,12 +361,13 @@ def load_summary_prompt(case: Case) -> list[dict]:
 
 
 def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int, enable_thinking: bool | None = None,
-             repeat: int = 1, repeats_total: int = 1, verbose: bool = False) -> Result:
+             repeat: int = 1, repeats_total: int = 1, warmup: bool = False, verbose: bool = False) -> Result:
     if case.category == "summary":
         prompt_messages, tools = load_summary_prompt(case), []
     else:
         prompt_messages, tools = load_trace_prompt_and_tools(case)
-    tag = f"{case.id} ({repeat}/{repeats_total})" if repeats_total > 1 else case.id
+    tag = f"{case.id} (warmup)" if warmup else (
+        f"{case.id} ({repeat}/{repeats_total})" if repeats_total > 1 else case.id)
     if verbose:
         prompt_chars = sum(len(m.get("content") or "") for m in prompt_messages)
         print(f"  [{tag}] prompt: {len(prompt_messages)} message(s), ~{prompt_chars} chars"
@@ -429,9 +430,17 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int, en
         else:
             accept_pct = (f", draft accept {100 * timings['draft_n_accepted'] / timings['draft_n']:.0f}%"
                           if timings.get("draft_n_accepted") is not None and timings.get("draft_n") else "")
-            reasoning_note = (f" [{len(reasoning)} chars reasoning, {len(completion)} chars content -- "
-                               f"finish_reason={finish_reason}, likely ran out of budget mid-thought]"
-                               if reasoning and not completion else "")
+            # empty content + nonzero reasoning is only a problem worth flagging if it's
+            # because --max-tokens got hit mid-thought (finish_reason "length") -- a tool
+            # call (finish_reason "tool_calls") or a real empty-content stop is normal and
+            # expected for some cases (e.g. the prefill case's reference behavior is exactly
+            # "reason briefly, then call a tool" -- no content is the correct outcome there).
+            if reasoning and not completion and finish_reason == "length":
+                reasoning_note = f" [{len(reasoning)} chars reasoning, 0 chars content -- ran out of budget mid-thought]"
+            elif reasoning and not completion:
+                reasoning_note = f" [{len(reasoning)} chars reasoning, then finish_reason={finish_reason}]"
+            else:
+                reasoning_note = ""
             print(f"  [{tag}] done in {total_s * 1000:.0f}ms -- "
                   f"prompt {timings.get('prompt_n', '?')} tok @ {timings.get('prompt_per_second', 0):.0f} tok/s, "
                   f"predicted {timings.get('predicted_n', '?')} tok @ {timings.get('predicted_per_second', 0):.0f} tok/s"
@@ -565,6 +574,14 @@ def main() -> None:
                                  help="force chat_template_kwargs.enable_thinking=false -- a reasoning model can "
                                       "burn its whole --max-tokens budget on reasoning_content and never reach "
                                       "an actual answer (see Result.reasoning); this is the escape hatch")
+    parser.add_argument("--warmup", action=argparse.BooleanOptionalAction, default=True,
+                         help="run each case once before its timed --repeats and discard the result (default: "
+                              "on, matching llama-bench's own warmup-by-default convention). The first request "
+                              "against a freshly-started server can diverge from the rest -- cuBLAS algorithm "
+                              "selection, GPU clock ramp-up, and one-time buffer allocation all land on whichever "
+                              "call happens to go first -- which otherwise skews repeat 1 into the mean/stdev as "
+                              "an outlier (observed directly: a repeat-1-differs-from-2..5 pattern in an earlier "
+                              "sweep). --no-warmup to skip it for faster dev-loop iteration.")
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
@@ -613,7 +630,15 @@ def main() -> None:
         results = []
         for i, case in enumerate(cases, 1):
             if args.verbose:
-                print(f"[{i}/{len(cases)}] running {case.id} ({case.category}) x{args.repeats}", file=sys.stderr)
+                print(f"[{i}/{len(cases)}] running {case.id} ({case.category}) x{args.repeats}"
+                      f"{' (+warmup)' if args.warmup else ''}", file=sys.stderr)
+            if args.warmup:
+                # absorbs the first-call cold-start cost (cuBLAS algo selection, GPU clock
+                # ramp-up, one-time buffer allocation) into a discarded run instead of letting
+                # it land on (and skew) repeat 1 of the timed set -- see --warmup's help text.
+                erase_slot_cache(args.host, args.port)
+                run_case(client, case, seed=args.seed, max_tokens=args.max_tokens,
+                         enable_thinking=args.enable_thinking, warmup=True, verbose=args.verbose)
             for r in range(1, args.repeats + 1):
                 # cold cache before every repeat of every case -- cheap, and a 2nd+ repeat
                 # against a server that already cached this exact prompt measures cache-hit
@@ -646,6 +671,7 @@ def main() -> None:
                 "seed": args.seed,
                 "max_tokens": args.max_tokens,
                 "enable_thinking": args.enable_thinking,
+                "warmup": args.warmup,
                 "results": [asdict(r) for r in results],
             }, indent=2))
             print(f"saved results to {out_path}")

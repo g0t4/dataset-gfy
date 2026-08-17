@@ -87,6 +87,18 @@ counts, no real sampling) -- proof this kind of noise is worth averaging
 over even in the best case; a shared dev box like `build21` (routinely
 mid-session with someone else's model loaded) has more of it, not less.
 
+Also matching `llama-bench`: an untimed `--warmup` run (default on,
+`--no-warmup` to skip) before each case's timed repeats. The very first
+request against a freshly-started server can genuinely diverge from the
+rest -- cuBLAS algorithm selection and GPU clock ramp-up both tend to
+land on whichever call happens to go first, and one-time buffer
+allocation only happens once. Observed directly: a 1.7B baseline run
+(before this flag existed) showed `predicted_n` at `2141, 2731, 2731,
+2731, 2731` across 5 repeats of the exact same case/seed/params -- repeat
+1 the outlier, repeats 2-5 self-consistent. `--warmup` moves that
+cold-start cost onto a discarded run instead of letting it skew repeat 1
+of the counted set.
+
 Every request also carries a fixed `--seed` (default 42). The theory was
 that llama.cpp's speculative decoding is sampling-equivalent to the target
 model alone -- drafts are verified against the target's own probabilities,
