@@ -146,7 +146,9 @@ class Result:
     client_ttft_ms: float | None
     client_total_ms: float | None
     finish_reason: str | None
-    completion_preview: str
+    completion: str  # full generated text -- not just a preview; this track saves it for
+                      # exactly the "did this actually loop, or just legitimately run long"
+                      # question a bare tok/s number can't answer
     error: str | None = None
 
 
@@ -366,7 +368,7 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
     total_s = time.monotonic() - start
 
     timings = timings or {}
-    preview = "".join(content_parts)[:200]
+    completion = "".join(content_parts)
     if verbose:
         if error:
             print(f"  [{tag}] ERROR: {error}", file=sys.stderr)
@@ -394,7 +396,7 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
         client_ttft_ms=ttft_s * 1000 if ttft_s is not None else None,
         client_total_ms=total_s * 1000,
         finish_reason=finish_reason,
-        completion_preview=preview,
+        completion=completion,
         error=error,
     )
 

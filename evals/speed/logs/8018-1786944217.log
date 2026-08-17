@@ -1,0 +1,20 @@
+0.00.318.279 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.460.369 W srv  llama_server: -----------------
+0.00.460.371 W srv  llama_server: CORS is set to allow all origins ('*') and no API key is set
+0.00.460.371 W srv  llama_server: this can be a security risk (cross-origin attacks)
+0.00.460.371 W srv  llama_server: more info: https://github.com/ggml-org/llama.cpp/pull/25655
+0.00.460.371 W srv  llama_server: -----------------
+0.00.461.795 I srv    load_model: loading model 'ggml-org/Qwen3.5-0.8B-GGUF:Q8_0'
+0.01.427.013 I common_speculative_init_result: creating MTP draft context against the target model '/home/wes/.cache/huggingface/hub/models--ggml-org--Qwen3.5-0.8B-GGUF/snapshots/8fea620810c4afa23dd6443f999a48574c1611a3/Qwen3.5-0.8B-Q8_0.gguf'
+0.01.616.142 I srv    load_model: initializing, n_slots = 4, n_ctx_slot = 262144, kv_unified = 'true'
+0.01.853.891 I srv  llama_server: model loaded
+0.01.853.899 I srv  llama_server: listening on http://0.0.0.0:8018
+0.03.301.872 I slot get_availabl: id  0 | task -1 | selected slot by id (0)
+0.03.301.899 I slot launch_slot_: id  0 | task 0 | processing task, is_child = 0
+0.06.353.233 I slot print_timing: id  0 | task 0 | n_decoded =   2529, tg = 842.61 t/s, tg_3s = 842.55 t/s
+0.07.968.285 I slot print_timing: id  0 | task 0 | prompt eval time =      49.16 ms /   217 tokens (    0.23 ms per token,  4414.25 tokens per second)
+0.07.968.286 I slot print_timing: id  0 | task 0 |        eval time =    4616.66 ms /  4096 tokens (    1.13 ms per token,   887.22 tokens per second)
+0.07.968.287 I slot print_timing: id  0 | task 0 |       total time =    4665.82 ms /  4313 tokens
+0.07.968.289 I slot print_timing: id  0 | task 0 |    graphs reused =        920
+0.07.968.291 I slot print_timing: id  0 | task 0 | draft acceptance = 0.84348 ( 3158 accepted /  3744 generated), mean len =  4.37
+0.07.968.324 I slot      release: id  0 | task 0 | stop processing: n_tokens = 4312, truncated = 0
