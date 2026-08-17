@@ -11,3 +11,5 @@ First, I asked for a check status of models command + keymap and it nailed those
   - one ask was why split is not right on `:vsplit new` and it went to the trouble to determine my neovim config sets up right split but that the stock nvim config doesn't! and hence the difference in the vertical split when I run tests... ALL good and awesome for it to dig into that for me!
 
 - all in one trace! at 155K tokens is it
+
+- oh and bravo to the model for greping my shada files to find the right/left split difference in my actual neovim config vs the e2e test!
