@@ -282,14 +282,41 @@ def stop_server(host: str, pid: str) -> None:
 def erase_slot_cache(host: str, port: int, slot_id: int = 0) -> None:
     """Clears a slot's cached KV state without restarting the server -- needed
     between repeats of a `prefill` case, or the 2nd+ repeat measures cache-hit
-    speed instead of real prefill throughput (see README.md). Doesn't require
-    --slot-save-path (that's only for save/restore-to-file); slot 0 is where a
-    single-client sequential run always lands (llama-server assigns the sole
-    idle slot by default).
+    speed instead of real prefill throughput (see README.md). Requires
+    --slot-save-path to be set on the server (llama-server gates the entire
+    POST /slots route behind that flag, erase included, even though erase
+    itself never writes a file -- see server-context.cpp's post_slots
+    handler); this harness's own start_llama_server() always sets it, but an
+    externally-managed server (e.g. --reuse-server against a systemd
+    service someone else configured) may not have it -- see
+    try_erase_slot_cache() for the graceful-degradation wrapper used in
+    main(). slot 0 is where a single-client sequential run always lands
+    (llama-server assigns the sole idle slot by default).
     """
     import httpx
     resp = httpx.post(f"http://{host}:{port}/slots/{slot_id}", params={"action": "erase"}, timeout=15.0)
     resp.raise_for_status()
+
+
+def try_erase_slot_cache(host: str, port: int, state: dict) -> None:
+    """Best-effort wrapper around erase_slot_cache() -- degrades gracefully (warns once,
+    stops retrying for the rest of this run) instead of crashing the whole sweep when the
+    server doesn't have --slot-save-path set. `state` is a caller-owned {"ok": True} dict
+    used to remember the failure across calls without a module-level global.
+    """
+    if not state["ok"]:
+        return
+    try:
+        erase_slot_cache(host, port)
+    except Exception as e:  # noqa: BLE001 -- e.g. --reuse-server against an externally-managed
+                             # server (a systemd service, say) that wasn't started with
+                             # --slot-save-path
+        state["ok"] = False
+        print(f"warning: couldn't clear slot cache on {host}:{port} ({e}) -- this server wasn't "
+              f"started with --slot-save-path, so repeats after the first may hit a warm cache "
+              f"for prefill-heavy cases (prefill/summary categories); results for those may run "
+              f"faster than real cold-cache throughput. Not retrying slot-erase for the rest of "
+              f"this run.", file=sys.stderr)
 
 
 def download_log(host: str, remote_log_path: str, local_dir: Path) -> Path | None:
@@ -628,6 +655,7 @@ def main() -> None:
 
         client = ChatLlamaServer(base_url=f"http://{args.host}:{args.port}/v1", api_key="none", timeout=300)
         results = []
+        cache_erase_state = {"ok": True}
         for i, case in enumerate(cases, 1):
             if args.verbose:
                 print(f"[{i}/{len(cases)}] running {case.id} ({case.category}) x{args.repeats}"
@@ -636,7 +664,7 @@ def main() -> None:
                 # absorbs the first-call cold-start cost (cuBLAS algo selection, GPU clock
                 # ramp-up, one-time buffer allocation) into a discarded run instead of letting
                 # it land on (and skew) repeat 1 of the timed set -- see --warmup's help text.
-                erase_slot_cache(args.host, args.port)
+                try_erase_slot_cache(args.host, args.port, cache_erase_state)
                 run_case(client, case, seed=args.seed, max_tokens=args.max_tokens,
                          enable_thinking=args.enable_thinking, warmup=True, verbose=args.verbose)
             for r in range(1, args.repeats + 1):
@@ -645,7 +673,7 @@ def main() -> None:
                 # speed, not real prefill throughput. Matters most for prefill/summary
                 # cases (large prompts) but there's no reason to special-case by category
                 # when erasing is this cheap. See README.md.
-                erase_slot_cache(args.host, args.port)
+                try_erase_slot_cache(args.host, args.port, cache_erase_state)
                 results.append(run_case(client, case, seed=args.seed, max_tokens=args.max_tokens,
                                          enable_thinking=args.enable_thinking,
                                          repeat=r, repeats_total=args.repeats, verbose=args.verbose))
