@@ -66,18 +66,34 @@ counts, no real sampling) -- proof this kind of noise is worth averaging
 over even in the best case; a shared dev box like `build21` (routinely
 mid-session with someone else's model loaded) has more of it, not less.
 
-Every request also carries a fixed `--seed` (default 42). llama.cpp's
-speculative decoding is designed to be sampling-equivalent to the target
+Every request also carries a fixed `--seed` (default 42). The theory was
+that llama.cpp's speculative decoding is sampling-equivalent to the target
 model alone -- drafts are verified against the target's own probabilities,
-so the same seed should produce the *same* output tokens whether MTP is on
-or off, just via a different number of forward passes. Pinning it means
-switching `--llama-args` between runs of the *same* case replays the
-identical token trajectory, so a tok/s difference you measure is actually
-caused by the params, not by one run having randomly sampled an
-easier/harder continuation to draft. It also makes repeat-to-repeat
-variance mean something cleaner: with content held constant, that variance
-is a pure read on environmental noise instead of a blur of "got lucky
-content" and "GPU was busy," which is the whole point of the repeats above.
+so a fixed seed should produce the *same* output tokens whether MTP is on
+or off, just via a different number of forward passes, making an
+across-`--llama-args` comparison for the same case apples-to-apples.
+
+**In practice this only holds within one `--llama-args` combo, not across
+them.** A real Qwen3.5-0.8B n-max sweep (seed pinned at 7) showed
+`speed-gen-lua-tower-of-hanoi` finishing at a *different* token count per
+`--spec-draft-n-max` value -- 572 tokens with no spec decoding, 1221 tokens
+at n-max=2 and n-max=3, then diverging into the 4096-token `--max-tokens`
+cap at n-max=4/5/6 -- despite every repeat *within* a given n-max value
+landing on the exact same token count every time. Best working theory:
+verifying a draft batch runs matmuls at a different batch size than
+single-token decode, and floating-point addition isn't associative, so the
+computed logits differ by enough to flip an argmax/threshold decision at
+some point in the sequence -- after which the two trajectories are
+unrelated completions, not "the same text, a bit faster." Repeats *within*
+a `--llama-args` combo are still a clean read on environmental noise (seed
++ params together are still fully deterministic -- same token count, same
+draft_n, every time). But an across-combo tok/s comparison should be read
+with that caveat: n-max=4/5/6's much higher decode tok/s and draft-accept%
+in that sweep likely partly reflect that they ended up decoding a longer,
+more repetitive completion (which is *easier* to draft correctly), not
+purely a "higher n-max is faster" effect. Treat a big jump in `predicted_n`
+alongside a big jump in accept% across a sweep as a sign the comparison
+isn't apples-to-apples anymore, not as a clean win.
 
 One real failure mode this surfaced during validation, worth knowing about:
 a fixed seed doesn't prevent a bad generation, it just makes it
