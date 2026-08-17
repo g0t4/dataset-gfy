@@ -35,7 +35,7 @@ model loaded for manual use -- the default behavior is to print what it
 found and start the new server alongside it (on GPU capacity that's left
 over), not clear the board.
 
-## Two categories, two axes
+## Three categories
 
 - **`generation`**: short prompt, long reference completion. Prompt
   processing finishes almost instantly, so total time is dominated by
@@ -47,12 +47,33 @@ over), not clear the board.
   `speed-prefill-agent-semantic-grep-what-time-is-it` is this: a real
   ~11.3K-token semantic-grep RAG dump under a trivial "what time is it?"
   question, answered with a single tool call.
+- **`summary`**: huge prompt AND a real (not near-empty) completion --
+  deliberately mixes both axes because that's what the actual workload is
+  (e.g. summarizing a long conversation), not an accidental blur of two
+  clean measurements. Doesn't replay a trace's own captured prompt like the
+  other two categories do -- `load_summary_prompt`/`render_trace_transcript`
+  wrap the trace's rendered conversation inside a fresh "please summarize
+  the following conversation" instruction instead. `speed-summary-short-trace`
+  (~600-token document) and `speed-summary-long-trace` (~110K-token
+  document, a real multi-hour agent session) pair a short and long input at
+  the same task, so prefill-time-vs-input-size can be read off directly
+  while holding the task constant. Motivated by summarization being a
+  real prefill-dominant workload where MTP's draft-accept rate might behave
+  very differently on extractive/paraphrase-heavy output than on the
+  code-generation content `speed-gen-lua-tower-of-hanoi` produces --
+  not yet confirmed either way, worth a dedicated sweep later. Timing
+  only, same as every other case here -- summary *quality* isn't graded;
+  a real quality-graded summarization eval is a deliberately deferred
+  future track, once there's a feel for what's actually wanted from one.
 
-Mixing both concerns in one case just averages two different numbers
-together and tells you less about either. When adding a case, decide which
-axis it's meant to isolate and lean into that -- don't reach for a "medium"
-prompt with a "medium" completion; the extremes are what make a number
-legible.
+`generation`/`prefill` isolate one mechanism each -- mixing both concerns
+in a case built for that purpose just averages two numbers together and
+tells you less about either. When adding a case in one of those two
+categories, decide which axis it's meant to isolate and lean into that --
+don't reach for a "medium" prompt with a "medium" completion; the extremes
+are what make a number legible. `summary` is the deliberate exception:
+it's not accidentally mixing axes, it's a distinct real workload shape
+that happens to need both at once.
 
 ## Repeats and seed
 
@@ -104,6 +125,34 @@ loop (unlike unseeded runs, where only some fraction of random draws would).
 case's mean looks suspiciously pinned at exactly `--max-tokens`, that's the
 tell -- try a different `--seed` for that case, not a sign the harness is
 broken.
+
+## Reasoning models
+
+A reasoning-capable model can spend its *entire* `--max-tokens` budget on
+`reasoning_content` and never reach an actual answer -- `Result` has a
+`reasoning` field (full text, same as `completion`) specifically so this
+is visible instead of silently showing up as an empty/truncated
+`completion` with no explanation. In `--verbose` output, a case that hits
+this shows up with `[N chars reasoning, 0 chars content -- likely ran out
+of budget mid-thought]` tacked onto its done-line.
+
+This isn't hypothetical: `speed-summary-long-trace` (~110K-token document)
+against Qwen3.5-0.8B burned through 12000 tokens of pure reasoning and
+never emitted a single answer token, despite that model's own card
+claiming it's "non-thinking by default" -- that claim describes a
+different serving stack's default, not llama-server's raw jinja template
+rendering, which reasoned anyway with nothing set. Use `--disable-thinking`
+(sets `chat_template_kwargs.enable_thinking=false`, the request-body field
+llama-server forwards straight into the chat template -- confirmed against
+a real captured trace using this exact mechanism) / `--enable-thinking` to
+force one or the other rather than trusting either doc's claimed default;
+leave both unset to get whatever the template's own default is. Forcing
+thinking off doesn't guarantee a *good* answer, though -- same case,
+same model, thinking off, produced 17K chars of the model hallucinating
+and looping a fake git-commit-replay tool call instead of ever attempting
+a summary. That's a capability limit (0.8B on a 110K-token document), not
+a reasoning-toggle bug -- the same model handled `speed-summary-short-trace`
+(~600 tokens) fine.
 
 ## Cases and what to think about when adding one
 

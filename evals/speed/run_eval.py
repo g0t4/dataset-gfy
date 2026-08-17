@@ -28,6 +28,12 @@ axis it's meant to isolate:
     prompt-processing throughput. Cold KV cache matters here (a case
     replayed against an already-warm cache measures nothing -- see "Cases
     and what to think about" in README.md).
+  - "summary": huge prompt AND a meaningful (not near-empty) completion --
+    deliberately mixes both axes because that's the real workload (e.g.
+    summarizing a long conversation/document), not a clean isolation of
+    one mechanism. Doesn't replay a trace's own captured prompt -- wraps
+    the trace's rendered conversation inside a new "summarize this"
+    instruction (see load_summary_prompt/render_trace_transcript).
 
 Server lifecycle is managed over plain `ssh`/`scp` (no paramiko/fabric dep --
 this machine's ~/.ssh/config already has host aliases with
@@ -123,7 +129,7 @@ DEFAULT_SEED = 42
 class Case:
     id: str
     source_trace: str
-    category: str  # "generation" | "prefill" -- which axis this case isolates
+    category: str  # "generation" | "prefill" | "summary" -- which axis this case isolates
     prompt_end_idx: int | None = None
     notes: str | None = None
 
@@ -149,6 +155,10 @@ class Result:
     completion: str  # full generated text -- not just a preview; this track saves it for
                       # exactly the "did this actually loop, or just legitimately run long"
                       # question a bare tok/s number can't answer
+    reasoning: str  # full reasoning_content -- a reasoning model can burn its whole
+                     # --max-tokens budget here and never reach `content` at all (predicted_n
+                     # counts these tokens too; a "completion" that's empty but predicted_n is
+                     # nonzero means look here, not a sign the request failed)
     error: str | None = None
 
 
@@ -321,9 +331,41 @@ def load_trace_prompt_and_tools(case: Case) -> tuple[list[dict], list[dict]]:
     return messages[:end_idx], tools
 
 
-def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
+SUMMARIZE_SYSTEM_PROMPT = ("You are a helpful assistant. Summarize the following conversation "
+                            "concisely, capturing the key points, decisions, and outcomes.")
+
+
+def render_trace_transcript(messages: list[dict]) -> str:
+    """Flattens a trace's messages into a plain-text transcript to embed as the document
+    a `summary` case asks the model to summarize -- a realistic "big messy input, write
+    prose about it" shape, as opposed to `generation`/`prefill` which replay a trace's own
+    captured prompt verbatim.
+    """
+    parts = []
+    for m in messages:
+        piece = f"### {m.get('role', '?')}\n{(m.get('content') or '').strip()}"
+        for tc in m.get("tool_calls") or []:
+            fn = tc.get("function", {})
+            piece += f"\n[tool_call: {fn.get('name', '?')}({fn.get('arguments', '')})]"
+        parts.append(piece.rstrip())
+    return "\n\n".join(parts)
+
+
+def load_summary_prompt(case: Case) -> list[dict]:
+    trace = json.loads((REPO_ROOT / case.source_trace).read_text())
+    transcript = render_trace_transcript(trace["request_body"]["messages"])
+    return [
+        {"role": "system", "content": SUMMARIZE_SYSTEM_PROMPT},
+        {"role": "user", "content": f"Please summarize the following conversation:\n\n{transcript}"},
+    ]
+
+
+def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int, enable_thinking: bool | None = None,
              repeat: int = 1, repeats_total: int = 1, verbose: bool = False) -> Result:
-    prompt_messages, tools = load_trace_prompt_and_tools(case)
+    if case.category == "summary":
+        prompt_messages, tools = load_summary_prompt(case), []
+    else:
+        prompt_messages, tools = load_trace_prompt_and_tools(case)
     tag = f"{case.id} ({repeat}/{repeats_total})" if repeats_total > 1 else case.id
     if verbose:
         prompt_chars = sum(len(m.get("content") or "") for m in prompt_messages)
@@ -339,12 +381,20 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
     # and seed". id_slot=0 targets the same slot erase_slot_cache() clears between prefill
     # repeats (a single-client sequential run always lands on the sole idle slot anyway).
     body = {"verbose": True, "seed": seed, "id_slot": 0}
+    # llama-server forwards this straight into the jinja chat template as extra vars.
+    # Qwen3-family templates (and this held for Qwen3.5-0.8B in practice, contrary to its
+    # model card's claim that it's "non-thinking by default" -- that claim describes a
+    # different serving stack's default, not llama-server's raw template rendering) read
+    # `enable_thinking` from here. None leaves the template's own default in effect.
+    if enable_thinking is not None:
+        body["chat_template_kwargs"] = {"enable_thinking": enable_thinking}
 
     timings: dict | None = None
     model_name = ""
     finish_reason = None
     error = None
     content_parts: list[str] = []
+    reasoning_parts: list[str] = []
     start = time.monotonic()
     ttft_s: float | None = None
     try:
@@ -363,22 +413,29 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
                 finish_reason = response_metadata["finish_reason"]
             if chunk.content:
                 content_parts.append(chunk.content)
+            reasoning_delta = (getattr(chunk, "additional_kwargs", None) or {}).get("reasoning_content")
+            if reasoning_delta:
+                reasoning_parts.append(reasoning_delta)
     except Exception as e:  # noqa: BLE001 -- speed run should keep going past one bad case
         error = str(e)
     total_s = time.monotonic() - start
 
     timings = timings or {}
     completion = "".join(content_parts)
+    reasoning = "".join(reasoning_parts)
     if verbose:
         if error:
             print(f"  [{tag}] ERROR: {error}", file=sys.stderr)
         else:
             accept_pct = (f", draft accept {100 * timings['draft_n_accepted'] / timings['draft_n']:.0f}%"
                           if timings.get("draft_n_accepted") is not None and timings.get("draft_n") else "")
+            reasoning_note = (f" [{len(reasoning)} chars reasoning, {len(completion)} chars content -- "
+                               f"finish_reason={finish_reason}, likely ran out of budget mid-thought]"
+                               if reasoning and not completion else "")
             print(f"  [{tag}] done in {total_s * 1000:.0f}ms -- "
                   f"prompt {timings.get('prompt_n', '?')} tok @ {timings.get('prompt_per_second', 0):.0f} tok/s, "
                   f"predicted {timings.get('predicted_n', '?')} tok @ {timings.get('predicted_per_second', 0):.0f} tok/s"
-                  f"{accept_pct}", file=sys.stderr)
+                  f"{accept_pct}{reasoning_note}", file=sys.stderr)
     return Result(
         id=case.id,
         category=case.category,
@@ -397,6 +454,7 @@ def run_case(client: ChatLlamaServer, case: Case, seed: int, max_tokens: int,
         client_total_ms=total_s * 1000,
         finish_reason=finish_reason,
         completion=completion,
+        reasoning=reasoning,
         error=error,
     )
 
@@ -500,6 +558,13 @@ def main() -> None:
                               "convention; 0 or -1 removes the cap). Even with a fixed --seed, an unlucky "
                               "seed/prompt/param combo can genuinely spiral into a multi-hundred-thousand "
                               "token repetition loop instead of hitting EOS -- this bounds the damage.")
+    thinking_group = parser.add_mutually_exclusive_group()
+    thinking_group.add_argument("--enable-thinking", dest="enable_thinking", action="store_true", default=None,
+                                 help="force chat_template_kwargs.enable_thinking=true")
+    thinking_group.add_argument("--disable-thinking", dest="enable_thinking", action="store_false",
+                                 help="force chat_template_kwargs.enable_thinking=false -- a reasoning model can "
+                                      "burn its whole --max-tokens budget on reasoning_content and never reach "
+                                      "an actual answer (see Result.reasoning); this is the escape hatch")
     argcomplete.autocomplete(parser)
     args = parser.parse_args()
 
@@ -550,12 +615,14 @@ def main() -> None:
             if args.verbose:
                 print(f"[{i}/{len(cases)}] running {case.id} ({case.category}) x{args.repeats}", file=sys.stderr)
             for r in range(1, args.repeats + 1):
-                if case.category == "prefill":
-                    # cold cache is load-bearing for this axis -- a 2nd+ repeat against a
-                    # server that already cached this exact prompt measures cache-hit
-                    # speed, not real prefill throughput. See README.md.
-                    erase_slot_cache(args.host, args.port)
+                # cold cache before every repeat of every case -- cheap, and a 2nd+ repeat
+                # against a server that already cached this exact prompt measures cache-hit
+                # speed, not real prefill throughput. Matters most for prefill/summary
+                # cases (large prompts) but there's no reason to special-case by category
+                # when erasing is this cheap. See README.md.
+                erase_slot_cache(args.host, args.port)
                 results.append(run_case(client, case, seed=args.seed, max_tokens=args.max_tokens,
+                                         enable_thinking=args.enable_thinking,
                                          repeat=r, repeats_total=args.repeats, verbose=args.verbose))
         print_report(args.host, args.port, args.model or "(reused server)", args.llama_args, results)
 
@@ -578,6 +645,7 @@ def main() -> None:
                 "repeats": args.repeats,
                 "seed": args.seed,
                 "max_tokens": args.max_tokens,
+                "enable_thinking": args.enable_thinking,
                 "results": [asdict(r) for r in results],
             }, indent=2))
             print(f"saved results to {out_path}")

@@ -1,0 +1,31 @@
+{
+  "host": "build21",
+  "port": 8018,
+  "model": "ggml-org/Qwen3.5-0.8B-GGUF:Q8_0",
+  "llama_args": "",
+  "repeats": 1,
+  "seed": 7,
+  "max_tokens": 4096,
+  "results": [
+    {
+      "id": "speed-summary-short-trace",
+      "category": "summary",
+      "repeat": 1,
+      "model_name": "ggml-org/Qwen3.5-0.8B-GGUF:Q8_0",
+      "prompt_n": 602,
+      "predicted_n": 215,
+      "prompt_ms": 66.261,
+      "predicted_ms": 339.915,
+      "prompt_per_second": 9085.283952853111,
+      "predicted_per_second": 632.5110689437065,
+      "draft_n": null,
+      "draft_n_accepted": null,
+      "cache_n": 0,
+      "client_ttft_ms": 103.02095813676715,
+      "client_total_ms": 440.3396670240909,
+      "finish_reason": "stop",
+      "completion": "The assistant queried the current time using the `date` command, which returned: \"The current time is **Tuesday, May 26, 2026 at 2:13:02 AM CDT**.\"",
+      "error": null
+    }
+  ]
+}
