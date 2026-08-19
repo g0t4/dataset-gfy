@@ -1,0 +1,26 @@
+{
+  "session_id": 1787163476,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a command line expert. Respond with a single, valid commandline. I intend to execute it. No explanation. No markdown. DO NOT respond with leading ``` nor trailing ```"
+    },
+    {
+      "role": "user",
+      "content": "env: shell=fish on uname=Darwin and FYI lastCommand=None\nquestion: convert PDF AW360_420_AIO_Liquid_Cooler_manual.pdf to PNGs per page and do not make white transparent"
+    },
+    {
+      "role": "assistant",
+      "content": "magick -density 150 AW360_420_AIO_Liquid_Cooler_manual.pdf -background white -alpha off AW360_420_AIO_Liquid_Cooler_manual-%02d.png",
+      "finish_reason": "stop"
+    }
+  ],
+  "response": {
+    "finish_reason": "stop",
+    "model_name": "deepseek-v4-flash",
+    "system_fingerprint": "a26a7955944dc5c60445bff77fac9c8e",
+    "model_provider": "openai",
+    "model": "deepseek-chat",
+    "service": "deepseek"
+  }
+}
