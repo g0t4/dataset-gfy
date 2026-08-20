@@ -1,0 +1,65 @@
+{
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "created":1787205468,
+    "object":"chat.completion.chunk",
+    "id":"chatcmpl-BXvN1advq5Yrthui7PPS0Dhs5Qcy8rZ6",
+    "system_fingerprint":"b10380-0b1bad14f",
+    "timings":{
+      "prompt_per_second":4161.9164045438,
+      "prompt_n":1212,
+      "prompt_ms":291.212,
+      "prompt_per_token_ms":0.24027392739274,
+      "predicted_ms":647.17,
+      "predicted_per_token_ms":3.7846198830409,
+      "cache_n":0,
+      "predicted_per_second":264.22732821361,
+      "predicted_n":171
+    },
+    "choices":[{
+        "index":0,
+        "finish_reason":"stop",
+        "delta":[]
+      }]
+  },
+  "request_body":{
+    "post_sampling_probs":true,
+    "logprobs":true,
+    "stream":true,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "raw":false,
+    "temperature":1,
+    "top_p":1,
+    "max_tokens":4096,
+    "messages":[{
+        "role":"system",
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n"
+      },{
+        "role":"user",
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: ask-openai.nvim\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n"
+      },{
+        "role":"user",
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```.agents/global/repro.md\n---\ndescription: always reproduce problems before fixing them\n---\n\nWhen presented with a problem ⚠️ ‼️ find a way to reproduce it so you can see 👀 and smell 👃 what's wrong!\n- Otherwise, how can you know when it's **actually fixed**?\n- Don't rely on luck 🍀 🤞 🥠\n\nThink Failure First Development (à la TDD)\n- 💥 Fail first (red)\n- 🔧 Fix\n- 🧪 Test (green)\n- <|CURSOR_IS_HERE|> Clean\n\nHow to reproduce:\n- Ask the user to provide arguments and their failure message.\n  - File names/locations\n- Unit Tests\n  - Ideally find an existing unit test that is failing\n  - Add a unit test that fails\n- Command line apps\n  - run the command?\n  - do you need to mirror the user's shell + config?\n  - can you promote this to an automated test?\n- GUI apps\n  - runtime logging?\n  - interrogate and interact with GUI controls (i.e. on macOS use AppleScript, AXUIElement in hammerspoon, or pyobjc in python)\n  - take a screenshot?\n  - run a debugger?\n- Syntax errors => run the compiler!\n- Integration / UI Tests\n  - Any end to end tests?\n  - Write one?\n\nThere's never harm in creating a test.\n- You can always discard the test.\n- But, chances are you will find it helpful to keep around.\n- And in the long run you make troubleshooting future problems that much easier.\n\nTLDR: Always reproduce the failure first. Always test your fix.\n\n... Fail, Fix, Test\n```\n\n## Reminders about the cursor line:\nText before cursor: `- `\nText after cursor: ` Clean`"
+      },{
+        "role":"assistant",
+        "reasoning_content":"We need to insert a bullet step before \"Clean\". Likely \"Refactor\" or \"Cleanup\". The pattern: Fail first (red), Fix, Test (green), ___ Clean. Probably \"Refactor\". So line becomes \"- Refactor Clean\"? Actually bullet list: \"- 💥 Fail first (red)\", \"- 🔧 Fix\", \"- 🧪 Test (green)\", \"- <|CURSOR|> Clean\". Should be \"- 🧹 Clean\"? But emoji for clean maybe \"🧹\". Could be \"🧹 Clean\". Insert \"🧹\". So text after cursor is \" Clean\". We need to place before Clean, maybe an emoji. So result: \"🧹\". Thus line becomes \"- 🧹 Clean\". Provide just the insertion.",
+        "finish_reason":"stop",
+        "content":"🧹",
+        "timings":{
+          "prompt_per_second":4161.9164045438,
+          "prompt_n":1212,
+          "prompt_ms":291.212,
+          "prompt_per_token_ms":0.24027392739274,
+          "predicted_ms":647.17,
+          "predicted_per_token_ms":3.7846198830409,
+          "cache_n":0,
+          "predicted_per_second":264.22732821361,
+          "predicted_n":171
+        }
+      }],
+    "top_logprobs":5
+  },
+  "flags":[]
+}

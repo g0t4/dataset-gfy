@@ -1,0 +1,8 @@
+fim_evals:
+  - only one right answer here, a broom 🧹 for clean
+  - this might be an area where we expect thinking to be a minimum too, not to go overboard with 1000s of thinking tokens too
+    but hold off on this for now, in fact that is probably a separate dimension (to measure how much time / tokens go into reasoning across all eval cases)
+language: markdown
+tags:
+  - emoji
+
