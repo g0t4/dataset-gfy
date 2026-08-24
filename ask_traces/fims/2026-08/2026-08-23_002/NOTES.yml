@@ -1,0 +1,12 @@
+fim_evals:
+  - this is subjective to a degree but I think most models can guess that I want to "quit" on "q" just based on other keymaps that are clearly for a one-off nvim viewer if you will
+  - accept these solutions (allow adding more if models come up with diff way to do the same thing):
+      vim.cmd("quit")
+      vim.cmd("quit!")
+      vim.cmd("quitall")
+
+      ADD other ways to do the same thing in lua (quit of some sort)
+language: lua
+tags:
+  - neovim
+  - educated_guess
