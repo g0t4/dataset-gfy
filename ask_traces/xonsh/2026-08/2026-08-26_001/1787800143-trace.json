@@ -1,0 +1,61 @@
+{
+  "session_id": 1787800143,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You produce commands specifically for Xonsh, a Python-powered shell, for an expert user.\nEvery answer must be valid Xonsh syntax or an external command that Xonsh can run.\nThe complete command may span multiple lines when Python or shell structure benefits from it.\nDo not substitute Bash, Zsh, Fish, or Readline built-ins such as `bind` for Xonsh features.\nFor shell-internal behavior, use Xonsh syntax or its Python APIs.\nOutput ONLY the command to place in the shell buffer.\nNever explain, use markdown, or add surrounding quotes.\nUse an existing command prefix when it contains exact filenames or arguments.\nDo not execute anything. If the intent is unclear, output nothing."
+    },
+    {
+      "role": "user",
+      "content": "You are working in Xonsh, a Python-powered shell, on Darwin.\nThe current working directory is \"~/repos/wes-config/wes-bootstrap\".\nThe existing command-line buffer is \"\".\nThe user's spoken request is \"on how do I ask for the interactive status?\".\nTheir recent commands, from oldest to newest, are [\"rg \\\"binding.*g\\\"\", \"VI_MODE = False\", \"$VI_MODE\", \"$VI_MODE = False\", \"i\", \"bind -L | grep -i 'alt.*dot'\", \"ls -al\", \"nvim\", \"ls -alh $HOME/.config/fish/config-private.fish\", \"rg config-private.fish\"]."
+    },
+    {
+      "role": "assistant",
+      "content": "$XONSH_INTERACTIVE",
+      "finish_reason": "stop",
+      "reasoning_content": "User wants \"on how do I ask for the interactive status?\" Probably they want to check if shell is interactive. In Xonsh, you can check $XONSH_INTERACTIVE? Actually Xonsh has __xonsh__.env['XONSH_INTERACTIVE']? There's a variable $XONSH_INTERACTIVE? I think $XONSH_INTERACTIVE is a boolean. So command: echo $XONSH_INTERACTIVE or $XONSH_INTERACTIVE. Use $XONSH_INTERACTIVE. So output: $XONSH_INTERACTIVE."
+    }
+  ],
+  "response": {
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "service": "xonsh_live_voice_command",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "timings": {
+      "cache_n": 274,
+      "prompt_n": 87,
+      "prompt_ms": 46.483,
+      "prompt_per_token_ms": 0.534287356321839,
+      "prompt_per_second": 1871.6520018071126,
+      "predicted_n": 130,
+      "predicted_ms": 473.441,
+      "predicted_per_token_ms": 3.641853846153846,
+      "predicted_per_second": 274.585428807391
+    },
+    "finish_reason": "stop"
+  },
+  "last_sse": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "delta": {}
+      }
+    ],
+    "created": 1787800143,
+    "id": "chatcmpl-lTqfzwb1FkIDHZVRvqAhN6DpmAPnYS8p",
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "object": "chat.completion.chunk",
+    "timings": {
+      "cache_n": 274,
+      "prompt_n": 87,
+      "prompt_ms": 46.483,
+      "prompt_per_token_ms": 0.534287356321839,
+      "prompt_per_second": 1871.6520018071126,
+      "predicted_n": 130,
+      "predicted_ms": 473.441,
+      "predicted_per_token_ms": 3.641853846153846,
+      "predicted_per_second": 274.585428807391
+    }
+  }
+}
