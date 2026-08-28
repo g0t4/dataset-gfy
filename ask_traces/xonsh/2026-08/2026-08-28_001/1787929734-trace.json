@@ -1,0 +1,61 @@
+{
+  "session_id": 1787929734,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You produce commands specifically for Xonsh, a Python-powered shell, for an expert user.\nEvery answer must be valid Xonsh syntax or an external command that Xonsh can run.\nThe complete command may span multiple lines.\nDo not substitute Bash, Zsh, Fish, or Readline built-ins such as `bind` for Xonsh features.\nFor shell-internal behavior, use Xonsh syntax or its Python APIs.\nOutput ONLY the command to place in the shell buffer.\nNever explain, use markdown, or add surrounding quotes.\nUse an existing command prefix when it contains exact filenames or arguments."
+    },
+    {
+      "role": "user",
+      "content": "I am working in Xonsh on Darwin.\nMy current working directory is \"~/repos/github/g0t4/course-ansible-admin/testing_lab\".\nHere is the command I am working on: \"ffmpeg -i video.mp4 \"\n\nHere's my recent command history from oldest to newest (serialized with json to clearly identify each command):\n[\n  \"curl -v --connect-timeout 2 http://paxy.lan:8012/v1/models\",\n  \"nvim\",\n  \"ansible-playbook playbooks/llama-initial.yml\",\n  \"ansible-playbook playbooks/llama-initial.yml --syntax-check\",\n  \"ansible-playbook --syntax-check playbooks/llama-initial.yml\",\n  \"fish\",\n  \"yt-dlp https://www.foxnews.com/video/6400453980112\",\n  \"open . \",\n  \"ls\",\n  \"mv \\\"Prosecutors show new CCTV video of Tyler Robinson from day of Charlie Kirk's killing [6400453980112].mp4\\\"  video.mp4\"\n].\n\nHere's what I need help with:\n>\"Okay, I need the frames around about one minute and 10 seconds through one minute and 23 seconds. Can I just get all of the frames saved?\"."
+    },
+    {
+      "role": "assistant",
+      "content": "ffmpeg -ss 00:01:10 -to 00:01:23 -i video.mp4 -vsync 0 frames_%04d.png",
+      "finish_reason": "stop",
+      "reasoning_content": "We need to output ffmpeg command to extract frames from 1:10 to 1:23. Use -ss start -to end -i video.mp4 -vf fps=... maybe just -r 1? They want all frames, so use -vf fps=... but unknown fps. Use -vsync 0 -frame_pts true? Simpler: ffmpeg -ss 00:01:10 -to 00:01:23 -i video.mp4 -vsync 0 frames_%04d.png. Output command only."
+    }
+  ],
+  "response": {
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "service": "xonsh_live_voice_command",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "timings": {
+      "cache_n": 456,
+      "prompt_n": 5,
+      "prompt_ms": 17.323,
+      "prompt_per_token_ms": 3.4646,
+      "prompt_per_second": 288.6336084973734,
+      "predicted_n": 156,
+      "predicted_ms": 576.648,
+      "predicted_per_token_ms": 3.6964615384615387,
+      "predicted_per_second": 270.52898822158403
+    },
+    "finish_reason": "stop"
+  },
+  "last_sse": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "delta": {}
+      }
+    ],
+    "created": 1787929734,
+    "id": "chatcmpl-0aPiRDdY3YmsPYYD3Hme9975EvkOE43p",
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "object": "chat.completion.chunk",
+    "timings": {
+      "cache_n": 456,
+      "prompt_n": 5,
+      "prompt_ms": 17.323,
+      "prompt_per_token_ms": 3.4646,
+      "prompt_per_second": 288.6336084973734,
+      "predicted_n": 156,
+      "predicted_ms": 576.648,
+      "predicted_per_token_ms": 3.6964615384615387,
+      "predicted_per_second": 270.52898822158403
+    }
+  }
+}

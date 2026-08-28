@@ -1,0 +1,61 @@
+{
+  "session_id": 1787930163,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You produce commands specifically for Xonsh, a Python-powered shell, for an expert user.\nEvery answer must be valid Xonsh syntax or an external command that Xonsh can run.\nThe complete command may span multiple lines.\nDo not substitute Bash, Zsh, Fish, or Readline built-ins such as `bind` for Xonsh features.\nFor shell-internal behavior, use Xonsh syntax or its Python APIs.\nOutput ONLY the command to place in the shell buffer.\nNever explain, use markdown, or add surrounding quotes.\nUse an existing command prefix when it contains exact filenames or arguments."
+    },
+    {
+      "role": "user",
+      "content": "I am working in Xonsh on Darwin.\nMy current working directory is \"~/repos/github/g0t4/course-ansible-admin/testing_lab/videos/2\".\nHere is the command I am working on: \"video.mp4 \"\n\nHere's my recent command history from oldest to newest (serialized with json to clearly identify each command):\n[\n  \"l\",\n  \"ssh arch1\",\n  \"curl -v --connect-timeout 2 http://build21.lan:8012/v1/models\",\n  \"curl -v --connect-timeout 2 http://paxy.lan:8012/v1/models\",\n  \"nvim\",\n  \"ansible-playbook playbooks/llama-initial.yml\",\n  \"ansible-playbook playbooks/llama-initial.yml --syntax-check\",\n  \"ansible-playbook --syntax-check playbooks/llama-initial.yml\",\n  \"fish\",\n  \"ls\"\n].\n\nHere's what I need help with:\n>\"frames around and here's the video's video dot mp4 and he frames around 25 minutes and two seconds. So just take like 25 minutes one second to 25 minutes three seconds and give me all the frames.\"."
+    },
+    {
+      "role": "assistant",
+      "content": "ffmpeg -ss 00:25:01 -to 00:25:03 -i video.mp4 -vf \"fps=30\" -vsync 0 frames_%04d.png",
+      "finish_reason": "stop",
+      "reasoning_content": "We need to output ffmpeg command to extract frames from 25:01 to 25:03. Use Xonsh syntax. Probably: ffmpeg -ss 00:25:01 -to 00:25:03 -i video.mp4 -vf \"fps=...?\" but just extract all frames: -r? Use -vf fps=... default? Use -vsync 0 -frame_pts 1? Simpler: ffmpeg -ss 00:25:01 -to 00:25:03 -i video.mp4 -c copy? No need copy. Use -vf fps=30 output pattern. Provide command."
+    }
+  ],
+  "response": {
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "service": "xonsh_live_voice_command",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "timings": {
+      "cache_n": 436,
+      "prompt_n": 8,
+      "prompt_ms": 21.003,
+      "prompt_per_token_ms": 2.625375,
+      "prompt_per_second": 380.89796695710135,
+      "predicted_n": 184,
+      "predicted_ms": 679.225,
+      "predicted_per_token_ms": 3.6914402173913046,
+      "predicted_per_second": 270.8969781736538
+    },
+    "finish_reason": "stop"
+  },
+  "last_sse": {
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "delta": {}
+      }
+    ],
+    "created": 1787930163,
+    "id": "chatcmpl-b0Pg6r7gWBLfFWNcZfjl1rwZhI4Gxxcz",
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint": "b10380-0b1bad14f",
+    "object": "chat.completion.chunk",
+    "timings": {
+      "cache_n": 436,
+      "prompt_n": 8,
+      "prompt_ms": 21.003,
+      "prompt_per_token_ms": 2.625375,
+      "prompt_per_second": 380.89796695710135,
+      "predicted_n": 184,
+      "predicted_ms": 679.225,
+      "predicted_per_token_ms": 3.6914402173913046,
+      "predicted_per_second": 270.8969781736538
+    }
+  }
+}
