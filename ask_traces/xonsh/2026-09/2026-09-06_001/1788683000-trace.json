@@ -1,0 +1,61 @@
+{
+  "session_id": 1788683000,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an inline command-line autosuggester for an expert shell user.\nInfer the intended complete command from the shell context and current buffer.\nOutput ONLY the exact characters that should be appended after the cursor.\nNever repeat the command prefix. Never explain. No quotes, markdown, or newline.\nThe user can partially accept the suggestion, so don't feel hestitant to suggest a full command.\nIf no useful completion is clear, output nothing."
+    },
+    {
+      "role": "user",
+      "content": "shell=xonsh\nos=Darwin\ncwd=~/repos/github/g0t4/dotfiles\nrecent_commands_oldest_to_newest=[\"cd ../\", \"fd --max-depth=2 xonsh\", \"wcl https://github.com/FoamScience/tree-sitter-xonsh\", \"ls         // https://github.com/FoamScience/tree-sitter-xonsh\", \"ls ~/repos/github/FoamScience/tree-sitter-xonsh\", \"cd ~/repos/github/FoamScience/tree-sitter-xonsh\", \"ls\", \"tree-sitter highlight --help\", \"tree-sitter highlight --grammar-path .\", \"z dot\"]\nsemantic_history_commands_most_relevant_first=[\"cd ~/repos/github/FoamScience/tree-sitter-xonsh\", \"tree-sitter highlight --grammar-path .\", \"ls ~/repos/github/FoamScience/tree-sitter-xonsh\", \"ls         // https://github.com/FoamScience/tree-sitter-xonsh\", \"wcl https://github.com/FoamScience/tree-sitter-xonsh\", \"tree-sitter highlight --help\", \"tail -F ~/.local/state/xonsh/xonsh.log\", \"@.env[\\\"XONSH_AI_AUTOSUGGEST\\\"]\"]\ncommand_before_cursor=tree-sitter highlight --grammar-path ~/repos/github/FoamScience/tree-sitter-xonsh\ncommand_after_cursor="
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "finish_reason": "length",
+      "reasoning_content": "We need to complete command. Likely need to add --scope or file? tree-sitter highlight expects file. Probably want to run on a file, e.g., .xonsh file. Suggest adding .xonsh. Maybe path to a file. Could be tree-sitter highlight --grammar-path ... <file>. So suggest a space then maybe a file like example.xsh. Hard to know. Maybe they want to highlight current directory? Could be tree-s"
+    }
+  ],
+  "response": {
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "service": "xonsh_ai_autosuggest",
+    "system_fingerprint": "b10793-d230ddd76",
+    "timings": {
+      "cache_n": 311,
+      "prompt_n": 148,
+      "prompt_ms": 48.565,
+      "prompt_per_token_ms": 0.32814189189189186,
+      "prompt_per_second": 3047.462164109956,
+      "predicted_n": 96,
+      "predicted_ms": 392.1,
+      "predicted_per_token_ms": 4.127368421052632,
+      "predicted_per_second": 242.28513134404486
+    },
+    "finish_reason": "length"
+  },
+  "last_sse": {
+    "choices": [
+      {
+        "finish_reason": "length",
+        "index": 0,
+        "delta": {}
+      }
+    ],
+    "created": 1788683000,
+    "id": "chatcmpl-O2Xcj7Oo9hSq3lTaaMIznLSqjrniS85p",
+    "model": "ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint": "b10793-d230ddd76",
+    "object": "chat.completion.chunk",
+    "timings": {
+      "cache_n": 311,
+      "prompt_n": 148,
+      "prompt_ms": 48.565,
+      "prompt_per_token_ms": 0.32814189189189186,
+      "prompt_per_second": 3047.462164109956,
+      "predicted_n": 96,
+      "predicted_ms": 392.1,
+      "predicted_per_token_ms": 4.127368421052632,
+      "predicted_per_second": 242.28513134404486
+    }
+  }
+}
