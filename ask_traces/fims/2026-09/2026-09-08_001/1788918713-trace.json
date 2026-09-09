@@ -1,0 +1,67 @@
+{
+  "request_body":{
+    "raw":false,
+    "top_p":1,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: dotfiles\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Lua Code Preferences\n\n- use snake_case for functions and variables\n- use PascalCase for classes\n- use EmmyLua/LuaLS annotations to improve code completion\n- use `luac` to check for syntax errors\n- index/count variables end in `_base0` or `_base1` to indicate whether the loop starts at 0 (C-style) or 1 (Lua-style)\n\nExamples:\n```lua\n---@param names string[]\n---@param checker fun(name: string): boolean\n---@return table<string, integer>\nfunction process_names(names, checker) end\n\n---@class WindowController\n---@field window hs.axuielement\n---@field title? string\n---@field size { w: number, h: number }\nlocal WindowController = {}\n```\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```.config/hammerspoon/config/macros/screenpal/init.lua\n    -- * assume open edit == the edit to preview\n    local win = get_cached_editor_window()\n    local tool_window = win.windows:get_tool_bar_window()\n\n    -- * click preview\n    local preview_button = tool_window:get_preview_this_edit_button()\n    if preview_button then\n        preview_button:axPress()\n        tool_window:wait_for_tools_button()\n        return\n    end\nend\n\nfunction SPal_RemoveThisEdit(number)\n    number = number or 1\n\n    SPal_OpenThisEdit(number)\n\n    -- * assume open edit == the edit to remove\n    local win = get_cached_editor_window()\n    local tool_window = win.windows:get_tool_bar_window()\n\n    -- * click copy overlay\n    local remove_button = tool_window:get_remove_this_edit_button()\n    if remove_button then\n        remove_button:axPress()\n        tool_window:wait_for_tools_button()\n        return\n    end\nend\n\nfunction SPal_CopyOverlayEdit(number)\n    number = number or 1\n\n    -- FYI AFAICT \"Copy overlay\" only applies to Overlay edits (shapes, arrows, images, ...)\n    --   should I ignore other edits when indexing (number)?\n    --   careful, open has to operate on all button positions\n\n    SPal_OpenThisEdit(number)\n\n    -- * assume open edit == the edit to copy\n    local win = get_cached_editor_window()\n    local tool_window = win.windows:get_tool_bar_window()\n\n\n    -- * click copy overlay\n    local copy_overlay = tool_window:get_copy_this_edit_button()\n    if copy_overlay then\n        copy_overlay:axPress()\n        tool_window:wait_for_tools_button()\n        return\n    end\n\n    -- \tpreviously I would click paste overlay after copy finishes (closes toolbar)... let's not add that until I know I need it\n    --  property btnPasteOverlay : a reference to (first button of my toolbar whose description starts with \"Paste Overlay\")\n    -- \tdelayUntilExists(btnPasteOverlay)\n    -- \tclickIfExists(btnPasteOverlay)\nend\n\nfunction SPal_Timeline_ZoomAndJumpToStart()\n    -- FYI using ensure_in_coroutine (coroutines under hood) to avoid blocking (i.e. during sleep calls)\n    ensure_in_coroutine(function()\n        local original_mouse_pos = hs.mouse.absolutePosition()\n        local win = get_cached_editor_window()\n        -- TODO move zoom controls to timeline class?\n        -- TODO then can add move_to_video_start() for this, to the timeline too\n        win:zoom_off() -- zoom out so start is visible w/o scrolling\n        sleep_ms(10)\n\n        -- FYI jumping to start/end unzoomed doesn't need PPS:\n        win:timeline_controller():move_playhead_to_timeline_start()\n\n        sleep_ms(10)\n        win:zoom2()\n        hs.mouse.absolutePosition(original_mouse_pos)\n    end)\nend\n\n---@param what fun()\nfunction with_restore_mouse_position(what)\n    <|CURSOR_IS_HERE|>\nend\n\nfunction SPal_Timeline_ZoomAndJumpToEnd()\n    ensure_in_coroutine(function()\n        local original_mouse_pos = hs.mouse.absolutePosition()\n        local win = get_cached_editor_window()\n        win:zoom_off()\n        sleep_ms(10)\n\n        win:timeline_controller():move_playhead_to_timeline_end()\n\n        sleep_ms(10)\n        win:zoom2()\n        hs.mouse.absolutePosition(original_mouse_pos)\n    end)\nend\n\nfunction SPal_SetZoomLevel(level)\n    local win = get_cached_editor_window()\n    win:set_zoom_level(level)\nend\n\nfunction SPal_ZoomIn()\n    local win = get_cached_editor_window()\n    win:zoom_in()\nend\n\nfunction SPal_ZoomOut()\n    local win = get_cached_editor_window()\n    win:zoom_out()\nend\n\nfunction SPal_ToggleFrameZoom()\n    local win = get_cached_editor_window()\n    win:toggle_frame_zoom()\nend\n\nfunction SPal_CopyPlayheadTimeText()\n    local win = get_cached_editor_window()\n    local _, time_string = win:get_current_time()\n    hs.pasteboard.setContents(time_string)\nend\n\nfunction RETIRED_StreamDeckScreenPalTimelineScrollOrJumpToStart()\n    -- local original_mouse_pos = hs.mouse.absolutePosition()\n    local win = get_cached_editor_window()\n\n    if win:is_zoomed() then\n        -- if zoomed, and wanna keep zoom then can use scroll, but really no reason to do that anymore\n        function scroll_to_end(win)\n            local timeline_scrollbar = win:get_scrollbar_or_throw()\n            local frame = timeline_scrollbar:axFrame()\n            local min_value = timeline_scrollbar:axMinValue()\n\n            local function click_until_timeline_at_start()\n                local prior_value = nil\n                while true do\n                    local value = timeline_scrollbar:axValue()\n                    local current_value = tonumber(value)\n                    if not current_value\n                        or current_value <= min_value\n                    then\n                        break\n                    end\n\n                    if prior_value ~= nil and current_value == prior_value then\n                        -- log:info(\"Value unchanged, stopping.\")\n                        break\n                    end\n                    prior_value = current_value\n\n                    -- click left-most side of timeline's scrollbar to get to zero\n                    hs.eventtap.leftClick({ x = frame.x, y = frame.y + frame.h / 2 })\n                    -- hs.eventtap.leftClick({ x = frame.x, y = frame.y + frame.h / 2 }) -- could click twice if value doesn't change\n                    -- hs.timer.usleep(_10ms) -- don't need pause b/c hs seems to block while clicking\n                end\n            end\n\n            click_until_timeline_at_start()\n        end\n```\n\n## Reminders about the cursor line:\nText before cursor: `    `\nText before cursor is all whitespace (do not ignore this)",
+        "role":"user"
+      },{
+        "finish_reason":"stop",
+        "content":"    local original_mouse_pos = hs.mouse.absolutePosition()\n    what()\n    hs.mouse.absolutePosition(original_mouse_pos)",
+        "reasoning_content":"We need to fill function with_restore_mouse_position. Likely saves mouse position, calls what(), then restores. Use hs.mouse.absolutePosition(). Implement:\n\nlocal pos = hs.mouse.absolutePosition()\nwhat()\nhs.mouse.absolutePosition(pos)\n\nAdd try/finally? Just simple.\n\n",
+        "role":"assistant",
+        "timings":{
+          "prompt_ms":112.324,
+          "prompt_per_token_ms":0.092906534325889,
+          "predicted_ms":365.732,
+          "predicted_per_token_ms":4.203816091954,
+          "predicted_n":88,
+          "prompt_per_second":10763.505573163,
+          "prompt_n":1209,
+          "predicted_per_second":237.87910273096,
+          "cache_n":1004
+        }
+      }],
+    "stream":true,
+    "top_logprobs":5,
+    "temperature":1,
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "max_tokens":4096,
+    "post_sampling_probs":true,
+    "logprobs":true
+  },
+  "last_sse":{
+    "timings":{
+      "prompt_ms":112.324,
+      "prompt_per_token_ms":0.092906534325889,
+      "predicted_ms":365.732,
+      "predicted_per_token_ms":4.203816091954,
+      "predicted_n":88,
+      "prompt_per_second":10763.505573163,
+      "prompt_n":1209,
+      "predicted_per_second":237.87910273096,
+      "cache_n":1004
+    },
+    "object":"chat.completion.chunk",
+    "choices":[{
+        "delta":[],
+        "finish_reason":"stop",
+        "index":0
+      }],
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b10793-d230ddd76",
+    "created":1788918713,
+    "id":"chatcmpl-cmgZtsy5Q8YPTzUSPY0KZaFPBC4UrtH5"
+  },
+  "flags":{
+    "fim_duplicate_prefix":"    "
+  }
+}
