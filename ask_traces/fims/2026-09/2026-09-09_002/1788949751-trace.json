@@ -1,0 +1,65 @@
+{
+  "last_sse":{
+    "model":"ggml-org/gpt-oss-120b-GGUF",
+    "system_fingerprint":"b10869-30b6a755e",
+    "timings":{
+      "predicted_per_second":240.26220168241,
+      "predicted_n":252,
+      "prompt_per_second":1116.9146874281,
+      "prompt_n":34,
+      "cache_n":1629,
+      "prompt_ms":30.441,
+      "prompt_per_token_ms":0.89532352941176,
+      "predicted_ms":1044.692,
+      "predicted_per_token_ms":4.1621195219124
+    },
+    "created":1788949752,
+    "choices":[{
+        "index":0,
+        "delta":[],
+        "finish_reason":"stop"
+      }],
+    "id":"chatcmpl-EBqlHVSaB2X1hZ5lkYsj6yN35E3ZwvOn",
+    "object":"chat.completion.chunk"
+  },
+  "request_body":{
+    "post_sampling_probs":true,
+    "logprobs":true,
+    "raw":false,
+    "max_tokens":4096,
+    "messages":[{
+        "content":"You are completing code from a Neovim plugin.\nAs the user types, the plugin suggests code completions based on their cursor position: <|CURSOR_IS_HERE|>\n\nThe surrounding code is limited, it may not be the full file. Focus on the code near <|CURSOR_IS_HERE|>\nDo NOT explain your decisions. Do NOT return markdown blocks ```\nONLY return valid code at the <|CURSOR_IS_HERE|> position\nPAY attention to existing whitespace. Especially on the cursor line!\nYOU ARE ONLY INSERTING CODE. DO NOT REPEAT PREFIX. DO NOT REPEAT SUFFIX.\nComplete as little or as much code as is necessary to help the user. That means part of a line, a full line or even multiple lines! Goal is to help the user as much as is possible and reasonable.\n\nHere are a few examples of tricky completions:\n\n## Example: suggest middle of line (cursor has existing code before and after it)\n\n```python\ndef area(width, height):\n    return <|CURSOR_IS_HERE|> * height\n```\n\nSay this is your desired result:\n```python\ndef area(width, height):\n    return width * height\n```\n\n1. then the CORRECT completion is (do not include backticks, those are just to delimit included whitespace):\n`width`\n\n2. WRONG (because repeats the suffix):\n`width * height`\nresults in:\n`    return width * height * height`\n\n3. WRONG (because repeats both suffix and prefix):\n`    return width * height`\nresults in:\n`    return     return width * height * height`\n\n\n## Example: cursor is indented\n\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    <|CURSOR_IS_HERE|>\n    end\nend\n```\n\n*Keep in mind, the indent will be there before the suggested code too.*\n\nSay this is your desired result:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n1. then the CORRECT completion is:\n```lua\nelse\n        print(\"Non‑positive\")\n```\n\n2. WRONG (`else` ends up double indented when it should be single):\n```lua\n    else\n        print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n        else\n        print(\"Non‑positive\")\n    end\nend\n```\n\n3. WRONG (`print` ends up single indented when it should be double):\n```lua\nelse\n    print(\"Non‑positive\")\n```\nresults in:\n```lua\nfunction print_sign(number)\n    if number > 0 then\n        print(\"Positive\")\n    else\n    print(\"Non‑positive\")\n    end\nend\n```\n\n\n",
+        "role":"system"
+      },{
+        "content":"Here is context that's automatically provided, that MAY be relevant.\nrepo: mcp-server-commands\n\n## General project code rules:\n- Never add comments to the end of a line.\n- NEVER add TODO comments for me.\n\n## General Code Preferences\n\n- Avoid ambiguity, for example:\n\n```lua\n-- 👎 if there's a bug in the regex, how would I know? I'd have to surmise from surrounding code 🤮\nif line:match(\"^%s*$\") then\n    -- ...\nend\n```\n\n```lua\n-- 🙌 clear intent\nlocal is_blank_line = line:match(\"^%s*$\")\nif is_blank_line then\n    -- ...\nend\n```\n\n\n## Fish Shell\n\n- Use snake_case for names\n- Use long options, i.e. `--quiet` over `-q`, `--regex` over `-r`\n\nTake advantage of fish-isms:\n```fish\n\n# use `not`, avoid `!`\nif not test -f spoon\n    echo There is no spoon\nend\n\n# capture command output and react to its success/failure (exit status)\nif set some_output (some_command)\n    echo \"ok: $some_output\"\nelse\n    echo \"fail: $some_output\"\nend\n\n# prefer named arguments\nfunction show_variable --argument-names name value\n    echo \"$name = $value\"\nend\n\n# fish doesn't have heredocs, use mulit-line strings:\necho \"foo\nbar\" | string join \",\"\n\n# blocks combine the output of multiple commands:\nbegin\n    echo -n \"Hello Wes, the time is: \"\n    date\nend > welcome.txt\n\n# every variable is an array\nset names wes john bob jane\nfor name in $names\n    echo $name\nend\n\nstring match '*.lua' $files\nstring replace wrong right $in_this_text\nstring replace --regex '\\s+' ' ' $line\nset lines (string split '\\n' $text)\nstring join ',' $argv\nstring length $name\n\nstring escape $file_path\nstring unescape $escaped\n\npath change-extension mov ./foo.mp4 # ./foo.mov\npath sort 10-foo 2-bar # returns 2 before 10\n\nmath 10 / 5\nmath \"5 * 2\"\n\ncount *.txt\n\nif contains -- \"-q\" $argv\n    # ...\nend\n\nstatus filename # current script file\nstatus function # current function\n```\n\n\n## Recent yanks (copy to clipboard):\n```tests/manual/stdio/tool_call_man_ls.fish\nset request '{ \"jsonrpc\": \"2.0\", \"id\": 1, \"method\":\"tools/call\",\"params\":{\"name\":\"run_process\",\"arguments\":{\"command_line\":\"man ls\"}}}'\n```\n\n```~/repos/github/g0t4/mcp-server-commands/tests/manual/stdio/tool_call_workdir_pwd.fish\necho $request \\\n    | npx ~/repos/github/g0t4/mcp-server-commands/build/index.js \\\n    | jq\n```\n\n```~/repos/github/g0t4/mcp-server-commands/tests/manual/stdio/tool_call_workdir_pwd.fish\nset request '{ \"jsonrpc\": \"2.0\", \"id\": 1, \"method\":\"tools/call\",\"params\":{\"name\":\"run_process\",\"arguments\":{\"command_line\":\"pwd\"}}}'\n```\n\n```~/repos/github/g0t4/mcp-server-commands/tests/manual/stdio/tool_call_workdir_pwd.fish\n# set request '{ \"jsonrpc\": \"2.0\", \"id\": 1, \"method\":\"tools/call\",\"params\":{\"name\":\"run_process\",\"arguments\":{\"command_line\":\"pwd\"}}}'\n```\n\n",
+        "role":"user"
+      },{
+        "content":"Please suggest text to replace <|CURSOR_IS_HERE|>:\n\n```~/repos/github/g0t4/mcp-server-commands/tests/manual/stdio/tool_call_workdir_pwd.fish\n#!/usr/bin/env fish\n\n# test of what `man ls` would look like (on my mac or another platform, depending on man client)\n\nset request '{ \"jsonrpc\": \"2.0\", \"id\": 1, \"method\":\"tools/call\",\"params\":{\"name\":\"run_process\",\"arguments\":{\"cwd\":\"~/repos\",\"command_line\":\"pwd\"}}}'\necho $request \\\n    | npx ~/repos/github/g0t4/mcp-server-commands/build/index.js \\\n    # take first array entry in .result.content[] with .name == \"STDOUT\"\n    | jq .result.content <|CURSOR_IS_HERE|>\n\n```\n\n## Reminders about the cursor line:\nText before cursor: `    | jq .result.content `",
+        "role":"user"
+      },{
+        "role":"assistant",
+        "finish_reason":"stop",
+        "content":"[] | select(.name==\"STDOUT\") | .text",
+        "timings":{
+          "predicted_per_second":240.26220168241,
+          "predicted_n":252,
+          "prompt_per_second":1116.9146874281,
+          "prompt_n":34,
+          "cache_n":1629,
+          "prompt_ms":30.441,
+          "prompt_per_token_ms":0.89532352941176,
+          "predicted_ms":1044.692,
+          "predicted_per_token_ms":4.1621195219124
+        },
+        "reasoning_content":"We need to complete after jq .result.content . Probably want to pipe through something like ' | jq -r ...' but cursor is at end of line after .result.content . Should add something like ' | jq -r .[0].text' but based on comment: take first array entry in .result.content[] with .name == \"STDOUT\". So jq filter: '.[] | select(.name==\"STDOUT\") | .text' maybe first: ' | jq -r \".result.content[] | select(.name==\\\"STDOUT\\\") | .text\"' But already .result.content used, so after that need filter: '[] | select(.name==\"STDOUT\") | .text' So complete line: '| jq .result.content[] | select(.name==\"STDOUT\") | .text' but need proper piping. The line currently: | jq .result.content <cursor>. Should replace with something like '[] | select(.name==\"STDOUT\") | .text'. So final code: '| jq .result.content[] | select(.name==\"STDOUT\") | .text'. Include newline? Just the text."
+      }],
+    "chat_template_kwargs":{
+      "reasoning_effort":"low"
+    },
+    "top_logprobs":5,
+    "top_p":1,
+    "stream":true,
+    "temperature":1
+  },
+  "flags":[]
+}

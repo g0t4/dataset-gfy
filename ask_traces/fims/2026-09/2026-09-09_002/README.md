@@ -1,0 +1,3 @@
+gptoss nailed it...
+- FYI I needed outer quotes `'...'`which is my bad cuz you cannot FIM that (you could do an edit suggest like FIM but then it duplicates alot)... I like what gptoss came back with! easy to wrap it in `'...'`
+- btw the leading `<SPACE>` is on me too... (before `[]` it proposed)
